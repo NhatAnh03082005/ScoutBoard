@@ -7,6 +7,12 @@ export interface UserProfile {
   status: string;
   createdAt: string;
   updatedAt: string;
+  failedLoginAttempts?: number;
+  lockoutCount?: number;
+  lockedUntil?: string | null;
+  lastFailedLoginAt?: string | null;
+  isTemporarilyLocked?: boolean;
+  effectiveStatus?: 'ACTIVE' | 'DISABLED' | 'LOCKED';
   userRoles?: {
     role?: {
       code: string;
@@ -33,7 +39,13 @@ export async function loginApi(email: string, password: string): Promise<AuthRes
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || 'Đăng nhập thất bại');
+    // Preserve structured error response from backend
+    const err = new Error(data.message || 'Đăng nhập thất bại') as any;
+    err.code = data.code;
+    err.remainingAttempts = data.remainingAttempts;
+    err.retryAfterSeconds = data.retryAfterSeconds;
+    err.lockedUntil = data.lockedUntil;
+    throw err;
   }
   return data;
 }
@@ -103,6 +115,97 @@ export async function logoutApi(accessToken: string, refreshToken: string): Prom
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.message || 'Đăng xuất thất bại');
+  }
+  return data;
+}
+
+// --- Admin Management APIs ---
+
+export async function getAdminUsersApi(
+  accessToken: string,
+  search?: string,
+  status?: string,
+  role?: string,
+): Promise<UserProfile[]> {
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+  if (status) params.append('status', status);
+  if (role) params.append('role', role);
+
+  const url = `${API_BASE_URL}/admin/users${params.toString() ? `?${params.toString()}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể tải danh sách người dùng');
+  }
+  return data;
+}
+
+export async function updateUserStatusApi(
+  accessToken: string,
+  userId: string,
+  status: string,
+): Promise<UserProfile> {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/status`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể cập nhật trạng thái người dùng');
+  }
+  return data;
+}
+
+export async function unlockUserApi(
+  accessToken: string,
+  userId: string,
+): Promise<UserProfile> {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/unlock`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể mở khóa tài khoản người dùng');
+  }
+  return data;
+}
+
+export async function updateUserRolesApi(
+  accessToken: string,
+  userId: string,
+  roles: string[],
+): Promise<UserProfile> {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/roles`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ roles }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể cập nhật vai trò người dùng');
   }
   return data;
 }

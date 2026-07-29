@@ -2,7 +2,7 @@
 
 :root {
   --bg-dark: #090d16;
-  --bg-card: rgba(15, 23, 42, 0.75);
+  --bg-card: rgba(15, 23, 42, 0.85);
   --border-glass: rgba(255, 255, 255, 0.1);
   --primary-neon: #22c55e;
   --primary-neon-glow: rgba(34, 197, 94, 0.35);
@@ -10,6 +10,7 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --danger: #ef4444;
+  --warning: #f59e0b;
   --success: #10b981;
 }
 
@@ -36,7 +37,7 @@ body {
 
 .scout-container {
   width: 100%;
-  max-width: 480px;
+  max-width: 520px;
   background: var(--bg-card);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -47,11 +48,16 @@ body {
     0 20px 50px rgba(0, 0, 0, 0.5),
     0 0 30px rgba(34, 197, 94, 0.05);
   animation: fadeIn 0.4s ease-out;
+  transition: max-width 0.3s ease;
+}
+
+.scout-container.wide {
+  max-width: 960px;
 }
 
 .scout-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .scout-logo-badge {
@@ -130,7 +136,7 @@ body {
   color: #cbd5e1;
 }
 
-.scout-input {
+.scout-input, .scout-select {
   width: 100%;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -142,7 +148,7 @@ body {
   transition: all 0.2s ease;
 }
 
-.scout-input:focus {
+.scout-input:focus, .scout-select:focus {
   border-color: var(--primary-neon);
   box-shadow: 0 0 12px var(--primary-neon-glow);
 }
@@ -192,6 +198,14 @@ body {
 
 .scout-btn-danger:hover:not(:disabled) {
   box-shadow: 0 6px 25px rgba(239, 68, 68, 0.5);
+}
+
+.scout-btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  margin-top: 0;
+  width: auto;
 }
 
 .alert-banner {
@@ -287,10 +301,140 @@ body {
   font-weight: 600;
 }
 
+.role-pill-admin {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
 .action-buttons {
   display: flex;
   gap: 12px;
   margin-top: 10px;
+}
+
+/* --- Admin Management Component Styles --- */
+
+.admin-filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.admin-filter-bar input {
+  flex: 2;
+  min-width: 200px;
+}
+
+.admin-filter-bar select {
+  flex: 1;
+  min-width: 140px;
+}
+
+.admin-table-wrapper {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border-glass);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.admin-table th {
+  background: rgba(15, 23, 42, 0.9);
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-glass);
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-disabled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-locked {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-card {
+  background: #0f172a;
+  border: 1px solid var(--border-glass);
+  border-radius: 20px;
+  padding: 28px;
+  width: 90%;
+  max-width: 440px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 @keyframes fadeIn {

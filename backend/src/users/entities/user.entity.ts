@@ -26,6 +26,36 @@ export class User {
   @Column({ type: 'varchar', length: 30, default: 'ACTIVE' })
   status: string;
 
+  @Column({
+    name: 'failed_login_attempts',
+    type: 'integer',
+    default: 0,
+  })
+  failedLoginAttempts: number;
+
+  @Column({
+    name: 'lockout_count',
+    type: 'integer',
+    default: 0,
+  })
+  lockoutCount: number;
+
+  @Column({
+    name: 'locked_until',
+    type: 'timestamptz',
+    nullable: true,
+    default: null,
+  })
+  lockedUntil: Date | null;
+
+  @Column({
+    name: 'last_failed_login_at',
+    type: 'timestamptz',
+    nullable: true,
+    default: null,
+  })
+  lastFailedLoginAt: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
