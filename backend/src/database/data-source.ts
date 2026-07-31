@@ -11,7 +11,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.POSTGRES_USER || 'postgres',
   password: process.env.POSTGRES_PASSWORD || 'postgres123',
   database: process.env.POSTGRES_DB || 'scoutboard_db',
-  entities: [path.join(__dirname, '../**/*.entity.{ts,js}')],
+  entities: [path.join(__dirname, '../**/*.{entity,orm-entity}.{ts,js}')],
   migrations: [path.join(__dirname, './migrations/*.{ts,js}')],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',

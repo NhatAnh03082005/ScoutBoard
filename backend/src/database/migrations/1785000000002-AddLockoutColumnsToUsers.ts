@@ -36,12 +36,8 @@ export class AddLockoutColumnsToUsers1785000000002 implements MigrationInterface
     await queryRunner.query(
       `ALTER TABLE "users" DROP COLUMN "last_failed_login_at"`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "users" DROP COLUMN "locked_until"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "users" DROP COLUMN "lockout_count"`,
-    );
+    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN "locked_until"`);
+    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN "lockout_count"`);
     await queryRunner.query(
       `ALTER TABLE "users" DROP COLUMN "failed_login_attempts"`,
     );

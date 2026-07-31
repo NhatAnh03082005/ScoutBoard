@@ -42,7 +42,10 @@ export function App() {
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [isUnlockAction, setIsUnlockAction] = useState<boolean>(false);
 
-  const isAdmin = user?.userRoles?.some((ur) => ur.role?.code === 'ADMIN');
+  const isAdmin =
+    user?.roles?.includes('ADMIN') ??
+    user?.userRoles?.some((ur) => ur.role?.code === 'ADMIN') ??
+    false;
 
   // Timer countdown for lock duration
   useEffect(() => {
@@ -227,7 +230,10 @@ export function App() {
     setSuccess(null);
     setLoading(true);
 
-    const hasAdmin = targetUser.userRoles?.some((ur) => ur.role?.code === 'ADMIN');
+    const hasAdmin =
+      targetUser.roles?.includes('ADMIN') ??
+      targetUser.userRoles?.some((ur) => ur.role?.code === 'ADMIN') ??
+      false;
     const newRoles = hasAdmin ? ['USER'] : ['USER', 'ADMIN'];
 
     try {
@@ -549,9 +555,10 @@ export function App() {
                 {adminUsers.length > 0 ? (
                   adminUsers.map((u) => {
                     const isSelf = u.id === user.id;
-                    const isTargetAdmin = u.userRoles?.some(
-                      (ur) => ur.role?.code === 'ADMIN',
-                    );
+                    const isTargetAdmin =
+                      u.roles?.includes('ADMIN') ??
+                      u.userRoles?.some((ur) => ur.role?.code === 'ADMIN') ??
+                      false;
                     const isLocked = u.effectiveStatus === 'LOCKED';
 
                     return (

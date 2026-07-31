@@ -24,4 +24,4 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`🚀 ScoutBoard Backend running at http://localhost:${port}`);
 }
-bootstrap();
+void bootstrap();

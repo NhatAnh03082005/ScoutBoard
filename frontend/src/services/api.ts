@@ -5,8 +5,9 @@ export interface UserProfile {
   email: string;
   fullName: string;
   status: string;
-  createdAt: string;
-  updatedAt: string;
+  roles?: string[];
+  createdAt?: string;
+  updatedAt?: string;
   failedLoginAttempts?: number;
   lockoutCount?: number;
   lockedUntil?: string | null;

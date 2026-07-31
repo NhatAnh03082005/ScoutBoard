@@ -1,8 +1,12 @@
 import AppDataSource from '../data-source';
-import { seedRoles } from './role.seed';
-import { seedAdminUser } from './admin.seed';
+import { seedRoles } from './app/role.seed';
+import { seedAdminUser } from './app/admin.seed';
 
 async function runSeeds() {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Seeds must not run in production environment');
+  }
+
   console.log('🌱 Starting database seeding...');
   try {
     await AppDataSource.initialize();
@@ -21,4 +25,4 @@ async function runSeeds() {
   }
 }
 
-runSeeds();
+void runSeeds();
