@@ -6,7 +6,11 @@ import {
   UpdateDateColumn,
   Unique,
   Index,
+  OneToMany,
 } from 'typeorm';
+import type { SeasonOrmEntity } from 'src/modules/seasons/infrastructure/persistence/typeorm/entities/season.orm-entity';
+import type { MatchOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/match.orm-entity';
+import type { PlayerSeasonStatisticOrmEntity } from 'src/modules/players/infrastructure/persistence/typeorm/entities/player-season-statistic.orm-entity';
 
 @Entity('competitions')
 @Unique('UQ_competitions_provider_external_id', [
@@ -52,4 +56,13 @@ export class CompetitionOrmEntity {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  @OneToMany('SeasonOrmEntity', 'competition')
+  seasons: SeasonOrmEntity[];
+
+  @OneToMany('MatchOrmEntity', 'competition')
+  matches: MatchOrmEntity[];
+
+  @OneToMany('PlayerSeasonStatisticOrmEntity', 'competition')
+  seasonStatistics: PlayerSeasonStatisticOrmEntity[];
 }

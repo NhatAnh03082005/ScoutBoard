@@ -9,6 +9,11 @@ import {
   OneToMany,
 } from 'typeorm';
 import type { PlayerOrmEntity } from 'src/modules/players/infrastructure/persistence/typeorm/entities/player.orm-entity';
+import type { PlayerTeamHistoryOrmEntity } from 'src/modules/players/infrastructure/persistence/typeorm/entities/player-team-history.orm-entity';
+import type { MatchOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/match.orm-entity';
+import type { PlayerMatchStatisticOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/player-match-statistic.orm-entity';
+import type { PlayerSeasonStatisticOrmEntity } from 'src/modules/players/infrastructure/persistence/typeorm/entities/player-season-statistic.orm-entity';
+import type { SeasonTeamOrmEntity } from 'src/modules/seasons/infrastructure/persistence/typeorm/entities/season-team.orm-entity';
 
 @Entity('teams')
 @Unique('UQ_teams_provider_external_id', ['externalProvider', 'externalId'])
@@ -61,6 +66,9 @@ export class TeamOrmEntity {
   @Column({ name: 'logo_url', type: 'text', nullable: true, default: null })
   logoUrl: string | null;
 
+  @Column({ type: 'varchar', length: 30, default: 'ACTIVE' })
+  status: string;
+
   @Column({
     name: 'data_updated_at',
     type: 'timestamp with time zone',
@@ -77,4 +85,22 @@ export class TeamOrmEntity {
 
   @OneToMany('PlayerOrmEntity', 'currentTeam')
   players: PlayerOrmEntity[];
+
+  @OneToMany('PlayerTeamHistoryOrmEntity', 'team')
+  teamHistory: PlayerTeamHistoryOrmEntity[];
+
+  @OneToMany('MatchOrmEntity', 'homeTeam')
+  homeMatches: MatchOrmEntity[];
+
+  @OneToMany('MatchOrmEntity', 'awayTeam')
+  awayMatches: MatchOrmEntity[];
+
+  @OneToMany('PlayerMatchStatisticOrmEntity', 'team')
+  matchStatistics: PlayerMatchStatisticOrmEntity[];
+
+  @OneToMany('PlayerSeasonStatisticOrmEntity', 'team')
+  seasonStatistics: PlayerSeasonStatisticOrmEntity[];
+
+  @OneToMany('SeasonTeamOrmEntity', 'team')
+  seasonTeams: SeasonTeamOrmEntity[];
 }

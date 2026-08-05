@@ -11,12 +11,17 @@ export class TypeOrmSeasonReadRepository implements SeasonReadRepository {
     private readonly repository: Repository<SeasonOrmEntity>,
   ) {}
 
-  async findByCompetition(competitionId: string): Promise<SeasonOrmEntity[]> {
+  async findAll(competitionId?: string): Promise<SeasonOrmEntity[]> {
+    const where = competitionId ? { competitionId } : {};
     return this.repository.find({
-      where: { competitionId },
+      where,
       relations: ['competition'],
       order: { startDate: 'DESC' },
     });
+  }
+
+  async findByCompetition(competitionId: string): Promise<SeasonOrmEntity[]> {
+    return this.findAll(competitionId);
   }
 
   async findById(id: string): Promise<SeasonOrmEntity | null> {

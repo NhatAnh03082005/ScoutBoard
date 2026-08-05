@@ -38,17 +38,24 @@ export class PlayerTeamHistoryOrmEntity {
   })
   shirtNumber: number | null;
 
+  @Column({ name: 'is_current', type: 'boolean', default: false })
+  isCurrent: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => PlayerOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => PlayerOrmEntity, (player) => player.teamHistory, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'player_id' })
   player: PlayerOrmEntity;
 
-  @ManyToOne(() => TeamOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => TeamOrmEntity, (team) => team.teamHistory, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'team_id' })
   team: TeamOrmEntity;
 }

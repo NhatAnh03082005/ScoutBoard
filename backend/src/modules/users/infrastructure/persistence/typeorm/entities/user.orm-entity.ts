@@ -8,6 +8,8 @@ import {
 } from 'typeorm';
 import { UserRoleOrmEntity } from './user-role.orm-entity';
 
+import type { RefreshTokenOrmEntity } from '../../../../../auth/infrastructure/persistence/typeorm/entities/refresh-token.orm-entity';
+
 @Entity('users')
 export class UserOrmEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -50,6 +52,9 @@ export class UserOrmEntity {
     (userRole: UserRoleOrmEntity) => userRole.user,
   )
   userRoles: UserRoleOrmEntity[];
+
+  @OneToMany('RefreshTokenOrmEntity', 'user')
+  refreshTokens: RefreshTokenOrmEntity[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;

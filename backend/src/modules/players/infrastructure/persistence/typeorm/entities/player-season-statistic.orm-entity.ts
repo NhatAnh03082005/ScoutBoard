@@ -88,6 +88,17 @@ export class PlayerSeasonStatisticOrmEntity {
   @Column({ name: 'red_cards', type: 'integer', default: 0 })
   redCards: number;
 
+  @Column({ name: 'duels_won', type: 'integer', default: 0 })
+  duelsWon: number;
+
+  @Column({
+    name: 'advanced_statistics',
+    type: 'jsonb',
+    nullable: true,
+    default: null,
+  })
+  advancedStatistics: Record<string, any> | null;
+
   @Column({
     name: 'goals_per_90',
     type: 'decimal',
@@ -145,15 +156,22 @@ export class PlayerSeasonStatisticOrmEntity {
   @JoinColumn({ name: 'player_id' })
   player: PlayerOrmEntity;
 
-  @ManyToOne(() => SeasonOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => SeasonOrmEntity, (season) => season.seasonStatistics, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'season_id' })
   season: SeasonOrmEntity;
 
-  @ManyToOne(() => CompetitionOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => CompetitionOrmEntity, (comp) => comp.seasonStatistics, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'competition_id' })
   competition: CompetitionOrmEntity;
 
-  @ManyToOne(() => TeamOrmEntity, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => TeamOrmEntity, (team) => team.seasonStatistics, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'team_id' })
   team: TeamOrmEntity | null;
 }

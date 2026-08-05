@@ -1,6 +1,7 @@
 import AppDataSource from '../data-source';
 import { seedRoles } from './app/role.seed';
 import { seedAdminUser } from './app/admin.seed';
+import { seedFootballZone2 } from './app/football-zone2.seed';
 
 async function runSeeds() {
   if (process.env.NODE_ENV === 'production') {
@@ -14,6 +15,7 @@ async function runSeeds() {
 
     const { adminRole } = await seedRoles(AppDataSource);
     await seedAdminUser(AppDataSource, adminRole);
+    await seedFootballZone2(AppDataSource);
 
     console.log('🎉 Seeding completed successfully!');
   } catch (error) {

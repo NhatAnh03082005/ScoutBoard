@@ -4,9 +4,10 @@ import { CompetitionOrmEntity } from './infrastructure/persistence/typeorm/entit
 import { COMPETITION_READ_REPOSITORY } from './application/ports/competition-read.repository';
 import { TypeOrmCompetitionReadRepository } from './infrastructure/persistence/typeorm/repositories/typeorm-competition-read.repository';
 import { CompetitionsController } from './presentation/http/controllers/competitions.controller';
+import { SeasonsModule } from '../seasons/seasons.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CompetitionOrmEntity])],
+  imports: [TypeOrmModule.forFeature([CompetitionOrmEntity]), SeasonsModule],
   controllers: [CompetitionsController],
   providers: [
     {

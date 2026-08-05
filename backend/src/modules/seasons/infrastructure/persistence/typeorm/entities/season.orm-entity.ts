@@ -7,9 +7,13 @@ import {
   Unique,
   Index,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { CompetitionOrmEntity } from 'src/modules/competitions/infrastructure/persistence/typeorm/entities/competition.orm-entity';
+import type { MatchOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/match.orm-entity';
+import type { PlayerSeasonStatisticOrmEntity } from 'src/modules/players/infrastructure/persistence/typeorm/entities/player-season-statistic.orm-entity';
+import type { SeasonTeamOrmEntity } from './season-team.orm-entity';
 
 @Entity('seasons')
 @Unique('UQ_seasons_competition_provider_external_id', [
@@ -30,6 +34,15 @@ export class SeasonOrmEntity {
 
   @Column({ name: 'external_id', type: 'varchar', length: 100 })
   externalId: string;
+
+  @Column({
+    name: 'season_code',
+    type: 'varchar',
+    length: 30,
+    nullable: true,
+    default: null,
+  })
+  seasonCode: string | null;
 
   @Column({ type: 'varchar', length: 100 })
   name: string;
@@ -57,7 +70,18 @@ export class SeasonOrmEntity {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => CompetitionOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => CompetitionOrmEntity, (comp) => comp.seasons, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'competition_id' })
   competition: CompetitionOrmEntity;
+
+  @OneToMany('MatchOrmEntity', 'season')
+  matches: MatchOrmEntity[];
+
+  @OneToMany('PlayerSeasonStatisticOrmEntity', 'season')
+  seasonStatistics: PlayerSeasonStatisticOrmEntity[];
+
+  @OneToMany('SeasonTeamOrmEntity', 'season')
+  seasonTeams: SeasonTeamOrmEntity[];
 }

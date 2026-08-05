@@ -21,6 +21,9 @@ export class RoleOrmEntity {
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @OneToMany('UserRoleOrmEntity', (userRole: UserRoleOrmEntity) => userRole.role)
+  @OneToMany(
+    'UserRoleOrmEntity',
+    (userRole: UserRoleOrmEntity) => userRole.role,
+  )
   userRoles: UserRoleOrmEntity[];
 }

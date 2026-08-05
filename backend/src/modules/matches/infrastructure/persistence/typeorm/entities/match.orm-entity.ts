@@ -7,11 +7,13 @@ import {
   Unique,
   Index,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { CompetitionOrmEntity } from 'src/modules/competitions/infrastructure/persistence/typeorm/entities/competition.orm-entity';
 import { SeasonOrmEntity } from 'src/modules/seasons/infrastructure/persistence/typeorm/entities/season.orm-entity';
 import { TeamOrmEntity } from 'src/modules/teams/infrastructure/persistence/typeorm/entities/team.orm-entity';
+import type { PlayerMatchStatisticOrmEntity } from './player-match-statistic.orm-entity';
 
 @Entity('matches')
 @Unique('UQ_matches_provider_external_id', ['externalProvider', 'externalId'])
@@ -80,19 +82,30 @@ export class MatchOrmEntity {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => CompetitionOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => CompetitionOrmEntity, (comp) => comp.matches, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'competition_id' })
   competition: CompetitionOrmEntity;
 
-  @ManyToOne(() => SeasonOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => SeasonOrmEntity, (season) => season.matches, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'season_id' })
   season: SeasonOrmEntity;
 
-  @ManyToOne(() => TeamOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => TeamOrmEntity, (team) => team.homeMatches, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'home_team_id' })
   homeTeam: TeamOrmEntity;
 
-  @ManyToOne(() => TeamOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => TeamOrmEntity, (team) => team.awayMatches, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'away_team_id' })
   awayTeam: TeamOrmEntity;
+
+  @OneToMany('PlayerMatchStatisticOrmEntity', 'match')
+  matchStatistics: PlayerMatchStatisticOrmEntity[];
 }

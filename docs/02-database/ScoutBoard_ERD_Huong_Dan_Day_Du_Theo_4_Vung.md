@@ -22,7 +22,7 @@ Mỗi bảng đều có:
 - Ý nghĩa nghiệp vụ.
 - Quy tắc validation và ghi chú triển khai.
 
-ERD hiện tại gồm **20 bảng**. Tài liệu không lược bỏ bảng hoặc thuộc tính nào trong sơ đồ.
+ERD hiện tại gồm **21 bảng**. Tài liệu không lược bỏ bảng hoặc thuộc tính nào trong sơ đồ.
 
 ---
 
@@ -33,7 +33,7 @@ ERD hiện tại gồm **20 bảng**. Tài liệu không lược bỏ bảng ho�
 | Vùng | Nhóm dữ liệu | Danh sách bảng |
 |---:|---|---|
 | 1 | Authentication & Authorization | `users`, `roles`, `user_roles`, `refresh_tokens` |
-| 2 | Football Data | `competitions`, `seasons`, `teams`, `players`, `player_positions`, `player_team_history`, `matches`, `player_match_statistics`, `player_season_statistics` |
+| 2 | Football Data | `competitions`, `seasons`, `season_teams`, `teams`, `players`, `player_positions`, `player_team_history`, `matches`, `player_match_statistics`, `player_season_statistics` |
 | 3 | User-generated Data | `shortlists`, `shortlist_players`, `squads`, `squad_players` |
 | 4 | Synchronization & Audit | `data_sync_jobs`, `data_sync_logs`, `audit_logs` |
 
@@ -41,43 +41,46 @@ ERD hiện tại gồm **20 bảng**. Tài liệu không lược bỏ bảng ho�
 
 | STT | Bảng cha | Bảng con | Cardinality | Khóa ngoại ở bảng con | Ý nghĩa |
 |---:|---|---|---|---|---|
-| 1 | `users` | `user_roles` | 1–N | `user_roles.user_id` | Một tài khoản có thể có nhiều bản ghi gán vai trò. |
-| 2 | `roles` | `user_roles` | 1–N | `user_roles.role_id` | Một vai trò có thể được gán cho nhiều tài khoản. |
-| 3 | `users` | `refresh_tokens` | 1–N | `refresh_tokens.user_id` | Một tài khoản có thể có nhiều phiên đăng nhập. |
-| 4 | `competitions` | `seasons` | 1–N | `seasons.competition_id` | Một giải đấu có nhiều mùa giải. |
-| 5 | `teams` | `players` | 1–N | `players.current_team_id` | Một đội có nhiều cầu thủ hiện tại; khóa ngoại có thể `NULL`. |
-| 6 | `players` | `player_positions` | 1–N | `player_positions.player_id` | Một cầu thủ có thể thi đấu ở nhiều vị trí. |
-| 7 | `players` | `player_team_history` | 1–N | `player_team_history.player_id` | Một cầu thủ có nhiều giai đoạn thuộc các đội khác nhau. |
-| 8 | `teams` | `player_team_history` | 1–N | `player_team_history.team_id` | Một đội xuất hiện trong lịch sử của nhiều cầu thủ. |
-| 9 | `competitions` | `matches` | 1–N | `matches.competition_id` | Một giải đấu có nhiều trận. |
-| 10 | `seasons` | `matches` | 1–N | `matches.season_id` | Một mùa giải có nhiều trận. |
-| 11 | `teams` | `matches` | 1–N | `matches.home_team_id` | Một đội có thể là đội nhà trong nhiều trận. |
-| 12 | `teams` | `matches` | 1–N | `matches.away_team_id` | Một đội có thể là đội khách trong nhiều trận. |
-| 13 | `matches` | `player_match_statistics` | 1–N | `player_match_statistics.match_id` | Một trận có thống kê của nhiều cầu thủ. |
-| 14 | `players` | `player_match_statistics` | 1–N | `player_match_statistics.player_id` | Một cầu thủ có thống kê ở nhiều trận. |
-| 15 | `teams` | `player_match_statistics` | 1–N | `player_match_statistics.team_id` | Một đội có nhiều thống kê cầu thủ theo trận. |
-| 16 | `players` | `player_season_statistics` | 1–N | `player_season_statistics.player_id` | Một cầu thủ có thống kê ở nhiều mùa hoặc nhiều đội. |
-| 17 | `teams` | `player_season_statistics` | 1–N | `player_season_statistics.team_id` | Một đội có thống kê mùa của nhiều cầu thủ. |
-| 18 | `competitions` | `player_season_statistics` | 1–N | `player_season_statistics.competition_id` | Một giải có nhiều bản ghi thống kê cầu thủ. |
-| 19 | `seasons` | `player_season_statistics` | 1–N | `player_season_statistics.season_id` | Một mùa có nhiều bản ghi thống kê cầu thủ. |
-| 20 | `users` | `shortlists` | 1–N | `shortlists.owner_id` | Một USER có nhiều shortlist. |
-| 21 | `shortlists` | `shortlist_players` | 1–N | `shortlist_players.shortlist_id` | Một shortlist chứa nhiều cầu thủ. |
-| 22 | `players` | `shortlist_players` | 1–N | `shortlist_players.player_id` | Một cầu thủ có thể nằm trong nhiều shortlist. |
-| 23 | `users` | `squads` | 1–N | `squads.owner_id` | Một USER có thể tạo nhiều đội hình. |
-| 24 | `seasons` | `squads` | 1–N | `squads.season_id` | Một mùa có thể được nhiều đội hình tham chiếu; khóa ngoại có thể `NULL`. |
-| 25 | `squads` | `squad_players` | 1–N | `squad_players.squad_id` | Một đội hình có nhiều cầu thủ. |
-| 26 | `players` | `squad_players` | 1–N | `squad_players.player_id` | Một cầu thủ có thể xuất hiện trong nhiều đội hình khác nhau. |
-| 27 | `users` | `data_sync_jobs` | 1–N | `data_sync_jobs.initiated_by` | Một ADMIN có thể tạo nhiều job; khóa ngoại có thể `NULL` với scheduler. |
-| 28 | `competitions` | `data_sync_jobs` | 1–N | `data_sync_jobs.competition_id` | Một giải đấu có thể được đồng bộ nhiều lần. |
-| 29 | `seasons` | `data_sync_jobs` | 1–N | `data_sync_jobs.season_id` | Một mùa giải có thể được đồng bộ nhiều lần. |
-| 30 | `data_sync_jobs` | `data_sync_logs` | 1–N | `data_sync_logs.job_id` | Một job có nhiều log chi tiết. |
-| 31 | `users` | `audit_logs` | 1–N | `audit_logs.actor_user_id` | Một user có thể tạo nhiều audit log; actor có thể `NULL`. |
+| 1 | `users` | `user_roles` | 1–N | `user_roles.user_id` | Một tài khoản có thể có nhiều bản ghi gán vai trò (`HAS ROLE`). |
+| 2 | `roles` | `user_roles` | 1–N | `user_roles.role_id` | Một vai trò có thể được gán cho nhiều tài khoản (`ASSIGNED TO`). |
+| 3 | `users` | `refresh_tokens` | 1–N | `refresh_tokens.user_id` | Một tài khoản có thể có nhiều phiên đăng nhập (`OWNS`). |
+| 4 | `competitions` | `seasons` | 1–N | `seasons.competition_id` | Một giải đấu có nhiều mùa giải (`HAS SEASONS`). |
+| 5 | `seasons` | `season_teams` | 1–N | `season_teams.season_id` | Một mùa giải gồm nhiều đội bóng tham gia (`INCLUDES TEAMS`). |
+| 6 | `teams` | `season_teams` | 1–N | `season_teams.team_id` | Một đội bóng tham gia vào nhiều mùa giải (`PARTICIPATES IN`). |
+| 7 | `teams` | `players` | 1–N | `players.current_team_id` | Một đội có nhiều cầu thủ hiện tại (`HAS CURRENT PLAYER`); khóa ngoại có thể `NULL`. |
+| 8 | `players` | `player_positions` | 1–N | `player_positions.player_id` | Một cầu thủ có thể thi đấu ở nhiều vị trí (`HAS POSITIONS`). |
+| 9 | `players` | `player_team_history` | 1–N | `player_team_history.player_id` | Một cầu thủ có nhiều giai đoạn thuộc các đội khác nhau (`CAREER HISTORY`). |
+| 10 | `teams` | `player_team_history` | 1–N | `player_team_history.team_id` | Một đội xuất hiện trong lịch sử của nhiều cầu thủ (`TEAM HISTORY`). |
+| 11 | `competitions` | `matches` | 1–N | `matches.competition_id` | Một giải đấu có nhiều trận (`CONTAINS MATCHES`). |
+| 12 | `seasons` | `matches` | 1–N | `matches.season_id` | Một mùa giải có nhiều trận (`CONTAINS MATCHES`). |
+| 13 | `teams` | `matches` | 1–N | `matches.home_team_id` | Một đội có thể là đội nhà trong nhiều trận (`HOME TEAM`). |
+| 14 | `teams` | `matches` | 1–N | `matches.away_team_id` | Một đội có thể là đội khách trong nhiều trận (`AWAY TEAM`). |
+| 15 | `matches` | `player_match_statistics` | 1–N | `player_match_statistics.match_id` | Một trận có thống kê của nhiều cầu thủ (`HAS PLAYER STATS`). |
+| 16 | `players` | `player_match_statistics` | 1–N | `player_match_statistics.player_id` | Một cầu thủ có thống kê ở nhiều trận (`RECORDED MATCH STATS`). |
+| 17 | `teams` | `player_match_statistics` | 1–N | `player_match_statistics.team_id` | Một đội có nhiều thống kê cầu thủ theo trận (`MATCH STATS`). |
+| 18 | `players` | `player_season_statistics` | 1–N | `player_season_statistics.player_id` | Một cầu thủ có thống kê ở nhiều mùa hoặc nhiều đội (`RECORDED SEASON STATS`). |
+| 19 | `teams` | `player_season_statistics` | 1–N | `player_season_statistics.team_id` | Một đội có thống kê mùa của nhiều cầu thủ (`SEASON STATS`). |
+| 20 | `competitions` | `player_season_statistics` | 1–N | `player_season_statistics.competition_id` | Một giải có nhiều bản ghi thống kê cầu thủ (`IN COMPETITION`). |
+| 21 | `seasons` | `player_season_statistics` | 1–N | `player_season_statistics.season_id` | Một mùa có nhiều bản ghi thống kê cầu thủ (`IN SEASON`). |
+| 22 | `users` | `shortlists` | 1–N | `shortlists.owner_id` | Một USER có nhiều shortlist (`CREATES`). |
+| 23 | `shortlists` | `shortlist_players` | 1–N | `shortlist_players.shortlist_id` | Một shortlist chứa nhiều cầu thủ (`CONTAINS PLAYERS`). |
+| 24 | `players` | `shortlist_players` | 1–N | `shortlist_players.player_id` | Một cầu thủ có thể nằm trong nhiều shortlist (`ADDED TO SHORTLIST`). |
+| 25 | `users` | `squads` | 1–N | `squads.owner_id` | Một USER có thể tạo nhiều đội hình (`CREATES`). |
+| 26 | `seasons` | `squads` | 1–N | `squads.season_id` | Một mùa có thể được nhiều đội hình tham chiếu (`APPLIES TO SEASON`); khóa ngoại có thể `NULL`. |
+| 27 | `squads` | `squad_players` | 1–N | `squad_players.squad_id` | Một đội hình có nhiều cầu thủ (`CONTAINS PLAYERS`). |
+| 28 | `players` | `squad_players` | 1–N | `squad_players.player_id` | Một cầu thủ có thể xuất hiện trong nhiều đội hình khác nhau (`PLACED IN SQUAD`). |
+| 29 | `users` | `data_sync_jobs` | 1–N | `data_sync_jobs.initiated_by` | Một ADMIN có thể tạo nhiều job (`TRIGGERS`); khóa ngoại có thể `NULL` với scheduler. |
+| 30 | `competitions` | `data_sync_jobs` | 1–N | `data_sync_jobs.competition_id` | Một giải đấu có thể được đồng bộ nhiều lần (`SYNCED BY`). |
+| 31 | `seasons` | `data_sync_jobs` | 1–N | `data_sync_jobs.season_id` | Một mùa giải có thể được đồng bộ nhiều lần (`SYNCED BY`). |
+| 32 | `data_sync_jobs` | `data_sync_logs` | 1–N | `data_sync_logs.job_id` | Một job có nhiều log chi tiết (`GENERATES LOGS`). |
+| 33 | `users` | `audit_logs` | 1–N | `audit_logs.actor_user_id` | Một user có thể tạo nhiều audit log (`PERFORMS`); actor có thể `NULL`. |
 
 ## 2.3. Các quan hệ nhiều–nhiều
 
 | Quan hệ nghiệp vụ | Bảng trung gian | Giải thích |
 |---|---|---|
 | `users` N–N `roles` | `user_roles` | Một user có thể có nhiều role và một role có thể được gán cho nhiều user. |
+| `seasons` N–N `teams` | `season_teams` | Một mùa giải gồm nhiều đội bóng và một đội bóng có thể tham gia nhiều mùa giải. |
 | `shortlists` N–N `players` | `shortlist_players` | Một shortlist có nhiều cầu thủ và một cầu thủ có thể nằm trong nhiều shortlist. |
 | `squads` N–N `players` | `squad_players` | Một đội hình có nhiều cầu thủ và một cầu thủ có thể nằm trong nhiều đội hình. |
 
@@ -90,6 +93,7 @@ users 1 ───── N refresh_tokens
 
 VÙNG 2
 competitions 1 ───── N seasons
+seasons      1 ───── N season_teams N ───── 1 teams
 competitions 1 ───── N matches
 seasons      1 ───── N matches
 teams        1 ───── N players
@@ -315,6 +319,7 @@ Lưu mùa giải thuộc một competition, ví dụ mùa 2025–2026 của Prem
 - **Khóa chính:** `id`
 - **Quan hệ:**
   - `seasons.competition_id` → `competitions.id`
+  - `seasons` 1–N `season_teams`
   - `seasons` 1–N `matches`
   - `seasons` 1–N `player_season_statistics`
   - `seasons` 1–N `squads`
@@ -341,23 +346,53 @@ Lưu mùa giải thuộc một competition, ví dụ mùa 2025–2026 của Prem
 
 ---
 
-
-## 7. Bảng `teams`
+## 7. Bảng `season_teams`
 
 ### 3.7.1. Bảng này là gì?
+
+Bảng liên kết nhiều–nhiều giữa mùa giải (`seasons`) và đội bóng (`teams`), xác định danh sách các đội tham gia trong một mùa giải cụ thể.
+
+- **Nguồn dữ liệu:** Được đồng bộ tự động từ external football API qua module synchronization.
+- **Khóa chính:** Khóa chính ghép (`season_id`, `team_id`)
+- **Quan hệ:**
+  - `season_teams.season_id` → `seasons.id` (`ON DELETE CASCADE`)
+  - `season_teams.team_id` → `teams.id` (`ON DELETE CASCADE`)
+
+### 3.7.2. Đặc tả thuộc tính
+
+| Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
+|---|---|---:|---|---|---|---|
+| `season_id` | `UUID` | Không | Không có | PK, FK | Mùa giải tham gia. | Phải tồn tại trong `seasons`; xóa cascade khi mùa giải bị xóa. |
+| `team_id` | `UUID` | Không | Không có | PK, FK | Đội bóng tham gia mùa giải. | Phải tồn tại trong `teams`; xóa cascade khi đội bóng bị xóa. |
+| `created_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm thêm bản ghi. | Tự động sinh khi đồng bộ. |
+
+### 3.7.3. Lưu ý triển khai
+
+- Khóa chính ghép `(season_id, team_id)` đảm bảo không cho phép một đội bị thêm trùng vào cùng một mùa giải.
+- Không chứa `competition_id` vì có thể suy ra thông qua `season.competition_id`.
+- Bảng thuộc dữ liệu bóng đá đồng bộ. Không xây API cho USER hoặc ADMIN sửa trực tiếp dữ liệu nghiệp vụ của bảng.
+- Khi đồng bộ, ưu tiên PostgreSQL `INSERT ... ON CONFLICT DO NOTHING` để upsert.
+
+---
+
+
+## 8. Bảng `teams`
+
+### 3.8.1. Bảng này là gì?
 
 Lưu câu lạc bộ hoặc đội tuyển được lấy từ external API.
 
 - **Nguồn dữ liệu:** Chỉ được tạo/cập nhật qua synchronization.
 - **Khóa chính:** `id`
 - **Quan hệ:**
+  - `teams` 1–N `season_teams`
   - `teams` 1–N `players` thông qua `current_team_id`
   - `teams` 1–N `player_team_history`
   - `teams` 1–N `matches` với vai trò đội nhà và đội khách
   - `teams` 1–N `player_match_statistics`
   - `teams` 1–N `player_season_statistics`
 
-### 3.7.2. Đặc tả thuộc tính
+### 3.8.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -380,9 +415,9 @@ Lưu câu lạc bộ hoặc đội tuyển được lấy từ external API.
 ---
 
 
-## 8. Bảng `players`
+## 9. Bảng `players`
 
-### 3.8.1. Bảng này là gì?
+### 3.9.1. Bảng này là gì?
 
 Bảng trung tâm lưu hồ sơ cơ bản của cầu thủ.
 
@@ -397,7 +432,7 @@ Bảng trung tâm lưu hồ sơ cơ bản của cầu thủ.
   - `players` N–N `shortlists` thông qua `shortlist_players`
   - `players` N–N `squads` thông qua `squad_players`
 
-### 3.8.2. Đặc tả thuộc tính
+### 3.9.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -417,7 +452,7 @@ Bảng trung tâm lưu hồ sơ cơ bản của cầu thủ.
 | `data_updated_at` | `TIMESTAMPTZ` | Có | `NULL` |  | Thời điểm dữ liệu cầu thủ được cập nhật ở nguồn. | Hiển thị “cập nhật lần cuối”. |
 | `(external_provider, external_id)` | `—` | — | — | UNIQUE | Định danh duy nhất cho cầu thủ theo provider. | Conflict target của upsert. |
 
-### 3.8.3. Lưu ý triển khai
+### 3.9.3. Lưu ý triển khai
 
 - Bảng thuộc dữ liệu bóng đá đồng bộ. Không xây API cho USER hoặc ADMIN sửa trực tiếp dữ liệu nghiệp vụ của bảng.
 - Khi đồng bộ, ưu tiên PostgreSQL `INSERT ... ON CONFLICT ... DO UPDATE` để upsert.
@@ -427,9 +462,9 @@ Bảng trung tâm lưu hồ sơ cơ bản của cầu thủ.
 ---
 
 
-## 9. Bảng `player_positions`
+## 10. Bảng `player_positions`
 
-### 3.9.1. Bảng này là gì?
+### 3.10.1. Bảng này là gì?
 
 Lưu một hoặc nhiều vị trí thi đấu của từng cầu thủ.
 
@@ -438,7 +473,7 @@ Lưu một hoặc nhiều vị trí thi đấu của từng cầu thủ.
 - **Quan hệ:**
   - `player_positions.player_id` → `players.id`
 
-### 3.9.2. Đặc tả thuộc tính
+### 3.10.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -449,7 +484,7 @@ Lưu một hoặc nhiều vị trí thi đấu của từng cầu thủ.
 | `display_order` | `INTEGER` | Có | `NULL` |  | Thứ tự hiển thị các vị trí. | Số nhỏ hiển thị trước. |
 | `(player_id, position_code)` | `—` | — | — | UNIQUE | Không lưu trùng cùng vị trí cho một cầu thủ. | Bảo đảm dữ liệu sạch. |
 
-### 3.9.3. Lưu ý triển khai
+### 3.10.3. Lưu ý triển khai
 
 - Bảng thuộc dữ liệu bóng đá đồng bộ. Không xây API cho USER hoặc ADMIN sửa trực tiếp dữ liệu nghiệp vụ của bảng.
 - Khi đồng bộ, ưu tiên PostgreSQL `INSERT ... ON CONFLICT ... DO UPDATE` để upsert.
@@ -457,9 +492,9 @@ Lưu một hoặc nhiều vị trí thi đấu của từng cầu thủ.
 ---
 
 
-## 10. Bảng `player_team_history`
+## 11. Bảng `player_team_history`
 
-### 3.10.1. Bảng này là gì?
+### 3.11.1. Bảng này là gì?
 
 Lưu lịch sử cầu thủ từng thuộc các đội bóng qua từng giai đoạn.
 
@@ -482,7 +517,7 @@ Lưu lịch sử cầu thủ từng thuộc các đội bóng qua từng giai đ
 | `is_current` | `BOOLEAN` | Không | `FALSE` |  | Đánh dấu đội hiện tại. | Cần thống nhất với `players.current_team_id`. |
 | `created_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm bản ghi được tạo trong ScoutBoard. | Không phải ngày gia nhập đội. |
 
-### 3.10.3. Lưu ý triển khai
+### 3.11.3. Lưu ý triển khai
 
 - Bảng thuộc dữ liệu bóng đá đồng bộ. Không xây API cho USER hoặc ADMIN sửa trực tiếp dữ liệu nghiệp vụ của bảng.
 - Khi đồng bộ, ưu tiên PostgreSQL `INSERT ... ON CONFLICT ... DO UPDATE` để upsert.
@@ -490,9 +525,9 @@ Lưu lịch sử cầu thủ từng thuộc các đội bóng qua từng giai đ
 ---
 
 
-## 11. Bảng `matches`
+## 12. Bảng `matches`
 
-### 3.11.1. Bảng này là gì?
+### 3.12.1. Bảng này là gì?
 
 Lưu thông tin trận đấu phục vụ phong độ gần đây và thống kê theo trận.
 
@@ -505,7 +540,7 @@ Lưu thông tin trận đấu phục vụ phong độ gần đây và thống k�
   - `matches.away_team_id` → `teams.id`
   - `matches` 1–N `player_match_statistics`
 
-### 3.11.2. Đặc tả thuộc tính
+### 3.12.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -522,7 +557,7 @@ Lưu thông tin trận đấu phục vụ phong độ gần đây và thống k�
 | `away_score` | `INTEGER` | Có | `NULL` |  | Số bàn đội khách. | Chỉ có khi trận đã diễn ra; không âm. |
 | `(external_provider, external_id)` | `—` | — | — | UNIQUE | Định danh duy nhất của trận đấu theo provider. | Dùng upsert. |
 
-### 3.11.3. Lưu ý triển khai
+### 3.12.3. Lưu ý triển khai
 
 - Bảng thuộc dữ liệu bóng đá đồng bộ. Không xây API cho USER hoặc ADMIN sửa trực tiếp dữ liệu nghiệp vụ của bảng.
 - Khi đồng bộ, ưu tiên PostgreSQL `INSERT ... ON CONFLICT ... DO UPDATE` để upsert.
@@ -530,9 +565,9 @@ Lưu thông tin trận đấu phục vụ phong độ gần đây và thống k�
 ---
 
 
-## 12. Bảng `player_match_statistics`
+## 13. Bảng `player_match_statistics`
 
-### 3.12.1. Bảng này là gì?
+### 3.13.1. Bảng này là gì?
 
 Lưu thống kê của một cầu thủ trong một trận đấu cụ thể.
 
@@ -543,7 +578,7 @@ Lưu thống kê của một cầu thủ trong một trận đấu cụ thể.
   - `player_match_statistics.player_id` → `players.id`
   - `player_match_statistics.team_id` → `teams.id`
 
-### 3.12.2. Đặc tả thuộc tính
+### 3.13.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -560,7 +595,7 @@ Lưu thống kê của một cầu thủ trong một trận đấu cụ thể.
 | `statistics` | `JSONB` | Có | `NULL` |  | Các chỉ số mở rộng phụ thuộc provider. | Chỉ lưu dữ liệu đã chuẩn hóa hoặc có version/schema rõ ràng. |
 | `(match_id, player_id)` | `—` | — | — | UNIQUE | Mỗi cầu thủ chỉ có một bản ghi thống kê trong một trận. | Ngăn dữ liệu đồng bộ trùng. |
 
-### 3.12.3. Lưu ý triển khai
+### 3.13.3. Lưu ý triển khai
 
 - Bảng thuộc dữ liệu bóng đá đồng bộ. Không xây API cho USER hoặc ADMIN sửa trực tiếp dữ liệu nghiệp vụ của bảng.
 - Khi đồng bộ, ưu tiên PostgreSQL `INSERT ... ON CONFLICT ... DO UPDATE` để upsert.
@@ -568,9 +603,9 @@ Lưu thống kê của một cầu thủ trong một trận đấu cụ thể.
 ---
 
 
-## 13. Bảng `player_season_statistics`
+## 14. Bảng `player_season_statistics`
 
-### 3.13.1. Bảng này là gì?
+### 3.14.1. Bảng này là gì?
 
 Lưu thống kê tổng hợp của cầu thủ theo đội, giải đấu và mùa giải. Đây là bảng chính cho Player Search, Player Detail và Comparison.
 
@@ -582,7 +617,7 @@ Lưu thống kê tổng hợp của cầu thủ theo đội, giải đấu và m
   - `player_season_statistics.competition_id` → `competitions.id`
   - `player_season_statistics.season_id` → `seasons.id`
 
-### 3.13.2. Đặc tả thuộc tính
+### 3.14.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -607,7 +642,7 @@ Lưu thống kê tổng hợp của cầu thủ theo đội, giải đấu và m
 | `advanced_statistics` | `JSONB` | Có | `NULL` |  | Các chỉ số nâng cao chưa chuẩn hóa thành cột. | Ví dụ progressive passes; cần quản lý schema/version. |
 | `(player_id, team_id, competition_id, season_id)` | `—` | — | — | UNIQUE | Không cho phép trùng thống kê cùng phạm vi. | Là conflict target khi upsert. |
 
-### 3.13.3. Lưu ý triển khai
+### 3.14.3. Lưu ý triển khai
 
 - Bảng thuộc dữ liệu bóng đá đồng bộ. Không xây API cho USER hoặc ADMIN sửa trực tiếp dữ liệu nghiệp vụ của bảng.
 - Khi đồng bộ, ưu tiên PostgreSQL `INSERT ... ON CONFLICT ... DO UPDATE` để upsert.
@@ -622,9 +657,9 @@ Lưu thống kê tổng hợp của cầu thủ theo đội, giải đấu và m
 Vùng 3 lưu dữ liệu do USER tự tạo, gồm shortlist cá nhân và đội hình mơ ước.
 
 
-## 14. Bảng `shortlists`
+## 15. Bảng `shortlists`
 
-### 3.14.1. Bảng này là gì?
+### 3.15.1. Bảng này là gì?
 
 Lưu các danh sách cầu thủ cá nhân do USER tạo.
 
@@ -634,7 +669,7 @@ Lưu các danh sách cầu thủ cá nhân do USER tạo.
   - `shortlists.owner_id` → `users.id`
   - `shortlists` 1–N `shortlist_players`
 
-### 3.14.2. Đặc tả thuộc tính
+### 3.15.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -646,16 +681,16 @@ Lưu các danh sách cầu thủ cá nhân do USER tạo.
 | `created_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm tạo shortlist. | Không thay đổi. |
 | `updated_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm cập nhật shortlist gần nhất. | Cập nhật khi đổi tên, mô tả hoặc thành viên. |
 
-### 3.14.3. Lưu ý triển khai
+### 3.15.3. Lưu ý triển khai
 
 - Mọi thao tác cập nhật phải kiểm tra quyền sở hữu hoặc quyền ADMIN ở backend; không tin dữ liệu role/owner gửi từ frontend.
 
 ---
 
 
-## 15. Bảng `shortlist_players`
+## 16. Bảng `shortlist_players`
 
-### 3.15.1. Bảng này là gì?
+### 3.16.1. Bảng này là gì?
 
 Bảng liên kết giữa shortlist và cầu thủ, đồng thời lưu ghi chú cá nhân.
 
@@ -665,7 +700,7 @@ Bảng liên kết giữa shortlist và cầu thủ, đồng thời lưu ghi ch�
   - `shortlist_players.shortlist_id` → `shortlists.id`
   - `shortlist_players.player_id` → `players.id`
 
-### 3.15.2. Đặc tả thuộc tính
+### 3.16.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -676,16 +711,16 @@ Bảng liên kết giữa shortlist và cầu thủ, đồng thời lưu ghi ch�
 | `added_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm cầu thủ được thêm. | Dùng sắp xếp theo mới nhất. |
 | `(shortlist_id, player_id)` | `—` | — | — | UNIQUE | Một cầu thủ chỉ xuất hiện một lần trong cùng shortlist. | Ngăn thao tác thêm trùng. |
 
-### 3.15.3. Lưu ý triển khai
+### 3.16.3. Lưu ý triển khai
 
 - Khi xóa bản ghi, chỉ xóa liên kết khỏi shortlist; tuyệt đối không xóa cầu thủ trong `players`.
 
 ---
 
 
-## 16. Bảng `squads`
+## 17. Bảng `squads`
 
-### 3.16.1. Bảng này là gì?
+### 3.17.1. Bảng này là gì?
 
 Lưu đội hình mơ ước do USER tạo.
 
@@ -696,7 +731,7 @@ Lưu đội hình mơ ước do USER tạo.
   - `squads.season_id` → `seasons.id`
   - `squads` 1–N `squad_players`
 
-### 3.16.2. Đặc tả thuộc tính
+### 3.17.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -710,16 +745,16 @@ Lưu đội hình mơ ước do USER tạo.
 | `created_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm tạo đội hình. | Không thay đổi. |
 | `updated_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm chỉnh sửa gần nhất. | Cập nhật khi thay đổi sơ đồ hoặc cầu thủ. |
 
-### 3.16.3. Lưu ý triển khai
+### 3.17.3. Lưu ý triển khai
 
 - Mọi thao tác cập nhật phải kiểm tra quyền sở hữu hoặc quyền ADMIN ở backend; không tin dữ liệu role/owner gửi từ frontend.
 
 ---
 
 
-## 17. Bảng `squad_players`
+## 18. Bảng `squad_players`
 
-### 3.17.1. Bảng này là gì?
+### 3.18.1. Bảng này là gì?
 
 Lưu cầu thủ thuộc một đội hình, vị trí trên sân, vai trò đá chính/dự bị và trạng thái đội trưởng.
 
@@ -729,7 +764,7 @@ Lưu cầu thủ thuộc một đội hình, vị trí trên sân, vai trò đá
   - `squad_players.squad_id` → `squads.id`
   - `squad_players.player_id` → `players.id`
 
-### 3.17.2. Đặc tả thuộc tính
+### 3.18.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -745,7 +780,7 @@ Lưu cầu thủ thuộc một đội hình, vị trí trên sân, vai trò đá
 | `(squad_id, slot_code) WHERE role='STARTER'` | `—` | — | — | PARTIAL UNIQUE | Một slot đá chính chỉ có một cầu thủ. | Không áp dụng cho dự bị có slot null. |
 | `squad_id WHERE is_captain=TRUE` | `—` | — | — | PARTIAL UNIQUE | Mỗi đội hình chỉ có một đội trưởng. | Kết hợp kiểm tra ở service và database. |
 
-### 3.17.3. Lưu ý triển khai
+### 3.18.3. Lưu ý triển khai
 
 - Các ràng buộc vị trí nên được kiểm tra ở cả service và database.
 - Khi lưu toàn bộ lineup bằng `PUT`, nên xử lý trong một transaction.
@@ -758,9 +793,9 @@ Lưu cầu thủ thuộc một đội hình, vị trí trên sân, vai trò đá
 Vùng 4 quản lý job đồng bộ, log chi tiết và lịch sử các hành động quan trọng.
 
 
-## 18. Bảng `data_sync_jobs`
+## 19. Bảng `data_sync_jobs`
 
-### 3.18.1. Bảng này là gì?
+### 3.19.1. Bảng này là gì?
 
 Lưu một lần chạy đồng bộ dữ liệu, phạm vi đồng bộ, người khởi tạo, tiến độ và kết quả.
 
@@ -772,7 +807,7 @@ Lưu một lần chạy đồng bộ dữ liệu, phạm vi đồng bộ, ngư�
   - `data_sync_jobs.season_id` → `seasons.id`
   - `data_sync_jobs` 1–N `data_sync_logs`
 
-### 3.18.2. Đặc tả thuộc tính
+### 3.19.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -791,7 +826,7 @@ Lưu một lần chạy đồng bộ dữ liệu, phạm vi đồng bộ, ngư�
 | `completed_at` | `TIMESTAMPTZ` | Có | `NULL` |  | Thời điểm job kết thúc. | Chỉ có ở trạng thái cuối. |
 | `error_message` | `TEXT` | Có | `NULL` |  | Thông báo lỗi tổng quát của job. | Không lưu secret, API key hoặc dữ liệu nhạy cảm. |
 
-### 3.18.3. Lưu ý triển khai
+### 3.19.3. Lưu ý triển khai
 
 - Không giữ transaction database mở trong suốt thời gian gọi external API.
 - Trạng thái job phải được cập nhật ngay cả khi lỗi để tránh job bị kẹt ở `RUNNING`.
@@ -799,9 +834,9 @@ Lưu một lần chạy đồng bộ dữ liệu, phạm vi đồng bộ, ngư�
 ---
 
 
-## 19. Bảng `data_sync_logs`
+## 20. Bảng `data_sync_logs`
 
-### 3.19.1. Bảng này là gì?
+### 3.20.1. Bảng này là gì?
 
 Lưu log chi tiết trong quá trình chạy một synchronization job.
 
@@ -810,7 +845,7 @@ Lưu log chi tiết trong quá trình chạy một synchronization job.
 - **Quan hệ:**
   - `data_sync_logs.job_id` → `data_sync_jobs.id`
 
-### 3.19.2. Đặc tả thuộc tính
+### 3.20.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -823,16 +858,16 @@ Lưu log chi tiết trong quá trình chạy một synchronization job.
 | `details` | `JSONB` | Có | `NULL` |  | Chi tiết có cấu trúc về lỗi hoặc dữ liệu xử lý. | Cần lọc dữ liệu nhạy cảm; có thể lưu error code và field lỗi. |
 | `created_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm log được ghi. | Dùng sắp xếp timeline. |
 
-### 3.19.3. Lưu ý triển khai
+### 3.20.3. Lưu ý triển khai
 
 - Có thể thiết lập chính sách xóa hoặc partition theo thời gian nếu số lượng log tăng lớn.
 
 ---
 
 
-## 20. Bảng `audit_logs`
+## 21. Bảng `audit_logs`
 
-### 3.20.1. Bảng này là gì?
+### 3.21.1. Bảng này là gì?
 
 Lưu lịch sử hành động quan trọng của USER, ADMIN hoặc hệ thống để truy vết và kiểm tra bảo mật.
 
@@ -841,7 +876,7 @@ Lưu lịch sử hành động quan trọng của USER, ADMIN hoặc hệ thốn
 - **Quan hệ:**
   - `audit_logs.actor_user_id` → `users.id`
 
-### 3.20.2. Đặc tả thuộc tính
+### 3.21.2. Đặc tả thuộc tính
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
@@ -857,7 +892,7 @@ Lưu lịch sử hành động quan trọng của USER, ADMIN hoặc hệ thốn
 | `metadata` | `JSONB` | Có | `NULL` |  | Thông tin bổ sung đã được làm sạch. | Không lưu mật khẩu, access token, refresh token hoặc secret. |
 | `created_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm hành động xảy ra. | Nên có index theo thời gian giảm dần. |
 
-### 3.20.3. Lưu ý triển khai
+### 3.21.3. Lưu ý triển khai
 
 - Audit log nên là append-only; không cung cấp chức năng chỉnh sửa nội dung log.
 - Nên index `(created_at DESC)`, `actor_user_id`, `resource_type`, `resource_id`.
@@ -931,6 +966,14 @@ data_sync_jobs 1 ───── N data_sync_logs
 
 `data_sync_jobs` lưu kết quả tổng quan. `data_sync_logs` lưu chi tiết từng bước hoặc từng bản ghi lỗi.
 
+## 4.7. Season và Team (Bảng season_teams)
+
+```text
+seasons 1 ───── N season_teams N ───── 1 teams
+```
+
+`season_teams` quản lý danh sách các đội tham gia từng mùa giải cụ thể mà không chứa thông tin thừa (`competition_id` được suy ra qua `season.competition_id`).
+
 ---
 
 # 5. RÀNG BUỘC DATABASE NÊN CÓ
@@ -988,6 +1031,14 @@ ADD CONSTRAINT uq_player_season_stat
 UNIQUE (player_id, team_id, competition_id, season_id);
 ```
 
+## 5.7. Không thêm trùng đội bóng vào cùng một mùa giải
+
+```sql
+ALTER TABLE season_teams
+ADD CONSTRAINT pk_season_teams
+PRIMARY KEY (season_id, team_id);
+```
+
 ---
 
 # 6. QUY TẮC XÓA DỮ LIỆU ĐỀ XUẤT
@@ -995,6 +1046,7 @@ UNIQUE (player_id, team_id, competition_id, season_id);
 | Quan hệ | Hành vi đề xuất |
 |---|---|
 | Xóa `users` → `refresh_tokens` | `ON DELETE CASCADE` hoặc revoke token trước |
+| Xóa `seasons` / `teams` → `season_teams` | `ON DELETE CASCADE` |
 | Xóa `users` → `shortlists`, `squads` | Cân nhắc soft delete user; nếu xóa vật lý có thể cascade |
 | Xóa `shortlists` → `shortlist_players` | `ON DELETE CASCADE` |
 | Xóa `squads` → `squad_players` | `ON DELETE CASCADE` |
@@ -1047,23 +1099,24 @@ V4  create refresh_tokens
 V5  create competitions
 V6  create seasons
 V7  create teams
-V8  create players
-V9  create player_positions
-V10 create player_team_history
-V11 create matches
-V12 create player_match_statistics
-V13 create player_season_statistics
+V8  create season_teams
+V9  create players
+V10 create player_positions
+V11 create player_team_history
+V12 create matches
+V13 create player_match_statistics
+V14 create player_season_statistics
 
-V14 create shortlists
-V15 create shortlist_players
-V16 create squads
-V17 create squad_players
+V15 create shortlists
+V16 create shortlist_players
+V17 create squads
+V18 create squad_players
 
-V18 create data_sync_jobs
-V19 create data_sync_logs
-V20 create audit_logs
-V21 create indexes and additional constraints
-V22 seed roles
+V19 create data_sync_jobs
+V20 create data_sync_logs
+V21 create audit_logs
+V22 create indexes and additional constraints
+V23 seed roles
 ```
 
 Các bảng được tạo theo thứ tự này để bảng cha tồn tại trước khi tạo khóa ngoại ở bảng con.

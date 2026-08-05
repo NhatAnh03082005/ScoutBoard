@@ -12,10 +12,14 @@ export class TypeOrmCompetitionReadRepository implements CompetitionReadReposito
   ) {}
 
   async findAll(): Promise<CompetitionOrmEntity[]> {
-    return this.repository.find({ order: { name: 'ASC' } });
+    return this.repository.find({
+      order: { name: 'ASC' },
+    });
   }
 
   async findById(id: string): Promise<CompetitionOrmEntity | null> {
-    return this.repository.findOne({ where: { id } });
+    return this.repository.findOne({
+      where: { id },
+    });
   }
 }

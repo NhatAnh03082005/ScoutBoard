@@ -69,21 +69,30 @@ export class PlayerMatchStatisticOrmEntity {
   @Column({ name: 'red_cards', type: 'integer', default: 0 })
   redCards: number;
 
+  @Column({ type: 'jsonb', nullable: true, default: null })
+  statistics: Record<string, any> | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => MatchOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => MatchOrmEntity, (match) => match.matchStatistics, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'match_id' })
   match: MatchOrmEntity;
 
-  @ManyToOne(() => PlayerOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => PlayerOrmEntity, (player) => player.matchStatistics, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'player_id' })
   player: PlayerOrmEntity;
 
-  @ManyToOne(() => TeamOrmEntity, { onDelete: 'CASCADE' })
+  @ManyToOne(() => TeamOrmEntity, (team) => team.matchStatistics, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'team_id' })
   team: TeamOrmEntity;
 }

@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TeamOrmEntity } from './infrastructure/persistence/typeorm/entities/team.orm-entity';
+import { SeasonTeamOrmEntity } from '../seasons/infrastructure/persistence/typeorm/entities/season-team.orm-entity';
 import { TEAM_READ_REPOSITORY } from './application/ports/team-read.repository';
 import { TypeOrmTeamReadRepository } from './infrastructure/persistence/typeorm/repositories/typeorm-team-read.repository';
 import { TeamsController } from './presentation/http/controllers/teams.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TeamOrmEntity])],
+  imports: [TypeOrmModule.forFeature([TeamOrmEntity, SeasonTeamOrmEntity])],
   controllers: [TeamsController],
   providers: [
     {

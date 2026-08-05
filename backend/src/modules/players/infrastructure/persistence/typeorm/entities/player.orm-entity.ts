@@ -13,6 +13,8 @@ import {
 import { TeamOrmEntity } from 'src/modules/teams/infrastructure/persistence/typeorm/entities/team.orm-entity';
 import { PlayerPositionOrmEntity } from './player-position.orm-entity';
 import { PlayerSeasonStatisticOrmEntity } from './player-season-statistic.orm-entity';
+import type { PlayerTeamHistoryOrmEntity } from './player-team-history.orm-entity';
+import type { PlayerMatchStatisticOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/player-match-statistic.orm-entity';
 
 @Entity('players')
 @Unique('UQ_players_provider_external_id', ['externalProvider', 'externalId'])
@@ -39,6 +41,15 @@ export class PlayerOrmEntity {
 
   @Column({ type: 'varchar', length: 150 })
   name: string;
+
+  @Column({
+    name: 'normalized_name',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+    default: null,
+  })
+  normalizedName: string | null;
 
   @Column({
     name: 'short_name',
@@ -131,6 +142,12 @@ export class PlayerOrmEntity {
 
   @OneToMany(() => PlayerPositionOrmEntity, (pp) => pp.player)
   positions: PlayerPositionOrmEntity[];
+
+  @OneToMany('PlayerTeamHistoryOrmEntity', 'player')
+  teamHistory: PlayerTeamHistoryOrmEntity[];
+
+  @OneToMany('PlayerMatchStatisticOrmEntity', 'player')
+  matchStatistics: PlayerMatchStatisticOrmEntity[];
 
   @OneToMany(() => PlayerSeasonStatisticOrmEntity, (pss) => pss.player)
   seasonStatistics: PlayerSeasonStatisticOrmEntity[];
