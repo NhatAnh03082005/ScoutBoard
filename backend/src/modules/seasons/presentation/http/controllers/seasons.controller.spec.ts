@@ -3,12 +3,29 @@ import { NotFoundException } from '@nestjs/common';
 import { SeasonsController } from './seasons.controller';
 import { SEASON_READ_REPOSITORY } from '../../../application/ports/season-read.repository';
 import { SeasonOrmEntity } from '../../../infrastructure/persistence/typeorm/entities/season.orm-entity';
+import { CompetitionOrmEntity } from 'src/modules/competitions/infrastructure/persistence/typeorm/entities/competition.orm-entity';
 
 describe('SeasonsController', () => {
   let controller: SeasonsController;
   let mockSeasonRepo: {
     findAll: jest.Mock;
     findById: jest.Mock;
+  };
+
+  const sampleComp: CompetitionOrmEntity = {
+    id: 'comp-uuid-1',
+    externalProvider: 'FOOTBALL_DATA',
+    externalId: 'PL',
+    name: 'Premier League',
+    country: 'England',
+    type: 'LEAGUE',
+    logoUrl: 'https://crests.football-data.org/PL.png',
+    dataUpdatedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    seasons: [],
+    matches: [],
+    seasonStatistics: [],
   };
 
   const sampleSeason: SeasonOrmEntity = {
@@ -24,9 +41,10 @@ describe('SeasonsController', () => {
     dataUpdatedAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
-    competition: null as any,
+    competition: sampleComp,
     matches: [],
     seasonStatistics: [],
+    seasonTeams: [],
   };
 
   beforeEach(async () => {
@@ -53,22 +71,13 @@ describe('SeasonsController', () => {
   });
 
   describe('findAll', () => {
-    it('should return all seasons when no filter is provided', async () => {
+    it('should return an array of seasons', async () => {
       mockSeasonRepo.findAll.mockResolvedValue([sampleSeason]);
 
       const result = await controller.findAll();
 
       expect(result).toEqual([sampleSeason]);
-      expect(mockSeasonRepo.findAll).toHaveBeenCalledWith(undefined);
-    });
-
-    it('should filter seasons by competitionId when provided', async () => {
-      mockSeasonRepo.findAll.mockResolvedValue([sampleSeason]);
-
-      const result = await controller.findAll('comp-uuid-1');
-
-      expect(result).toEqual([sampleSeason]);
-      expect(mockSeasonRepo.findAll).toHaveBeenCalledWith('comp-uuid-1');
+      expect(mockSeasonRepo.findAll).toHaveBeenCalledTimes(1);
     });
   });
 

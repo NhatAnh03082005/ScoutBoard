@@ -18,4 +18,14 @@ export class TypeOrmTeamReadRepository implements TeamReadRepository {
   async findById(id: string): Promise<TeamOrmEntity | null> {
     return this.repository.findOne({ where: { id } });
   }
+
+  async findBySeasonId(seasonId: string): Promise<TeamOrmEntity[]> {
+    return this.repository
+      .createQueryBuilder('team')
+      .innerJoin('team.seasonTeams', 'st', 'st.seasonId = :seasonId', {
+        seasonId,
+      })
+      .orderBy('team.name', 'ASC')
+      .getMany();
+  }
 }

@@ -1,9 +1,12 @@
 import { PlayerOrmEntity } from '../../infrastructure/persistence/typeorm/entities/player.orm-entity';
+import { PreferredFoot } from '../../domain/enums/preferred-foot.enum';
 
 export const PLAYER_READ_REPOSITORY = Symbol('PLAYER_READ_REPOSITORY');
 
 export interface SearchPlayersQuery {
   search?: string;
+  preferredFoot?: PreferredFoot;
+  nationality?: string;
   teamId?: string;
   position?: string;
   limit?: number;

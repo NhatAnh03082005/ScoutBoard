@@ -5,4 +5,5 @@ export const TEAM_READ_REPOSITORY = Symbol('TEAM_READ_REPOSITORY');
 export interface TeamReadRepository {
   findAll(): Promise<TeamOrmEntity[]>;
   findById(id: string): Promise<TeamOrmEntity | null>;
+  findBySeasonId(seasonId: string): Promise<TeamOrmEntity[]>;
 }

@@ -6,4 +6,7 @@ export interface SeasonReadRepository {
   findAll(competitionId?: string): Promise<SeasonOrmEntity[]>;
   findByCompetition(competitionId: string): Promise<SeasonOrmEntity[]>;
   findById(id: string): Promise<SeasonOrmEntity | null>;
+  findCurrentByCompetitionId(
+    competitionId: string,
+  ): Promise<SeasonOrmEntity | null>;
 }

@@ -30,4 +30,13 @@ export class TypeOrmSeasonReadRepository implements SeasonReadRepository {
       relations: ['competition'],
     });
   }
+
+  async findCurrentByCompetitionId(
+    competitionId: string,
+  ): Promise<SeasonOrmEntity | null> {
+    return this.repository.findOne({
+      where: { competitionId, isCurrent: true },
+      relations: ['competition'],
+    });
+  }
 }

@@ -5,6 +5,7 @@ import { COMPETITION_READ_REPOSITORY } from '../../../application/ports/competit
 import { SEASON_READ_REPOSITORY } from '../../../../seasons/application/ports/season-read.repository';
 import { CompetitionOrmEntity } from '../../../infrastructure/persistence/typeorm/entities/competition.orm-entity';
 import { SeasonOrmEntity } from '../../../../seasons/infrastructure/persistence/typeorm/entities/season.orm-entity';
+import { GetCurrentSeasonTeamsByCompetitionUseCase } from '../../../application/use-cases/get-current-season-teams-by-competition.use-case';
 
 describe('CompetitionsController', () => {
   let controller: CompetitionsController;
@@ -14,6 +15,9 @@ describe('CompetitionsController', () => {
   };
   let mockSeasonRepo: {
     findByCompetition: jest.Mock;
+  };
+  let mockUseCase: {
+    execute: jest.Mock;
   };
 
   const sampleComp: CompetitionOrmEntity = {
@@ -48,6 +52,7 @@ describe('CompetitionsController', () => {
     competition: sampleComp,
     matches: [],
     seasonStatistics: [],
+    seasonTeams: [],
   };
 
   beforeEach(async () => {
@@ -57,6 +62,9 @@ describe('CompetitionsController', () => {
     };
     mockSeasonRepo = {
       findByCompetition: jest.fn(),
+    };
+    mockUseCase = {
+      execute: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -69,6 +77,10 @@ describe('CompetitionsController', () => {
         {
           provide: SEASON_READ_REPOSITORY,
           useValue: mockSeasonRepo,
+        },
+        {
+          provide: GetCurrentSeasonTeamsByCompetitionUseCase,
+          useValue: mockUseCase,
         },
       ],
     }).compile();
@@ -130,6 +142,26 @@ describe('CompetitionsController', () => {
       await expect(
         controller.findSeasonsByCompetitionId('non-existent-id'),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findCurrentSeasonTeams', () => {
+    it('should call use case and return current season teams', async () => {
+      const mockTeams = [
+        {
+          id: 'team-1',
+          name: 'Arsenal FC',
+          shortName: 'Arsenal',
+          country: 'England',
+          logoUrl: 'logo.png',
+        },
+      ];
+      mockUseCase.execute.mockResolvedValue(mockTeams);
+
+      const result = await controller.findCurrentSeasonTeams('comp-uuid-1');
+
+      expect(result).toEqual(mockTeams);
+      expect(mockUseCase.execute).toHaveBeenCalledWith('comp-uuid-1');
     });
   });
 });
