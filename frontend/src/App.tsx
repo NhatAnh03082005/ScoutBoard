@@ -12,8 +12,10 @@ import {
 } from './services/api';
 import type { UserProfile } from './services/api';
 
+import { PlayerSearchPage } from './pages/PlayerSearchPage';
+
 export function App() {
-  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'profile' | 'admin'>('login');
+  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'profile' | 'admin' | 'players'>('players');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -258,20 +260,24 @@ export function App() {
   };
 
   return (
-    <div className={`scout-container ${activeTab === 'admin' ? 'wide' : ''}`}>
+    <div className={`scout-container ${activeTab === 'admin' || activeTab === 'players' ? 'wide' : ''}`}>
       <div className="scout-header">
         <div className="scout-logo-badge">
           ⚽ ScoutBoard Platform
         </div>
         <h1 className="scout-title">
-          {activeTab === 'admin'
+          {activeTab === 'players'
+            ? 'Tìm Kiếm Cầu Thủ'
+            : activeTab === 'admin'
             ? 'Quản Lý Người Dùng (Admin)'
             : user
             ? 'Trạng Thái Phiên'
             : 'Xác Thực Tài Khoản'}
         </h1>
         <p className="scout-subtitle">
-          {activeTab === 'admin'
+          {activeTab === 'players'
+            ? 'Hệ thống tìm kiếm, lọc & phân tích hồ sơ cầu thủ bóng đá'
+            : activeTab === 'admin'
             ? 'Progressive Lockout & Quản lý vai trò người dùng'
             : user
             ? 'Hệ thống Quản lý Token & Phân quyền RBAC'
@@ -282,45 +288,77 @@ export function App() {
       {error && <div className="alert-banner alert-error">❌ {error}</div>}
       {success && <div className="alert-banner alert-success">✅ {success}</div>}
 
-      {/* Navigation Tabs Header */}
-      {user && (
-        <div className="scout-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
-            👤 Cá Nhân
-          </button>
+      {/* Main Navigation Bar */}
+      <div className="scout-tabs" style={{ marginBottom: '24px' }}>
+        <button
+          className={`tab-btn ${activeTab === 'players' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('players');
+            setError(null);
+            setSuccess(null);
+          }}
+        >
+          ⚽ Tìm Cầu Thủ
+        </button>
 
-          {isAdmin && (
+        {user ? (
+          <>
             <button
-              className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
-              onClick={() => setActiveTab('admin')}
+              className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('profile');
+                setError(null);
+                setSuccess(null);
+              }}
             >
-              👑 Quản Lý Người Dùng
+              👤 Cá Nhân
             </button>
-          )}
-        </div>
-      )}
 
-      {/* LOGIN TAB */}
-      {!user && activeTab === 'login' && (
-        <>
-          <div className="scout-tabs">
-            <button className="tab-btn active">Đăng Nhập</button>
+            {isAdmin && (
+              <button
+                className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('admin');
+                  setError(null);
+                  setSuccess(null);
+                }}
+              >
+                👑 Quản Lý
+              </button>
+            )}
+          </>
+        ) : (
+          <>
             <button
-              className="tab-btn"
+              className={`tab-btn ${activeTab === 'login' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('login');
+                setError(null);
+                setSuccess(null);
+              }}
+            >
+              🔑 Đăng Nhập
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
               onClick={() => {
                 setActiveTab('register');
                 setError(null);
                 setSuccess(null);
               }}
             >
-              Đăng Ký
+              📝 Đăng Ký
             </button>
-          </div>
+          </>
+        )}
+      </div>
 
-          <form onSubmit={handleLogin} className="scout-form">
+      {/* PLAYER SEARCH TAB */}
+      {activeTab === 'players' && <PlayerSearchPage />}
+
+      {/* LOGIN TAB */}
+      {!user && activeTab === 'login' && (
+        <form onSubmit={handleLogin} className="scout-form">
             <div className="input-group">
               <label className="input-label">Địa Chỉ Email</label>
               <input
@@ -380,7 +418,6 @@ export function App() {
                 : 'Đăng Nhập Ngay ➔'}
             </button>
           </form>
-        </>
       )}
 
       {/* REGISTER TAB */}

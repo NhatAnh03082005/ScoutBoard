@@ -1,20 +1,8 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Inject,
-  NotFoundException,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import {
-  COMPETITION_READ_REPOSITORY,
-  CompetitionReadRepository,
-} from 'src/modules/competitions/application/ports/competition-read.repository';
-import {
-  SEASON_READ_REPOSITORY,
-  SeasonReadRepository,
-} from 'src/modules/seasons/application/ports/season-read.repository';
+import { ListCompetitionsUseCase } from 'src/modules/competitions/application/use-cases/list-competitions.use-case';
+import { GetCompetitionByIdUseCase } from 'src/modules/competitions/application/use-cases/get-competition-by-id.use-case';
+import { GetSeasonsByCompetitionUseCase } from 'src/modules/competitions/application/use-cases/get-seasons-by-competition.use-case';
 import { GetCurrentSeasonTeamsByCompetitionUseCase } from 'src/modules/competitions/application/use-cases/get-current-season-teams-by-competition.use-case';
 import { CompetitionTeamResponseDto } from '../dto/competition-team-response.dto';
 
@@ -22,17 +10,16 @@ import { CompetitionTeamResponseDto } from '../dto/competition-team-response.dto
 @Controller('competitions')
 export class CompetitionsController {
   constructor(
-    @Inject(COMPETITION_READ_REPOSITORY)
-    private readonly competitionReadRepository: CompetitionReadRepository,
-    @Inject(SEASON_READ_REPOSITORY)
-    private readonly seasonReadRepository: SeasonReadRepository,
+    private readonly listCompetitionsUseCase: ListCompetitionsUseCase,
+    private readonly getCompetitionByIdUseCase: GetCompetitionByIdUseCase,
+    private readonly getSeasonsByCompetitionUseCase: GetSeasonsByCompetitionUseCase,
     private readonly getCurrentSeasonTeamsByCompetitionUseCase: GetCurrentSeasonTeamsByCompetitionUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Danh sách tất cả giải đấu' })
   @Get()
   async findAll() {
-    return this.competitionReadRepository.findAll();
+    return this.listCompetitionsUseCase.execute();
   }
 
   @ApiOperation({ summary: 'Chi tiết giải đấu' })
@@ -43,11 +30,7 @@ export class CompetitionsController {
   })
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    const item = await this.competitionReadRepository.findById(id);
-    if (!item) {
-      throw new NotFoundException('Giải đấu không tồn tại');
-    }
-    return item;
+    return this.getCompetitionByIdUseCase.execute(id);
   }
 
   @ApiOperation({ summary: 'Danh sách mùa giải của một giải đấu' })
@@ -58,11 +41,7 @@ export class CompetitionsController {
   })
   @Get(':id/seasons')
   async findSeasonsByCompetitionId(@Param('id', ParseUUIDPipe) id: string) {
-    const competition = await this.competitionReadRepository.findById(id);
-    if (!competition) {
-      throw new NotFoundException('Giải đấu không tồn tại');
-    }
-    return this.seasonReadRepository.findByCompetition(id);
+    return this.getSeasonsByCompetitionUseCase.execute(id);
   }
 
   @ApiOperation({

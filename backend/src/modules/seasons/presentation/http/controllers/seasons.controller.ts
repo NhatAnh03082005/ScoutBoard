@@ -1,23 +1,14 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  Inject,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
-import {
-  SEASON_READ_REPOSITORY,
-  SeasonReadRepository,
-} from 'src/modules/seasons/application/ports/season-read.repository';
+import { ListSeasonsUseCase } from 'src/modules/seasons/application/use-cases/list-seasons.use-case';
+import { GetSeasonByIdUseCase } from 'src/modules/seasons/application/use-cases/get-season-by-id.use-case';
 
 @ApiTags('Seasons')
 @Controller('seasons')
 export class SeasonsController {
   constructor(
-    @Inject(SEASON_READ_REPOSITORY)
-    private readonly seasonReadRepository: SeasonReadRepository,
+    private readonly listSeasonsUseCase: ListSeasonsUseCase,
+    private readonly getSeasonByIdUseCase: GetSeasonByIdUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Danh sách mùa giải' })
@@ -28,7 +19,7 @@ export class SeasonsController {
   })
   @Get()
   async findAll(@Query('competitionId') competitionId?: string) {
-    return this.seasonReadRepository.findAll(competitionId);
+    return this.listSeasonsUseCase.execute(competitionId);
   }
 
   @ApiOperation({ summary: 'Chi tiết mùa giải' })
@@ -39,10 +30,6 @@ export class SeasonsController {
   })
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const season = await this.seasonReadRepository.findById(id);
-    if (!season) {
-      throw new NotFoundException('Mùa giải không tồn tại');
-    }
-    return season;
+    return this.getSeasonByIdUseCase.execute(id);
   }
 }

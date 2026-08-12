@@ -13,6 +13,7 @@ describe('TypeOrmPlayerReadRepository (Unit)', () => {
   beforeEach(() => {
     mockQueryBuilder = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
       addOrderBy: jest.fn().mockReturnThis(),
@@ -71,39 +72,73 @@ describe('TypeOrmPlayerReadRepository (Unit)', () => {
     );
   });
 
-  it('should apply nationality filter with exact case-insensitive comparison (LOWER)', async () => {
+  it('should apply currentTeamId filter when provided', async () => {
     await repository.search({
-      nationality: '  Brazil  ',
+      currentTeamId: '1eaece5e-59e9-4a16-b521-bec5c13845b3',
       limit: 20,
       offset: 0,
     });
 
     expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      'LOWER(player.nationality) = LOWER(:nationality)',
-      { nationality: 'Brazil' },
+      'player.currentTeamId = :currentTeamId',
+      { currentTeamId: '1eaece5e-59e9-4a16-b521-bec5c13845b3' },
     );
   });
 
-  it('should combine multiple filters with AND (search OR in parentheses)', async () => {
+  it('should innerJoin player.positions ONLY when position filter is provided', async () => {
+    await repository.search({ position: 'LW', limit: 20, offset: 0 });
+
+    expect(mockQueryBuilder.innerJoin).toHaveBeenCalledWith(
+      'player.positions',
+      'pos',
+    );
+    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+      '(player.primaryPosition = :posCode OR pos.positionCode = :posCode)',
+      { posCode: 'LW' },
+    );
+  });
+
+  it('should apply subquery for currentSeasonId when competition is resolved', async () => {
     await repository.search({
-      search: 'martin',
-      preferredFoot: PreferredFoot.RIGHT,
-      nationality: 'Brazil',
-      limit: 10,
+      currentSeasonId: 'season-2025-uuid',
+      limit: 20,
       offset: 0,
     });
 
     expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      '(player.name ILIKE :search OR player.shortName ILIKE :search)',
-      { search: '%martin%' },
+      'player.currentTeamId IN (SELECT st.team_id FROM season_teams st WHERE st.season_id = :currentSeasonId)',
+      { currentSeasonId: 'season-2025-uuid' },
+    );
+  });
+
+  it('should apply age range filters relative to CURRENT_DATE', async () => {
+    await repository.search({ minAge: 18, maxAge: 25, limit: 20, offset: 0 });
+
+    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+      'EXTRACT(YEAR FROM age(CURRENT_DATE, player.date_of_birth)) >= :minAge',
+      { minAge: 18 },
     );
     expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      'player.preferredFoot = :preferredFoot',
-      { preferredFoot: PreferredFoot.RIGHT },
+      'EXTRACT(YEAR FROM age(CURRENT_DATE, player.date_of_birth)) <= :maxAge',
+      { maxAge: 25 },
+    );
+  });
+
+  it('should apply height range filters', async () => {
+    await repository.search({
+      minHeightCm: 175,
+      maxHeightCm: 190,
+      limit: 20,
+      offset: 0,
+    });
+
+    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+      'player.heightCm >= :minHeightCm',
+      { minHeightCm: 175 },
     );
     expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      'LOWER(player.nationality) = LOWER(:nationality)',
-      { nationality: 'Brazil' },
+      'player.heightCm <= :maxHeightCm',
+      { maxHeightCm: 190 },
     );
   });
 });

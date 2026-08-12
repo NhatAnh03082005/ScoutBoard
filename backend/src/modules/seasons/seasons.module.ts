@@ -5,6 +5,8 @@ import { SeasonTeamOrmEntity } from './infrastructure/persistence/typeorm/entiti
 import { SEASON_READ_REPOSITORY } from './application/ports/season-read.repository';
 import { TypeOrmSeasonReadRepository } from './infrastructure/persistence/typeorm/repositories/typeorm-season-read.repository';
 import { SeasonsController } from './presentation/http/controllers/seasons.controller';
+import { ListSeasonsUseCase } from './application/use-cases/list-seasons.use-case';
+import { GetSeasonByIdUseCase } from './application/use-cases/get-season-by-id.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SeasonOrmEntity, SeasonTeamOrmEntity])],
@@ -14,7 +16,9 @@ import { SeasonsController } from './presentation/http/controllers/seasons.contr
       provide: SEASON_READ_REPOSITORY,
       useClass: TypeOrmSeasonReadRepository,
     },
+    ListSeasonsUseCase,
+    GetSeasonByIdUseCase,
   ],
-  exports: [SEASON_READ_REPOSITORY],
+  exports: [SEASON_READ_REPOSITORY, ListSeasonsUseCase, GetSeasonByIdUseCase],
 })
 export class SeasonsModule {}

@@ -48,13 +48,50 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       });
     }
 
-    if (query.teamId) {
-      qb.andWhere('player.currentTeamId = :teamId', { teamId: query.teamId });
+    if (query.currentTeamId) {
+      qb.andWhere('player.currentTeamId = :currentTeamId', {
+        currentTeamId: query.currentTeamId,
+      });
     }
 
-    if (query.position) {
-      qb.andWhere('player.primaryPosition = :position', {
-        position: query.position,
+    if (query.position && query.position.trim() !== '') {
+      const posCode = query.position.trim();
+      qb.innerJoin('player.positions', 'pos').andWhere(
+        '(player.primaryPosition = :posCode OR pos.positionCode = :posCode)',
+        { posCode },
+      );
+    }
+
+    if (query.currentSeasonId) {
+      qb.andWhere(
+        'player.currentTeamId IN (SELECT st.team_id FROM season_teams st WHERE st.season_id = :currentSeasonId)',
+        { currentSeasonId: query.currentSeasonId },
+      );
+    }
+
+    if (query.minAge !== undefined) {
+      qb.andWhere(
+        'EXTRACT(YEAR FROM age(CURRENT_DATE, player.date_of_birth)) >= :minAge',
+        { minAge: query.minAge },
+      );
+    }
+
+    if (query.maxAge !== undefined) {
+      qb.andWhere(
+        'EXTRACT(YEAR FROM age(CURRENT_DATE, player.date_of_birth)) <= :maxAge',
+        { maxAge: query.maxAge },
+      );
+    }
+
+    if (query.minHeightCm !== undefined) {
+      qb.andWhere('player.heightCm >= :minHeightCm', {
+        minHeightCm: query.minHeightCm,
+      });
+    }
+
+    if (query.maxHeightCm !== undefined) {
+      qb.andWhere('player.heightCm <= :maxHeightCm', {
+        maxHeightCm: query.maxHeightCm,
       });
     }
 

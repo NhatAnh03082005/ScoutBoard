@@ -1,23 +1,14 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  Inject,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import {
-  MATCH_READ_REPOSITORY,
-  MatchReadRepository,
-} from 'src/modules/matches/application/ports/match-read.repository';
+import { ListMatchesUseCase } from 'src/modules/matches/application/use-cases/list-matches.use-case';
+import { GetMatchByIdUseCase } from 'src/modules/matches/application/use-cases/get-match-by-id.use-case';
 
 @ApiTags('Matches')
 @Controller('matches')
 export class MatchesController {
   constructor(
-    @Inject(MATCH_READ_REPOSITORY)
-    private readonly matchReadRepository: MatchReadRepository,
+    private readonly listMatchesUseCase: ListMatchesUseCase,
+    private readonly getMatchByIdUseCase: GetMatchByIdUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Danh sách trận đấu theo giải & mùa giải' })
@@ -26,22 +17,12 @@ export class MatchesController {
     @Query('competitionId') competitionId: string,
     @Query('seasonId') seasonId: string,
   ) {
-    if (!competitionId || !seasonId) {
-      return [];
-    }
-    return this.matchReadRepository.findByCompetitionAndSeason(
-      competitionId,
-      seasonId,
-    );
+    return this.listMatchesUseCase.execute(competitionId, seasonId);
   }
 
   @ApiOperation({ summary: 'Chi tiết trận đấu' })
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const match = await this.matchReadRepository.findById(id);
-    if (!match) {
-      throw new NotFoundException('Trận đấu không tồn tại');
-    }
-    return match;
+    return this.getMatchByIdUseCase.execute(id);
   }
 }

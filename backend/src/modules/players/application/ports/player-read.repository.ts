@@ -7,8 +7,13 @@ export interface SearchPlayersQuery {
   search?: string;
   preferredFoot?: PreferredFoot;
   nationality?: string;
-  teamId?: string;
+  currentTeamId?: string;
+  currentSeasonId?: string;
   position?: string;
+  minAge?: number;
+  maxAge?: number;
+  minHeightCm?: number;
+  maxHeightCm?: number;
   limit?: number;
   offset?: number;
 }

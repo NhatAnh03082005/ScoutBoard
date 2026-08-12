@@ -6,6 +6,9 @@ import { TypeOrmCompetitionReadRepository } from './infrastructure/persistence/t
 import { CompetitionsController } from './presentation/http/controllers/competitions.controller';
 import { SeasonsModule } from '../seasons/seasons.module';
 import { TeamsModule } from '../teams/teams.module';
+import { ListCompetitionsUseCase } from './application/use-cases/list-competitions.use-case';
+import { GetCompetitionByIdUseCase } from './application/use-cases/get-competition-by-id.use-case';
+import { GetSeasonsByCompetitionUseCase } from './application/use-cases/get-seasons-by-competition.use-case';
 import { GetCurrentSeasonTeamsByCompetitionUseCase } from './application/use-cases/get-current-season-teams-by-competition.use-case';
 
 @Module({
@@ -20,10 +23,16 @@ import { GetCurrentSeasonTeamsByCompetitionUseCase } from './application/use-cas
       provide: COMPETITION_READ_REPOSITORY,
       useClass: TypeOrmCompetitionReadRepository,
     },
+    ListCompetitionsUseCase,
+    GetCompetitionByIdUseCase,
+    GetSeasonsByCompetitionUseCase,
     GetCurrentSeasonTeamsByCompetitionUseCase,
   ],
   exports: [
     COMPETITION_READ_REPOSITORY,
+    ListCompetitionsUseCase,
+    GetCompetitionByIdUseCase,
+    GetSeasonsByCompetitionUseCase,
     GetCurrentSeasonTeamsByCompetitionUseCase,
   ],
 })
