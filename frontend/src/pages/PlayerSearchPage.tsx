@@ -7,6 +7,13 @@ import { PlayerFilters } from '../components/player/PlayerFilters';
 import { PlayerTable } from '../components/player/PlayerTable';
 import { PlayerPagination } from '../components/player/PlayerPagination';
 
+// Helper to parse numeric inputs cleanly and avoid Number("") === 0 pitfalls
+const parseNumericParam = (val?: number | string | null): number | undefined => {
+  if (val === undefined || val === null || val === '') return undefined;
+  const parsed = typeof val === 'number' ? val : Number(val);
+  return isNaN(parsed) ? undefined : parsed;
+};
+
 export const PlayerSearchPage: React.FC = () => {
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [pagination, setPagination] = useState<PaginationMetadata | null>(null);
@@ -18,7 +25,7 @@ export const PlayerSearchPage: React.FC = () => {
   const [teams, setTeams] = useState<CompetitionTeamItem[]>([]);
   const [loadingTeams, setLoadingTeams] = useState<boolean>(false);
 
-  // Controlled input value for typing
+  // Controlled input value for typing search keyword
   const [searchInput, setSearchInput] = useState<string>('');
   // Applied search keyword currently active for API queries
   const [appliedSearch, setAppliedSearch] = useState<string>('');
@@ -35,18 +42,38 @@ export const PlayerSearchPage: React.FC = () => {
     maxHeightCm: '',
   });
 
-  // Core API fetcher helper
+  // Centralized API Fetch Helper
   const fetchPlayersData = (
     page: number,
-    searchKeyword?: string,
-    compId?: string,
-    teamId?: string,
+    filterOverrides?: Partial<PlayerFilterParams>,
+    searchKeywordOverride?: string,
   ) => {
     const limit = pagination?.limit || 20;
     const offset = (page - 1) * limit;
-    const keyword = searchKeyword !== undefined ? searchKeyword : appliedSearch;
-    const targetCompId = compId !== undefined ? compId : filters.competitionId;
-    const targetTeamId = teamId !== undefined ? teamId : filters.currentTeamId;
+
+    const currentFilters = {
+      ...filters,
+      ...filterOverrides,
+    };
+
+    const activeSearch = searchKeywordOverride !== undefined ? searchKeywordOverride : appliedSearch;
+
+    // Parse numeric age and height parameters
+    const minAgeNum = parseNumericParam(currentFilters.minAge);
+    const maxAgeNum = parseNumericParam(currentFilters.maxAge);
+    const minHeightNum = parseNumericParam(currentFilters.minHeightCm);
+    const maxHeightNum = parseNumericParam(currentFilters.maxHeightCm);
+
+    // Range Validation Checks
+    if (minAgeNum !== undefined && maxAgeNum !== undefined && minAgeNum > maxAgeNum) {
+      setError('Minimum age cannot be greater than maximum age.');
+      return;
+    }
+
+    if (minHeightNum !== undefined && maxHeightNum !== undefined && minHeightNum > maxHeightNum) {
+      setError('Minimum height cannot be greater than maximum height.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -54,9 +81,16 @@ export const PlayerSearchPage: React.FC = () => {
     const queryParams: PlayerFilterParams = {
       limit,
       offset,
-      search: keyword ? keyword : undefined,
-      competitionId: targetCompId ? targetCompId : undefined,
-      currentTeamId: targetTeamId ? targetTeamId : undefined,
+      search: activeSearch ? activeSearch : undefined,
+      competitionId: currentFilters.competitionId ? currentFilters.competitionId : undefined,
+      currentTeamId: currentFilters.currentTeamId ? currentFilters.currentTeamId : undefined,
+      position: currentFilters.position ? currentFilters.position : undefined,
+      preferredFoot: currentFilters.preferredFoot ? currentFilters.preferredFoot : undefined,
+      nationality: currentFilters.nationality && currentFilters.nationality.trim() !== '' ? currentFilters.nationality.trim() : undefined,
+      minAge: minAgeNum,
+      maxAge: maxAgeNum,
+      minHeightCm: minHeightNum,
+      maxHeightCm: maxHeightNum,
     };
 
     searchPlayersApi(queryParams)
@@ -82,16 +116,18 @@ export const PlayerSearchPage: React.FC = () => {
         console.error('Không thể tải danh sách giải đấu:', err);
       });
 
-    fetchPlayersData(1, '', '', '');
+    fetchPlayersData(1, {}, '');
   }, []);
 
   // Handler when user selects a Competition
   const handleCompetitionChange = (competitionId: string) => {
-    setFilters((prev) => ({
-      ...prev,
+    const updatedFilters = {
+      ...filters,
       competitionId,
       currentTeamId: '',
-    }));
+    };
+
+    setFilters(updatedFilters);
     setTeams([]);
 
     if (competitionId) {
@@ -108,19 +144,32 @@ export const PlayerSearchPage: React.FC = () => {
         });
     }
 
-    // Reset to page 1 and fetch players matching new competition
-    fetchPlayersData(1, appliedSearch, competitionId, '');
+    // Reset to page 1 and fetch players with updated competition
+    fetchPlayersData(1, updatedFilters);
   };
 
   // Handler when user selects a Club
   const handleTeamChange = (teamId: string) => {
-    setFilters((prev) => ({
-      ...prev,
+    const updatedFilters = {
+      ...filters,
       currentTeamId: teamId,
-    }));
+    };
 
-    // Reset to page 1 and fetch players matching new club
-    fetchPlayersData(1, appliedSearch, filters.competitionId, teamId);
+    setFilters(updatedFilters);
+    // Reset to page 1 and fetch players with updated club
+    fetchPlayersData(1, updatedFilters);
+  };
+
+  // Handler for simple filters (position, preferredFoot, nationality, minAge, maxAge, minHeightCm, maxHeightCm)
+  const handleFilterChange = (field: keyof PlayerFilterParams, value: any) => {
+    const updatedFilters = {
+      ...filters,
+      [field]: value,
+    };
+
+    setFilters(updatedFilters);
+    // Reset to page 1 and fetch players with updated filter
+    fetchPlayersData(1, updatedFilters);
   };
 
   // Form submit handler when user clicks Search or presses Enter
@@ -128,22 +177,16 @@ export const PlayerSearchPage: React.FC = () => {
     e.preventDefault();
     const trimmedKeyword = searchInput.trim();
     setAppliedSearch(trimmedKeyword);
-    fetchPlayersData(1, trimmedKeyword, filters.competitionId, filters.currentTeamId);
+    fetchPlayersData(1, {}, trimmedKeyword);
   };
 
   // Pagination page change handler
   const handlePageChange = (page: number) => {
-    fetchPlayersData(page, appliedSearch, filters.competitionId, filters.currentTeamId);
-  };
-
-  const handleFilterChange = (field: keyof PlayerFilterParams, value: any) => {
-    setFilters((prev) => ({ ...prev, [field]: value }));
+    fetchPlayersData(page);
   };
 
   const handleResetFilters = () => {
-    setSearchInput('');
-    setAppliedSearch('');
-    setFilters({
+    const defaultFilters: PlayerFilterParams = {
       competitionId: '',
       currentTeamId: '',
       position: '',
@@ -153,9 +196,13 @@ export const PlayerSearchPage: React.FC = () => {
       maxAge: '',
       minHeightCm: '',
       maxHeightCm: '',
-    });
+    };
+
+    setSearchInput('');
+    setAppliedSearch('');
+    setFilters(defaultFilters);
     setTeams([]);
-    fetchPlayersData(1, '', '', '');
+    fetchPlayersData(1, defaultFilters, '');
   };
 
   return (
