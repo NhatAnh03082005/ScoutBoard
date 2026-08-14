@@ -4,8 +4,12 @@ import { Repository } from 'typeorm';
 import {
   PlayerReadRepository,
   SearchPlayersQuery,
+  FindPlayerMatchStatisticsQuery,
 } from 'src/modules/players/application/ports/player-read.repository';
 import { PlayerOrmEntity } from '../entities/player.orm-entity';
+import { PlayerTeamHistoryOrmEntity } from '../entities/player-team-history.orm-entity';
+import { PlayerSeasonStatisticOrmEntity } from '../entities/player-season-statistic.orm-entity';
+import { PlayerMatchStatisticOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/player-match-statistic.orm-entity';
 
 @Injectable()
 export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
@@ -19,6 +23,87 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       where: { id },
       relations: ['currentTeam', 'positions', 'seasonStatistics'],
     });
+  }
+
+  async findTeamHistoryByPlayerId(
+    playerId: string,
+  ): Promise<PlayerTeamHistoryOrmEntity[]> {
+    const historyRepo = this.repository.manager.getRepository(
+      PlayerTeamHistoryOrmEntity,
+    );
+    return historyRepo.find({
+      where: { playerId },
+      relations: ['team'],
+      order: {
+        isCurrent: 'DESC',
+        startDate: 'DESC',
+      },
+    });
+  }
+
+  async findSeasonStatisticsByPlayerId(
+    playerId: string,
+  ): Promise<PlayerSeasonStatisticOrmEntity[]> {
+    const statsRepo = this.repository.manager.getRepository(
+      PlayerSeasonStatisticOrmEntity,
+    );
+    return statsRepo.find({
+      where: { playerId },
+      relations: ['season', 'competition', 'team'],
+      order: {
+        season: {
+          isCurrent: 'DESC',
+          seasonCode: 'DESC',
+        },
+        competition: {
+          name: 'ASC',
+        },
+      },
+    });
+  }
+
+  async findMatchStatisticsByPlayerId(
+    playerId: string,
+    query: FindPlayerMatchStatisticsQuery,
+  ): Promise<{ items: PlayerMatchStatisticOrmEntity[]; total: number }> {
+    const matchStatsRepo = this.repository.manager.getRepository(
+      PlayerMatchStatisticOrmEntity,
+    );
+
+    const qb = matchStatsRepo
+      .createQueryBuilder('pms')
+      .leftJoinAndSelect('pms.team', 'team')
+      .leftJoinAndSelect('pms.match', 'match')
+      .leftJoinAndSelect('match.homeTeam', 'homeTeam')
+      .leftJoinAndSelect('match.awayTeam', 'awayTeam')
+      .leftJoinAndSelect('match.competition', 'competition')
+      .leftJoinAndSelect('match.season', 'season')
+      .where('pms.playerId = :playerId', { playerId });
+
+    if (query.seasonId) {
+      qb.andWhere('match.seasonId = :seasonId', { seasonId: query.seasonId });
+    }
+
+    if (query.competitionId) {
+      qb.andWhere('match.competitionId = :competitionId', {
+        competitionId: query.competitionId,
+      });
+    }
+
+    if (query.teamId) {
+      qb.andWhere('pms.teamId = :teamId', { teamId: query.teamId });
+    }
+
+    const limit = query.limit ?? 10;
+    const offset = query.offset ?? 0;
+
+    qb.orderBy('match.matchDate', 'DESC')
+      .addOrderBy('pms.id', 'DESC')
+      .take(limit)
+      .skip(offset);
+
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total };
   }
 
   async search(

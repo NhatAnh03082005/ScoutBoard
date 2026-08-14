@@ -3,9 +3,10 @@ import type { PlayerItem } from '../../types/player.types';
 
 interface PlayerTableProps {
   players: PlayerItem[];
+  onPlayerSelect?: (playerId: string) => void;
 }
 
-export const PlayerTable: React.FC<PlayerTableProps> = ({ players }) => {
+export const PlayerTable: React.FC<PlayerTableProps> = ({ players, onPlayerSelect }) => {
   const calculateAge = (dateOfBirth?: string | null): string => {
     if (!dateOfBirth) return 'N/A';
     const birthDate = new Date(dateOfBirth);
@@ -74,9 +75,24 @@ export const PlayerTable: React.FC<PlayerTableProps> = ({ players }) => {
                       >
                         ⚽
                       </div>
-                      <span style={{ fontWeight: 600, color: '#f8fafc' }}>
+                      <button
+                        type="button"
+                        onClick={() => onPlayerSelect && onPlayerSelect(player.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#60a5fa',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0,
+                          textAlign: 'left',
+                          fontSize: '14px',
+                          textDecoration: 'hover',
+                        }}
+                        className="player-name-link"
+                      >
                         {player.fullName}
-                      </span>
+                      </button>
                     </div>
                   </td>
                   <td>

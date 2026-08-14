@@ -6,6 +6,7 @@ import { getCompetitionsApi, getCurrentTeamsByCompetitionApi } from '../services
 import { PlayerFilters } from '../components/player/PlayerFilters';
 import { PlayerTable } from '../components/player/PlayerTable';
 import { PlayerPagination } from '../components/player/PlayerPagination';
+import { PlayerDetailPage } from './PlayerDetailPage';
 
 // Helper to parse numeric inputs cleanly and avoid Number("") === 0 pitfalls
 const parseNumericParam = (val?: number | string | null): number | undefined => {
@@ -19,6 +20,9 @@ export const PlayerSearchPage: React.FC = () => {
   const [pagination, setPagination] = useState<PaginationMetadata | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Selected Player for Detail View (Master/Detail pattern)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   // Competition & Club state
   const [competitions, setCompetitions] = useState<CompetitionItem[]>([]);
@@ -185,6 +189,15 @@ export const PlayerSearchPage: React.FC = () => {
     fetchPlayersData(page);
   };
 
+  // Handle Master/Detail selection
+  const handlePlayerSelect = (playerId: string) => {
+    setSelectedPlayerId(playerId);
+  };
+
+  const handleBackToSearch = () => {
+    setSelectedPlayerId(null);
+  };
+
   const handleResetFilters = () => {
     const defaultFilters: PlayerFilterParams = {
       competitionId: '',
@@ -205,6 +218,17 @@ export const PlayerSearchPage: React.FC = () => {
     fetchPlayersData(1, defaultFilters, '');
   };
 
+  // Render Detail View if a player is selected
+  if (selectedPlayerId) {
+    return (
+      <PlayerDetailPage
+        playerId={selectedPlayerId}
+        onBack={handleBackToSearch}
+      />
+    );
+  }
+
+  // Render Master Search View
   return (
     <div className="player-search-page">
       {/* 1. Page Title */}
@@ -268,7 +292,7 @@ export const PlayerSearchPage: React.FC = () => {
       />
 
       {/* 4. Player Table */}
-      <PlayerTable players={players} />
+      <PlayerTable players={players} onPlayerSelect={handlePlayerSelect} />
 
       {/* 5. Pagination */}
       <PlayerPagination

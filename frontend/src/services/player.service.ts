@@ -1,4 +1,12 @@
-import type { PlayerFilterParams, PlayerListResponse } from '../types/player.types';
+import type {
+  PlayerFilterParams,
+  PlayerMatchFilterParams,
+  PlayerListResponse,
+  PlayerMatchStatisticsResponse,
+  PlayerDetail,
+  PlayerTeamHistoryItem,
+  PlayerSeasonStatisticItem,
+} from '../types/player.types';
 
 // Use Vite environment variable with fallback to local development URL
 const API_BASE_URL =
@@ -48,6 +56,107 @@ export async function searchPlayersApi(
 
   if (!response.ok) {
     throw new Error(data.message || 'Không thể tải danh sách cầu thủ');
+  }
+
+  return data;
+}
+
+/**
+ * Gọi API GET /api/players/:id lấy thông tin chi tiết một cầu thủ
+ */
+export async function getPlayerByIdApi(playerId: string): Promise<PlayerDetail> {
+  const response = await fetch(`${API_BASE_URL}/players/${playerId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể tải thông tin chi tiết cầu thủ');
+  }
+
+  return data;
+}
+
+/**
+ * Gọi API GET /api/players/:id/team-history lấy lịch sử thi đấu qua các đội của cầu thủ
+ */
+export async function getPlayerTeamHistoryApi(
+  playerId: string,
+): Promise<PlayerTeamHistoryItem[]> {
+  const response = await fetch(`${API_BASE_URL}/players/${playerId}/team-history`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể tải lịch sử thi đấu của cầu thủ');
+  }
+
+  return data;
+}
+
+/**
+ * Gọi API GET /api/players/:id/season-statistics lấy danh sách thống kê chỉ số theo mùa của cầu thủ
+ */
+export async function getPlayerSeasonStatisticsApi(
+  playerId: string,
+): Promise<PlayerSeasonStatisticItem[]> {
+  const response = await fetch(`${API_BASE_URL}/players/${playerId}/season-statistics`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể tải thống kê mùa giải của cầu thủ');
+  }
+
+  return data;
+}
+
+/**
+ * Gọi API GET /api/players/:id/match-statistics lấy danh sách thống kê từng trận đấu của cầu thủ
+ */
+export async function getPlayerMatchStatisticsApi(
+  playerId: string,
+  params?: PlayerMatchFilterParams,
+): Promise<PlayerMatchStatisticsResponse> {
+  const queryParams = new URLSearchParams();
+
+  if (params) {
+    if (params.seasonId) queryParams.append('seasonId', params.seasonId);
+    if (params.competitionId) queryParams.append('competitionId', params.competitionId);
+    if (params.teamId) queryParams.append('teamId', params.teamId);
+    if (params.limit !== undefined) queryParams.append('limit', String(params.limit));
+    if (params.offset !== undefined) queryParams.append('offset', String(params.offset));
+  }
+
+  const url = `${API_BASE_URL}/players/${playerId}/match-statistics${
+    queryParams.toString() ? `?${queryParams.toString()}` : ''
+  }`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể tải thống kê trận đấu của cầu thủ');
   }
 
   return data;
