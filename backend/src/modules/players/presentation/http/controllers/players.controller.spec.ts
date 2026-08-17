@@ -5,7 +5,9 @@ import { GetPlayerByIdUseCase } from 'src/modules/players/application/use-cases/
 import { GetPlayerTeamHistoryUseCase } from 'src/modules/players/application/use-cases/get-player-team-history.use-case';
 import { GetPlayerSeasonStatisticsUseCase } from 'src/modules/players/application/use-cases/get-player-season-statistics.use-case';
 import { GetPlayerMatchStatisticsUseCase } from 'src/modules/players/application/use-cases/get-player-match-statistics.use-case';
+import { GetComparisonCandidatesUseCase } from 'src/modules/players/application/use-cases/get-comparison-candidates.use-case';
 import { SearchPlayersQueryDto } from '../dto/search-players-query.dto';
+import { ComparisonScope } from 'src/modules/players/domain/enums/comparison-scope.enum';
 
 describe('PlayersController', () => {
   let controller: PlayersController;
@@ -24,6 +26,9 @@ describe('PlayersController', () => {
   let mockGetMatchStatisticsUseCase: {
     execute: jest.Mock;
   };
+  let mockGetComparisonCandidatesUseCase: {
+    execute: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockSearchUseCase = {
@@ -39,6 +44,9 @@ describe('PlayersController', () => {
       execute: jest.fn(),
     };
     mockGetMatchStatisticsUseCase = {
+      execute: jest.fn(),
+    };
+    mockGetComparisonCandidatesUseCase = {
       execute: jest.fn(),
     };
 
@@ -64,6 +72,10 @@ describe('PlayersController', () => {
         {
           provide: GetPlayerMatchStatisticsUseCase,
           useValue: mockGetMatchStatisticsUseCase,
+        },
+        {
+          provide: GetComparisonCandidatesUseCase,
+          useValue: mockGetComparisonCandidatesUseCase,
         },
       ],
     }).compile();
@@ -139,8 +151,9 @@ describe('PlayersController', () => {
           assists: 12,
           shots: 65,
           shotsOnTarget: 31,
-          passes: 1240,
-          passAccuracy: 86.4,
+          passesAttempted: 1240,
+          passesCompleted: 1071,
+          passAccuracy: 86.37,
           keyPasses: 54,
           tackles: 28,
           interceptions: 17,
@@ -168,6 +181,28 @@ describe('PlayersController', () => {
       const result = await controller.getMatchStatistics('player-123', query);
 
       expect(mockGetMatchStatisticsUseCase.execute).toHaveBeenCalledWith('player-123', query);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('getComparisonCandidates', () => {
+    it('should delegate getComparisonCandidates to GetComparisonCandidatesUseCase', async () => {
+      const query = {
+        scope: ComparisonScope.COMPETITION,
+        seasonId: 's-1',
+        competitionId: 'c-1',
+        limit: 20,
+        offset: 0,
+      };
+      const expectedResponse = {
+        items: [],
+        pagination: { limit: 20, offset: 0, total: 0 },
+      };
+      mockGetComparisonCandidatesUseCase.execute.mockResolvedValue(expectedResponse);
+
+      const result = await controller.getComparisonCandidates('player-123', query);
+
+      expect(mockGetComparisonCandidatesUseCase.execute).toHaveBeenCalledWith('player-123', query);
       expect(result).toEqual(expectedResponse);
     });
   });

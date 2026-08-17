@@ -5,8 +5,10 @@ import { GetPlayerByIdUseCase } from 'src/modules/players/application/use-cases/
 import { GetPlayerTeamHistoryUseCase } from 'src/modules/players/application/use-cases/get-player-team-history.use-case';
 import { GetPlayerSeasonStatisticsUseCase } from 'src/modules/players/application/use-cases/get-player-season-statistics.use-case';
 import { GetPlayerMatchStatisticsUseCase } from 'src/modules/players/application/use-cases/get-player-match-statistics.use-case';
+import { GetComparisonCandidatesUseCase } from 'src/modules/players/application/use-cases/get-comparison-candidates.use-case';
 import { SearchPlayersQueryDto } from '../dto/search-players-query.dto';
 import { FindPlayerMatchStatisticsQueryDto } from '../dto/find-player-match-statistics-query.dto';
+import { FindComparisonCandidatesQueryDto } from '../dto/find-comparison-candidates-query.dto';
 import { PlayerListResponseDto } from '../dto/player-response.dto';
 import { PlayerTeamHistoryResponseDto } from '../dto/player-team-history-response.dto';
 import { PlayerSeasonStatisticResponseDto } from '../dto/player-season-statistic-response.dto';
@@ -21,6 +23,7 @@ export class PlayersController {
     private readonly getPlayerTeamHistoryUseCase: GetPlayerTeamHistoryUseCase,
     private readonly getPlayerSeasonStatisticsUseCase: GetPlayerSeasonStatisticsUseCase,
     private readonly getPlayerMatchStatisticsUseCase: GetPlayerMatchStatisticsUseCase,
+    private readonly getComparisonCandidatesUseCase: GetComparisonCandidatesUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Tìm kiếm & danh sách cầu thủ cơ bản' })
@@ -100,5 +103,27 @@ export class PlayersController {
     @Query() query: FindPlayerMatchStatisticsQueryDto,
   ): Promise<PlayerMatchStatisticListResponseDto> {
     return this.getPlayerMatchStatisticsUseCase.execute(id, query);
+  }
+
+  @ApiOperation({ summary: 'Tìm kiếm ứng viên so sánh cầu thủ theo phạm vi bối cảnh' })
+  @ApiResponse({
+    status: 200,
+    description: 'Danh sách ứng viên so sánh có phân trang',
+    type: PlayerListResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Tham số bối cảnh hoặc điều kiện lọc không hợp lệ',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Cầu thủ gốc không tồn tại',
+  })
+  @Get(':id/comparison-candidates')
+  async getComparisonCandidates(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: FindComparisonCandidatesQueryDto,
+  ): Promise<PlayerListResponseDto> {
+    return this.getComparisonCandidatesUseCase.execute(id, query);
   }
 }

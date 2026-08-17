@@ -16,6 +16,7 @@ import { GetPlayerByIdUseCase } from './application/use-cases/get-player-by-id.u
 import { GetPlayerTeamHistoryUseCase } from './application/use-cases/get-player-team-history.use-case';
 import { GetPlayerSeasonStatisticsUseCase } from './application/use-cases/get-player-season-statistics.use-case';
 import { GetPlayerMatchStatisticsUseCase } from './application/use-cases/get-player-match-statistics.use-case';
+import { GetComparisonCandidatesUseCase } from './application/use-cases/get-comparison-candidates.use-case';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { GetPlayerMatchStatisticsUseCase } from './application/use-cases/get-pla
     GetPlayerTeamHistoryUseCase,
     GetPlayerSeasonStatisticsUseCase,
     GetPlayerMatchStatisticsUseCase,
+    GetComparisonCandidatesUseCase,
   ],
   exports: [
     PLAYER_READ_REPOSITORY,
@@ -47,6 +49,7 @@ import { GetPlayerMatchStatisticsUseCase } from './application/use-cases/get-pla
     GetPlayerTeamHistoryUseCase,
     GetPlayerSeasonStatisticsUseCase,
     GetPlayerMatchStatisticsUseCase,
+    GetComparisonCandidatesUseCase,
   ],
 })
 export class PlayersModule {}

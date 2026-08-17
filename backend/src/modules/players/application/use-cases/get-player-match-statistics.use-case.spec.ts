@@ -13,6 +13,7 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
       findTeamHistoryByPlayerId: jest.fn(),
       findSeasonStatisticsByPlayerId: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
+      findComparisonCandidates: jest.fn(),
     };
 
     useCase = new GetPlayerMatchStatisticsUseCase(mockPlayerRepo);
@@ -52,7 +53,7 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
     });
   });
 
-  it('should return formatted match statistics with full match context', async () => {
+  it('should return formatted match statistics with full match context and derived passAccuracy', async () => {
     mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Saka' } as any);
     mockPlayerRepo.findMatchStatisticsByPlayerId.mockResolvedValue({
       items: [
@@ -65,6 +66,8 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
           assists: 1,
           shots: 4,
           keyPasses: 3,
+          passesAttempted: 50,
+          passesCompleted: 45,
           tackles: 2,
           interceptions: 1,
           yellowCards: 0,
@@ -93,7 +96,9 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
     expect(result.items[0].match.homeTeam.name).toBe('Arsenal FC');
     expect(result.items[0].match.awayTeam.name).toBe('Chelsea FC');
     expect(result.items[0].goals).toBe(1);
-    expect(result.items[0].assists).toBe(1);
+    expect(result.items[0].passesAttempted).toBe(50);
+    expect(result.items[0].passesCompleted).toBe(45);
+    expect(result.items[0].passAccuracy).toBe(90);
     expect(result.pagination.total).toBe(1);
   });
 });

@@ -5,7 +5,9 @@ import {
   PlayerReadRepository,
   SearchPlayersQuery,
   FindPlayerMatchStatisticsQuery,
+  FindComparisonCandidatesQuery,
 } from 'src/modules/players/application/ports/player-read.repository';
+import { ComparisonScope } from 'src/modules/players/domain/enums/comparison-scope.enum';
 import { PlayerOrmEntity } from '../entities/player.orm-entity';
 import { PlayerTeamHistoryOrmEntity } from '../entities/player-team-history.orm-entity';
 import { PlayerSeasonStatisticOrmEntity } from '../entities/player-season-statistic.orm-entity';
@@ -151,6 +153,105 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       qb.andWhere(
         'player.currentTeamId IN (SELECT st.team_id FROM season_teams st WHERE st.season_id = :currentSeasonId)',
         { currentSeasonId: query.currentSeasonId },
+      );
+    }
+
+    if (query.minAge !== undefined) {
+      qb.andWhere(
+        'EXTRACT(YEAR FROM age(CURRENT_DATE, player.date_of_birth)) >= :minAge',
+        { minAge: query.minAge },
+      );
+    }
+
+    if (query.maxAge !== undefined) {
+      qb.andWhere(
+        'EXTRACT(YEAR FROM age(CURRENT_DATE, player.date_of_birth)) <= :maxAge',
+        { maxAge: query.maxAge },
+      );
+    }
+
+    if (query.minHeightCm !== undefined) {
+      qb.andWhere('player.heightCm >= :minHeightCm', {
+        minHeightCm: query.minHeightCm,
+      });
+    }
+
+    if (query.maxHeightCm !== undefined) {
+      qb.andWhere('player.heightCm <= :maxHeightCm', {
+        maxHeightCm: query.maxHeightCm,
+      });
+    }
+
+    const limit = query.limit ?? 20;
+    const offset = query.offset ?? 0;
+
+    qb.orderBy('player.name', 'ASC')
+      .addOrderBy('player.id', 'ASC')
+      .take(limit)
+      .skip(offset);
+
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total };
+  }
+
+  async findComparisonCandidates(
+    currentPlayerId: string,
+    query: FindComparisonCandidatesQuery,
+  ): Promise<{ items: PlayerOrmEntity[]; total: number }> {
+    const qb = this.repository
+      .createQueryBuilder('player')
+      .leftJoinAndSelect('player.currentTeam', 'currentTeam')
+      .innerJoin('player_season_statistics', 'pss', 'pss.player_id = player.id')
+      .where('player.id != :currentPlayerId', { currentPlayerId });
+
+    if (query.scope === ComparisonScope.COMPETITION && query.competitionId) {
+      qb.andWhere(
+        'pss.season_id = :seasonId AND pss.competition_id = :competitionId',
+        {
+          seasonId: query.seasonId,
+          competitionId: query.competitionId,
+        },
+      );
+    } else {
+      qb.andWhere(
+        'pss.season_id IN (SELECT s.id FROM seasons s WHERE s.season_code = (SELECT s2.season_code FROM seasons s2 WHERE s2.id = :seasonId))',
+        {
+          seasonId: query.seasonId,
+        },
+      );
+    }
+
+    if (query.currentTeamId) {
+      qb.andWhere('player.currentTeamId = :currentTeamId', {
+        currentTeamId: query.currentTeamId,
+      });
+    }
+
+    if (query.search && query.search.trim() !== '') {
+      const searchTerm = `%${query.search.trim()}%`;
+      qb.andWhere(
+        '(player.name ILIKE :search OR player.shortName ILIKE :search)',
+        { search: searchTerm },
+      );
+    }
+
+    if (query.preferredFoot) {
+      qb.andWhere('player.preferredFoot = :preferredFoot', {
+        preferredFoot: query.preferredFoot,
+      });
+    }
+
+    if (query.nationality && query.nationality.trim() !== '') {
+      qb.andWhere('LOWER(player.nationality) = LOWER(:nationality)', {
+        nationality: query.nationality.trim(),
+      });
+    }
+
+    if (query.position && query.position.trim() !== '') {
+      const posCode = query.position.trim();
+      qb.innerJoin('player.positions', 'pos').andWhere(
+        '(player.primaryPosition = :posCode OR pos.positionCode = :posCode)',
+        { posCode },
       );
     }
 

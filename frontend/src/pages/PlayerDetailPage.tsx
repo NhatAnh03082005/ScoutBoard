@@ -15,9 +15,10 @@ import {
 interface PlayerDetailPageProps {
   playerId: string;
   onBack: () => void;
+  onCompare?: (player: PlayerDetail, seasonStatistics: PlayerSeasonStatisticItem[]) => void;
 }
 
-export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, onBack }) => {
+export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, onBack, onCompare }) => {
   const [player, setPlayer] = useState<PlayerDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -322,6 +323,8 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
           alignItems: 'center',
           justifyContent: 'space-between',
           marginBottom: '20px',
+          flexWrap: 'wrap',
+          gap: '12px',
         }}
       >
         <button
@@ -332,6 +335,26 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
         >
           ← Back to Player Search
         </button>
+
+        {player && onCompare && (
+          <button
+            type="button"
+            className="scout-btn scout-btn-sm"
+            onClick={() => onCompare(player, seasonStatistics)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              width: 'auto',
+              background: '#38bdf8',
+              color: '#090d16',
+              fontWeight: 800,
+              boxShadow: '0 2px 10px rgba(56, 189, 248, 0.3)',
+            }}
+          >
+            ⚖️ Compare Player
+          </button>
+        )}
       </div>
 
       {/* Error Banner */}
@@ -879,7 +902,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
                           🎯 Passing
                         </div>
                         <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Passes:</span> <strong>{selectedStatistic.passes}</strong>
+                          <span>Passes (Cmp / Att):</span> <strong>{selectedStatistic.passesCompleted} / {selectedStatistic.passesAttempted}</strong>
                         </div>
                         <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                           <span>Pass Accuracy:</span> <strong>{selectedStatistic.passAccuracy !== null && selectedStatistic.passAccuracy !== undefined ? `${selectedStatistic.passAccuracy}%` : 'N/A'}</strong>
@@ -1039,6 +1062,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
                       <th>G</th>
                       <th>A</th>
                       <th>Shots</th>
+                      <th>Pass (Cmp/Att)</th>
                       <th>KP</th>
                       <th>Tk</th>
                     </tr>
@@ -1155,6 +1179,11 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
 
                           {/* Shots */}
                           <td>{item.shots}</td>
+
+                          {/* Pass (Cmp/Att) */}
+                          <td style={{ fontSize: '12px', fontWeight: 600 }}>
+                            {item.passesCompleted}/{item.passesAttempted}
+                          </td>
 
                           {/* Key Passes */}
                           <td>{item.keyPasses}</td>

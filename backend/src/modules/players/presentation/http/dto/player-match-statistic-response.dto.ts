@@ -93,6 +93,15 @@ export class PlayerMatchStatisticItemDto {
   @ApiProperty({ description: 'Số đường chuyền tạo cơ hội' })
   keyPasses: number;
 
+  @ApiProperty({ description: 'Số đường chuyền thực hiện (Attempts)' })
+  passesAttempted: number;
+
+  @ApiProperty({ description: 'Số đường chuyền thành công (Completed)' })
+  passesCompleted: number;
+
+  @ApiProperty({ description: 'Tỷ lệ chuyền chính xác (%)', nullable: true })
+  passAccuracy: number | null;
+
   @ApiProperty({ description: 'Số lần tắc bóng' })
   tackles: number;
 

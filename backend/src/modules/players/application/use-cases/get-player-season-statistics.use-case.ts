@@ -12,6 +12,17 @@ function calculatePer90(metric: number, minutesPlayed: number): number | null {
   return Number(val.toFixed(2));
 }
 
+// Helper function to calculate pass accuracy safely (%)
+export function calculatePassAccuracy(
+  passesCompleted: number,
+  passesAttempted: number,
+): number | null {
+  if (!passesAttempted || passesAttempted <= 0) return null;
+  if (passesCompleted < 0) return null;
+  const val = (passesCompleted / passesAttempted) * 100;
+  return Number(val.toFixed(2));
+}
+
 @Injectable()
 export class GetPlayerSeasonStatisticsUseCase {
   constructor(
@@ -32,6 +43,8 @@ export class GetPlayerSeasonStatisticsUseCase {
 
     return statsList.map((stat) => {
       const minutes = stat.minutesPlayed || 0;
+      const att = stat.passesAttempted || 0;
+      const cmp = stat.passesCompleted || 0;
 
       return {
         id: stat.id,
@@ -60,11 +73,9 @@ export class GetPlayerSeasonStatisticsUseCase {
         assists: stat.assists,
         shots: stat.shots,
         shotsOnTarget: stat.shotsOnTarget,
-        passes: stat.passes,
-        passAccuracy:
-          stat.passAccuracy !== null && stat.passAccuracy !== undefined
-            ? Number(stat.passAccuracy)
-            : null,
+        passesAttempted: att,
+        passesCompleted: cmp,
+        passAccuracy: calculatePassAccuracy(cmp, att),
         keyPasses: stat.keyPasses,
         tackles: stat.tackles,
         interceptions: stat.interceptions,
@@ -75,7 +86,7 @@ export class GetPlayerSeasonStatisticsUseCase {
         assistsPer90: calculatePer90(stat.assists, minutes),
         shotsPer90: calculatePer90(stat.shots, minutes),
         shotsOnTargetPer90: calculatePer90(stat.shotsOnTarget, minutes),
-        passesPer90: calculatePer90(stat.passes, minutes),
+        passesPer90: calculatePer90(att, minutes),
         keyPassesPer90: calculatePer90(stat.keyPasses, minutes),
         tacklesPer90: calculatePer90(stat.tackles, minutes),
         interceptionsPer90: calculatePer90(stat.interceptions, minutes),

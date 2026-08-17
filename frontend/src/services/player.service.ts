@@ -1,6 +1,7 @@
 import type {
   PlayerFilterParams,
   PlayerMatchFilterParams,
+  ComparisonCandidateParams,
   PlayerListResponse,
   PlayerMatchStatisticsResponse,
   PlayerDetail,
@@ -157,6 +158,58 @@ export async function getPlayerMatchStatisticsApi(
 
   if (!response.ok) {
     throw new Error(data.message || 'Không thể tải thống kê trận đấu của cầu thủ');
+  }
+
+  return data;
+}
+
+/**
+ * Gọi API GET /api/players/:id/comparison-candidates lấy danh sách ứng viên so sánh theo phạm vi bối cảnh
+ */
+export async function getComparisonCandidatesApi(
+  playerId: string,
+  params: ComparisonCandidateParams,
+): Promise<PlayerListResponse> {
+  const queryParams = new URLSearchParams();
+
+  queryParams.append('scope', params.scope);
+  queryParams.append('seasonId', params.seasonId);
+  if (params.scope === 'COMPETITION' && params.competitionId) {
+    queryParams.append('competitionId', params.competitionId);
+  }
+  if (params.currentTeamId) queryParams.append('currentTeamId', params.currentTeamId);
+  if (params.search) queryParams.append('search', params.search);
+  if (params.position) queryParams.append('position', params.position);
+  if (params.preferredFoot) queryParams.append('preferredFoot', params.preferredFoot);
+  if (params.nationality) queryParams.append('nationality', params.nationality);
+  if (params.minAge !== undefined && params.minAge !== null && params.minAge !== '') {
+    queryParams.append('minAge', String(params.minAge));
+  }
+  if (params.maxAge !== undefined && params.maxAge !== null && params.maxAge !== '') {
+    queryParams.append('maxAge', String(params.maxAge));
+  }
+  if (params.minHeightCm !== undefined && params.minHeightCm !== null && params.minHeightCm !== '') {
+    queryParams.append('minHeightCm', String(params.minHeightCm));
+  }
+  if (params.maxHeightCm !== undefined && params.maxHeightCm !== null && params.maxHeightCm !== '') {
+    queryParams.append('maxHeightCm', String(params.maxHeightCm));
+  }
+  if (params.limit !== undefined) queryParams.append('limit', String(params.limit));
+  if (params.offset !== undefined) queryParams.append('offset', String(params.offset));
+
+  const url = `${API_BASE_URL}/players/${playerId}/comparison-candidates?${queryParams.toString()}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể tải danh sách ứng viên so sánh');
   }
 
   return data;

@@ -63,18 +63,11 @@ export class PlayerSeasonStatisticOrmEntity {
   @Column({ name: 'key_passes', type: 'integer', default: 0 })
   keyPasses: number;
 
-  @Column({ type: 'integer', default: 0 })
-  passes: number;
+  @Column({ name: 'passes_attempted', type: 'integer', default: 0 })
+  passesAttempted: number;
 
-  @Column({
-    name: 'pass_accuracy',
-    type: 'decimal',
-    precision: 5,
-    scale: 2,
-    nullable: true,
-    default: null,
-  })
-  passAccuracy: number | null;
+  @Column({ name: 'passes_completed', type: 'integer', default: 0 })
+  passesCompleted: number;
 
   @Column({ type: 'integer', default: 0 })
   tackles: number;
@@ -104,45 +97,50 @@ export class PlayerSeasonStatisticOrmEntity {
     type: 'decimal',
     precision: 5,
     scale: 2,
-    default: 0,
+    nullable: true,
+    default: null,
   })
-  goalsPer90: number;
+  goalsPer90: number | null;
 
   @Column({
     name: 'assists_per_90',
     type: 'decimal',
     precision: 5,
     scale: 2,
-    default: 0,
+    nullable: true,
+    default: null,
   })
-  assistsPer90: number;
+  assistsPer90: number | null;
 
   @Column({
     name: 'key_passes_per_90',
     type: 'decimal',
     precision: 5,
     scale: 2,
-    default: 0,
+    nullable: true,
+    default: null,
   })
-  keyPassesPer90: number;
+  keyPassesPer90: number | null;
 
   @Column({
     name: 'tackles_per_90',
     type: 'decimal',
     precision: 5,
     scale: 2,
-    default: 0,
+    nullable: true,
+    default: null,
   })
-  tacklesPer90: number;
+  tacklesPer90: number | null;
 
   @Column({
     name: 'interceptions_per_90',
     type: 'decimal',
     precision: 5,
     scale: 2,
-    default: 0,
+    nullable: true,
+    default: null,
   })
-  interceptionsPer90: number;
+  interceptionsPer90: number | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
@@ -169,7 +167,6 @@ export class PlayerSeasonStatisticOrmEntity {
   competition: CompetitionOrmEntity;
 
   @ManyToOne(() => TeamOrmEntity, (team) => team.seasonStatistics, {
-    nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'team_id' })

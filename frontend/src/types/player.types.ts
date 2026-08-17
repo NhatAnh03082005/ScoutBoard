@@ -71,7 +71,8 @@ export interface PlayerSeasonStatisticItem {
   assists: number;
   shots: number;
   shotsOnTarget: number;
-  passes: number;
+  passesAttempted: number;
+  passesCompleted: number;
   passAccuracy: number | null;
   keyPasses: number;
   tackles: number;
@@ -118,6 +119,9 @@ export interface PlayerMatchStatisticItem {
   assists: number;
   shots: number;
   keyPasses: number;
+  passesAttempted: number;
+  passesCompleted: number;
+  passAccuracy: number | null;
   tackles: number;
   interceptions: number;
   yellowCards: number;
@@ -160,6 +164,25 @@ export interface PlayerMatchFilterParams {
   seasonId?: string;
   competitionId?: string;
   teamId?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export type ComparisonScopeType = 'COMPETITION' | 'ALL';
+
+export interface ComparisonCandidateParams {
+  scope: ComparisonScopeType;
+  seasonId: string;
+  competitionId?: string;
+  currentTeamId?: string;
+  search?: string;
+  position?: string;
+  preferredFoot?: string;
+  nationality?: string;
+  minAge?: number | string;
+  maxAge?: number | string;
+  minHeightCm?: number | string;
+  maxHeightCm?: number | string;
   limit?: number;
   offset?: number;
 }

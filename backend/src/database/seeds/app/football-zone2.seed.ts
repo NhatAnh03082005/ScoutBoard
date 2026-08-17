@@ -366,8 +366,8 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
           assists: statRaw.ast,
           shots: statRaw.sh,
           shotsOnTarget: statRaw.sot,
-          passes: statRaw.pass,
-          passAccuracy: statRaw.acc,
+          passesAttempted: statRaw.pass,
+          passesCompleted: Math.round(statRaw.pass * (statRaw.acc / 100)),
           keyPasses: statRaw.kp,
           tackles: statRaw.tk,
           interceptions: statRaw.int,
@@ -392,8 +392,8 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
         stat.assists = statRaw.ast;
         stat.shots = statRaw.sh;
         stat.shotsOnTarget = statRaw.sot;
-        stat.passes = statRaw.pass;
-        stat.passAccuracy = statRaw.acc;
+        stat.passesAttempted = statRaw.pass;
+        stat.passesCompleted = Math.round(statRaw.pass * (statRaw.acc / 100));
         stat.keyPasses = statRaw.kp;
         stat.tackles = statRaw.tk;
         stat.interceptions = statRaw.int;
@@ -541,6 +541,8 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
         assists: (player.shirtNumber || 0) % 4 === 0 ? 1 : 0,
         shots: 2,
         keyPasses: 2,
+        passesAttempted: 50 + Math.floor(Math.random() * 20),
+        passesCompleted: 40 + Math.floor(Math.random() * 15),
         tackles: 3,
         interceptions: 1,
         yellowCards: 0,

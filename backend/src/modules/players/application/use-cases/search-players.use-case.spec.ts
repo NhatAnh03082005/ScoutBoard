@@ -106,6 +106,10 @@ describe('SearchPlayersUseCase (Unit)', () => {
     mockPlayerRepo = {
       search: jest.fn(),
       findById: jest.fn(),
+      findTeamHistoryByPlayerId: jest.fn(),
+      findSeasonStatisticsByPlayerId: jest.fn(),
+      findMatchStatisticsByPlayerId: jest.fn(),
+      findComparisonCandidates: jest.fn(),
     };
     mockCompRepo = {
       findAll: jest.fn(),

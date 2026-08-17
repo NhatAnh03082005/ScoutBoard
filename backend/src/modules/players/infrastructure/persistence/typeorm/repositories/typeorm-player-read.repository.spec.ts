@@ -2,6 +2,7 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 import { TypeOrmPlayerReadRepository } from './typeorm-player-read.repository';
 import { PlayerOrmEntity } from '../entities/player.orm-entity';
 import { PreferredFoot } from 'src/modules/players/domain/enums/preferred-foot.enum';
+import { ComparisonScope } from 'src/modules/players/domain/enums/comparison-scope.enum';
 
 describe('TypeOrmPlayerReadRepository (Unit)', () => {
   let repository: TypeOrmPlayerReadRepository;
@@ -14,6 +15,7 @@ describe('TypeOrmPlayerReadRepository (Unit)', () => {
     mockQueryBuilder = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       innerJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
       addOrderBy: jest.fn().mockReturnThis(),
@@ -140,5 +142,53 @@ describe('TypeOrmPlayerReadRepository (Unit)', () => {
       'player.heightCm <= :maxHeightCm',
       { maxHeightCm: 190 },
     );
+  });
+
+  describe('findComparisonCandidates', () => {
+    it('should filter by season_id, competition_id and exclude currentPlayerId in COMPETITION scope', async () => {
+      await repository.findComparisonCandidates('saka-id', {
+        scope: ComparisonScope.COMPETITION,
+        seasonId: 'season-1',
+        competitionId: 'comp-1',
+        limit: 20,
+        offset: 0,
+      });
+
+      expect(mockOrmRepository.createQueryBuilder).toHaveBeenCalledWith('player');
+      expect(mockQueryBuilder.innerJoin).toHaveBeenCalledWith(
+        'player_season_statistics',
+        'pss',
+        'pss.player_id = player.id',
+      );
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'player.id != :currentPlayerId',
+        { currentPlayerId: 'saka-id' },
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'pss.season_id = :seasonId AND pss.competition_id = :competitionId',
+        {
+          seasonId: 'season-1',
+          competitionId: 'comp-1',
+        },
+      );
+    });
+
+    it('should filter by season_id only in ALL scope', async () => {
+      await repository.findComparisonCandidates('saka-id', {
+        scope: ComparisonScope.ALL,
+        seasonId: 'season-1',
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'player.id != :currentPlayerId',
+        { currentPlayerId: 'saka-id' },
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'pss.season_id IN (SELECT s.id FROM seasons s WHERE s.season_code = (SELECT s2.season_code FROM seasons s2 WHERE s2.id = :seasonId))',
+        { seasonId: 'season-1' },
+      );
+    });
   });
 });

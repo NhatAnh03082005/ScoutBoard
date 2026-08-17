@@ -590,7 +590,8 @@ Lưu thống kê của một cầu thủ trong một trận đấu cụ thể.
 | `goals` | `INTEGER` | Không | `0` |  | Số bàn thắng trong trận. | Không âm. |
 | `assists` | `INTEGER` | Không | `0` |  | Số kiến tạo trong trận. | Không âm. |
 | `shots` | `INTEGER` | Không | `0` |  | Số cú sút. | Không âm. |
-| `passes` | `INTEGER` | Không | `0` |  | Tổng số đường chuyền. | Không âm. |
+| `passes_attempted` | `INTEGER` | Không | `0` |  | Tổng số đường chuyền thực hiện. | Không âm. |
+| `passes_completed` | `INTEGER` | Không | `0` |  | Số đường chuyền thành công. | Không âm và không lớn hơn `passes_attempted`. |
 | `tackles` | `INTEGER` | Không | `0` |  | Số lần tắc bóng. | Không âm. |
 | `statistics` | `JSONB` | Có | `NULL` |  | Các chỉ số mở rộng phụ thuộc provider. | Chỉ lưu dữ liệu đã chuẩn hóa hoặc có version/schema rõ ràng. |
 | `(match_id, player_id)` | `—` | — | — | UNIQUE | Mỗi cầu thủ chỉ có một bản ghi thống kê trong một trận. | Ngăn dữ liệu đồng bộ trùng. |
@@ -633,8 +634,8 @@ Lưu thống kê tổng hợp của cầu thủ theo đội, giải đấu và m
 | `assists` | `INTEGER` | Không | `0` |  | Tổng số kiến tạo. | Không âm. |
 | `shots` | `INTEGER` | Không | `0` |  | Tổng số cú sút. | Không âm. |
 | `shots_on_target` | `INTEGER` | Không | `0` |  | Số cú sút trúng đích. | Không âm và không lớn hơn shots. |
-| `passes` | `INTEGER` | Không | `0` |  | Tổng số đường chuyền. | Không âm. |
-| `pass_accuracy` | `NUMERIC(5,2)` | Có | `NULL` |  | Tỷ lệ chuyền chính xác theo phần trăm. | Giá trị từ 0 đến 100. |
+| `passes_attempted` | `INTEGER` | Không | `0` |  | Tổng số đường chuyền thực hiện. | Không âm. |
+| `passes_completed` | `INTEGER` | Không | `0` |  | Số đường chuyền thành công. | Không âm và không lớn hơn `passes_attempted`. |
 | `key_passes` | `INTEGER` | Không | `0` |  | Số đường chuyền tạo cơ hội. | Không âm. |
 | `tackles` | `INTEGER` | Không | `0` |  | Tổng số pha tắc bóng. | Không âm. |
 | `interceptions` | `INTEGER` | Không | `0` |  | Tổng số lần đánh chặn. | Không âm. |
@@ -646,6 +647,7 @@ Lưu thống kê tổng hợp của cầu thủ theo đội, giải đấu và m
 
 - Bảng thuộc dữ liệu bóng đá đồng bộ. Không xây API cho USER hoặc ADMIN sửa trực tiếp dữ liệu nghiệp vụ của bảng.
 - Khi đồng bộ, ưu tiên PostgreSQL `INSERT ... ON CONFLICT ... DO UPDATE` để upsert.
+- Cột `pass_accuracy` không lưu trực tiếp trong DB mà được tính động từ `passes_completed / passes_attempted * 100` (trả về `NULL` nếu `passes_attempted = 0`).
 - Các chỉ số per 90 không nhất thiết phải lưu thành cột; có thể tính khi query: `metric * 90 / minutes_played`.
 - Khi `minutes_played = 0`, backend phải tránh phép chia cho 0 và trả `NULL` hoặc 0 theo quy ước API.
 

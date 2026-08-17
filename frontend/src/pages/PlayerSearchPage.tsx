@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import type { PlayerItem, PlayerFilterParams, PaginationMetadata } from '../types/player.types';
+import type {
+  PlayerItem,
+  PlayerDetail,
+  PlayerSeasonStatisticItem,
+  PlayerFilterParams,
+  PaginationMetadata,
+  ComparisonScopeType,
+} from '../types/player.types';
 import type { CompetitionItem, CompetitionTeamItem } from '../types/competition.types';
 import { searchPlayersApi } from '../services/player.service';
 import { getCompetitionsApi, getCurrentTeamsByCompetitionApi } from '../services/competition.service';
@@ -7,6 +14,10 @@ import { PlayerFilters } from '../components/player/PlayerFilters';
 import { PlayerTable } from '../components/player/PlayerTable';
 import { PlayerPagination } from '../components/player/PlayerPagination';
 import { PlayerDetailPage } from './PlayerDetailPage';
+import { PlayerComparisonSetupPage } from './PlayerComparisonSetupPage';
+import { PlayerComparisonPage } from './PlayerComparisonPage';
+
+type ViewMode = 'SEARCH' | 'DETAIL' | 'COMPARISON_SETUP' | 'COMPARISON_VIEW';
 
 // Helper to parse numeric inputs cleanly and avoid Number("") === 0 pitfalls
 const parseNumericParam = (val?: number | string | null): number | undefined => {
@@ -16,13 +27,25 @@ const parseNumericParam = (val?: number | string | null): number | undefined => 
 };
 
 export const PlayerSearchPage: React.FC = () => {
+  // Navigation View Mode State
+  const [viewMode, setViewMode] = useState<ViewMode>('SEARCH');
+
+  // Search Results & Pagination
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [pagination, setPagination] = useState<PaginationMetadata | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Selected Player for Detail View (Master/Detail pattern)
+  // Selected Player for Detail View
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
+  // Comparison State
+  const [comparisonPlayerA, setComparisonPlayerA] = useState<PlayerDetail | null>(null);
+  const [comparisonSeasonStatsA, setComparisonSeasonStatsA] = useState<PlayerSeasonStatisticItem[]>([]);
+  const [comparisonPlayerB, setComparisonPlayerB] = useState<PlayerItem | null>(null);
+  const [comparisonScope, setComparisonScope] = useState<ComparisonScopeType>('COMPETITION');
+  const [comparisonSeasonId, setComparisonSeasonId] = useState<string>('');
+  const [comparisonCompetitionId, setComparisonCompetitionId] = useState<string | undefined>(undefined);
 
   // Competition & Club state
   const [competitions, setCompetitions] = useState<CompetitionItem[]>([]);
@@ -98,104 +121,127 @@ export const PlayerSearchPage: React.FC = () => {
     };
 
     searchPlayersApi(queryParams)
-      .then((response) => {
-        setPlayers(response.items);
-        setPagination(response.pagination);
+      .then((data) => {
+        setPlayers(data.items);
+        setPagination(data.pagination);
       })
       .catch((err: any) => {
-        setError(err.message || 'Không thể tải danh sách cầu thủ từ backend');
+        setError(err.message || 'Failed to fetch players');
       })
       .finally(() => {
         setLoading(false);
       });
   };
 
-  // Initial fetch: Load Competitions list & Load initial players on mount
+  // Initial Load: Fetch Competitions and First Page of Players
   useEffect(() => {
     getCompetitionsApi()
-      .then((compsList) => {
-        setCompetitions(compsList);
+      .then((data) => {
+        setCompetitions(data);
       })
       .catch((err: any) => {
-        console.error('Không thể tải danh sách giải đấu:', err);
+        console.error('Failed to load competitions:', err);
       });
 
-    fetchPlayersData(1, {}, '');
+    fetchPlayersData(1);
   }, []);
 
-  // Handler when user selects a Competition
+  // Fetch Teams whenever competition filter changes
   const handleCompetitionChange = (competitionId: string) => {
     const updatedFilters = {
       ...filters,
       competitionId,
-      currentTeamId: '',
+      currentTeamId: '', // Reset team when competition changes
     };
-
     setFilters(updatedFilters);
-    setTeams([]);
 
     if (competitionId) {
       setLoadingTeams(true);
       getCurrentTeamsByCompetitionApi(competitionId)
-        .then((teamsList) => {
-          setTeams(teamsList);
+        .then((data) => {
+          setTeams(data);
         })
         .catch((err: any) => {
-          setError(err.message || 'Không thể tải danh sách câu lạc bộ');
+          console.error('Failed to load teams for competition:', err);
+          setTeams([]);
         })
         .finally(() => {
           setLoadingTeams(false);
         });
+    } else {
+      setTeams([]);
     }
 
-    // Reset to page 1 and fetch players with updated competition
     fetchPlayersData(1, updatedFilters);
   };
 
-  // Handler when user selects a Club
-  const handleTeamChange = (teamId: string) => {
-    const updatedFilters = {
-      ...filters,
-      currentTeamId: teamId,
-    };
-
+  const handleTeamChange = (currentTeamId: string) => {
+    const updatedFilters = { ...filters, currentTeamId };
     setFilters(updatedFilters);
-    // Reset to page 1 and fetch players with updated club
     fetchPlayersData(1, updatedFilters);
   };
 
-  // Handler for simple filters (position, preferredFoot, nationality, minAge, maxAge, minHeightCm, maxHeightCm)
-  const handleFilterChange = (field: keyof PlayerFilterParams, value: any) => {
-    const updatedFilters = {
-      ...filters,
-      [field]: value,
-    };
-
+  const handleFilterChange = (key: keyof PlayerFilterParams, value: string | number) => {
+    const updatedFilters = { ...filters, [key]: value };
     setFilters(updatedFilters);
-    // Reset to page 1 and fetch players with updated filter
     fetchPlayersData(1, updatedFilters);
   };
 
-  // Form submit handler when user clicks Search or presses Enter
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedKeyword = searchInput.trim();
-    setAppliedSearch(trimmedKeyword);
-    fetchPlayersData(1, {}, trimmedKeyword);
+    const trimmed = searchInput.trim();
+    setAppliedSearch(trimmed);
+    fetchPlayersData(1, undefined, trimmed);
   };
 
-  // Pagination page change handler
-  const handlePageChange = (page: number) => {
-    fetchPlayersData(page);
+  const handlePageChange = (newPage: number) => {
+    fetchPlayersData(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handle Master/Detail selection
   const handlePlayerSelect = (playerId: string) => {
     setSelectedPlayerId(playerId);
+    setViewMode('DETAIL');
   };
 
   const handleBackToSearch = () => {
     setSelectedPlayerId(null);
+    setViewMode('SEARCH');
+  };
+
+  const handleStartComparison = (
+    player: PlayerDetail,
+    seasonStats: PlayerSeasonStatisticItem[],
+  ) => {
+    setComparisonPlayerA(player);
+    setComparisonSeasonStatsA(seasonStats);
+    setViewMode('COMPARISON_SETUP');
+  };
+
+  const handleBackToDetailFromSetup = () => {
+    setViewMode('DETAIL');
+  };
+
+  const handleProceedToComparison = (
+    _playerAId: string,
+    playerB: PlayerItem,
+    scope: ComparisonScopeType,
+    seasonId: string,
+    competitionId?: string,
+  ) => {
+    setComparisonPlayerB(playerB);
+    setComparisonScope(scope);
+    setComparisonSeasonId(seasonId);
+    setComparisonCompetitionId(competitionId);
+    setViewMode('COMPARISON_VIEW');
+  };
+
+  const handleBackToSetupFromComparison = () => {
+    setViewMode('COMPARISON_SETUP');
+  };
+
+  const handleBackToDetailFromComparison = () => {
+    setViewMode('DETAIL');
   };
 
   const handleResetFilters = () => {
@@ -218,17 +264,45 @@ export const PlayerSearchPage: React.FC = () => {
     fetchPlayersData(1, defaultFilters, '');
   };
 
-  // Render Detail View if a player is selected
-  if (selectedPlayerId) {
+  // 1. Render Side-by-Side Comparison View
+  if (viewMode === 'COMPARISON_VIEW' && selectedPlayerId && comparisonPlayerB) {
     return (
-      <PlayerDetailPage
-        playerId={selectedPlayerId}
-        onBack={handleBackToSearch}
+      <PlayerComparisonPage
+        playerAId={selectedPlayerId}
+        playerBId={comparisonPlayerB.id}
+        scope={comparisonScope}
+        seasonId={comparisonSeasonId}
+        competitionId={comparisonCompetitionId}
+        onBackToSetup={handleBackToSetupFromComparison}
+        onBackToDetail={handleBackToDetailFromComparison}
       />
     );
   }
 
-  // Render Master Search View
+  // 2. Render Comparison Setup / Candidate Search View
+  if (viewMode === 'COMPARISON_SETUP' && comparisonPlayerA) {
+    return (
+      <PlayerComparisonSetupPage
+        playerA={comparisonPlayerA}
+        seasonStatisticsA={comparisonSeasonStatsA}
+        onBack={handleBackToDetailFromSetup}
+        onProceedComparison={handleProceedToComparison}
+      />
+    );
+  }
+
+  // 3. Render Detail View if a player is selected
+  if (viewMode === 'DETAIL' && selectedPlayerId) {
+    return (
+      <PlayerDetailPage
+        playerId={selectedPlayerId}
+        onBack={handleBackToSearch}
+        onCompare={handleStartComparison}
+      />
+    );
+  }
+
+  // 4. Render Master Search View
   return (
     <div className="player-search-page">
       {/* 1. Page Title */}

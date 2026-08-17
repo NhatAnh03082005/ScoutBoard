@@ -57,6 +57,12 @@ export class PlayerMatchStatisticOrmEntity {
   @Column({ name: 'key_passes', type: 'integer', default: 0 })
   keyPasses: number;
 
+  @Column({ name: 'passes_attempted', type: 'integer', default: 0 })
+  passesAttempted: number;
+
+  @Column({ name: 'passes_completed', type: 'integer', default: 0 })
+  passesCompleted: number;
+
   @Column({ type: 'integer', default: 0 })
   tackles: number;
 

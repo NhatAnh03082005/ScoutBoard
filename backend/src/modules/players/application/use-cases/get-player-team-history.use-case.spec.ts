@@ -11,6 +11,9 @@ describe('GetPlayerTeamHistoryUseCase', () => {
       findById: jest.fn(),
       search: jest.fn(),
       findTeamHistoryByPlayerId: jest.fn(),
+      findSeasonStatisticsByPlayerId: jest.fn(),
+      findMatchStatisticsByPlayerId: jest.fn(),
+      findComparisonCandidates: jest.fn(),
     };
 
     useCase = new GetPlayerTeamHistoryUseCase(mockPlayerRepo);

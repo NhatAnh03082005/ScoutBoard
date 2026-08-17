@@ -3,6 +3,7 @@ import { PlayerTeamHistoryOrmEntity } from '../../infrastructure/persistence/typ
 import { PlayerSeasonStatisticOrmEntity } from '../../infrastructure/persistence/typeorm/entities/player-season-statistic.orm-entity';
 import { PlayerMatchStatisticOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/player-match-statistic.orm-entity';
 import { PreferredFoot } from '../../domain/enums/preferred-foot.enum';
+import { ComparisonScope } from '../../domain/enums/comparison-scope.enum';
 
 export const PLAYER_READ_REPOSITORY = Symbol('PLAYER_READ_REPOSITORY');
 
@@ -29,6 +30,23 @@ export interface FindPlayerMatchStatisticsQuery {
   offset?: number;
 }
 
+export interface FindComparisonCandidatesQuery {
+  scope: ComparisonScope;
+  seasonId: string;
+  competitionId?: string;
+  currentTeamId?: string;
+  search?: string;
+  position?: string;
+  preferredFoot?: PreferredFoot;
+  nationality?: string;
+  minAge?: number;
+  maxAge?: number;
+  minHeightCm?: number;
+  maxHeightCm?: number;
+  limit?: number;
+  offset?: number;
+}
+
 export interface PlayerReadRepository {
   findById(id: string): Promise<PlayerOrmEntity | null>;
   search(
@@ -44,4 +62,8 @@ export interface PlayerReadRepository {
     playerId: string,
     query: FindPlayerMatchStatisticsQuery,
   ): Promise<{ items: PlayerMatchStatisticOrmEntity[]; total: number }>;
+  findComparisonCandidates(
+    currentPlayerId: string,
+    query: FindComparisonCandidatesQuery,
+  ): Promise<{ items: PlayerOrmEntity[]; total: number }>;
 }
