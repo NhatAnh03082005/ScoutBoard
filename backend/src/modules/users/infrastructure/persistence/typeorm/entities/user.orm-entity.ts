@@ -47,6 +47,39 @@ export class UserOrmEntity {
   })
   lastFailedLoginAt: Date | null;
 
+  @Column({ name: 'is_email_verified', type: 'boolean', default: false })
+  isEmailVerified: boolean;
+
+  @Column({
+    name: 'email_verification_code',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
+  emailVerificationCode: string | null;
+
+  @Column({
+    name: 'email_verification_expires_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  emailVerificationExpiresAt: Date | null;
+
+  @Column({
+    name: 'password_reset_code',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
+  passwordResetCode: string | null;
+
+  @Column({
+    name: 'password_reset_expires_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  passwordResetExpiresAt: Date | null;
+
   @OneToMany(
     'UserRoleOrmEntity',
     (userRole: UserRoleOrmEntity) => userRole.user,

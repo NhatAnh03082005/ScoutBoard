@@ -1,12 +1,12 @@
 const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string)?.replace(/\/api$/, '') ||
-  'http://localhost:3000';
+  (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api';
 
 export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
   status: string;
+  isEmailVerified?: boolean;
   roles?: string[];
   createdAt?: string;
   updatedAt?: string;
@@ -118,6 +118,81 @@ export async function logoutApi(accessToken: string, refreshToken: string): Prom
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.message || 'Đăng xuất thất bại');
+  }
+  return data;
+}
+
+export async function verifyEmailApi(
+  email: string,
+  code: string,
+): Promise<{ message: string; user?: UserProfile }> {
+  const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, code }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Xác thực email thất bại');
+  }
+  return data;
+}
+
+export async function resendVerificationOtpApi(
+  email: string,
+): Promise<{ message: string }> {
+  const response = await fetch(`${API_BASE_URL}/auth/resend-verification-otp`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Gửi lại mã OTP thất bại');
+  }
+  return data;
+}
+
+export async function forgotPasswordApi(
+  email: string,
+): Promise<{ message: string }> {
+  const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Yêu cầu đặt lại mật khẩu thất bại');
+  }
+  return data;
+}
+
+export async function resetPasswordApi(
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<{ message: string }> {
+  const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, code, newPassword }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Đặt lại mật khẩu thất bại');
   }
   return data;
 }

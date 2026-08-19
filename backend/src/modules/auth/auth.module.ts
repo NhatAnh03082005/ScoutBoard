@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from '../users/users.module';
 import { RefreshTokenOrmEntity } from './infrastructure/persistence/typeorm/entities/refresh-token.orm-entity';
 import { REFRESH_TOKEN_REPOSITORY } from './domain/repositories/refresh-token.repository';
@@ -14,12 +15,18 @@ import { RegisterUseCase } from './application/use-cases/register.use-case';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { RefreshTokensUseCase } from './application/use-cases/refresh-tokens.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
+import { VerifyEmailUseCase } from './application/use-cases/verify-email.use-case';
+import { ResendVerificationOtpUseCase } from './application/use-cases/resend-verification-otp.use-case';
+import { ForgotPasswordUseCase } from './application/use-cases/forgot-password.use-case';
+import { ResetPasswordUseCase } from './application/use-cases/reset-password.use-case';
+import { EmailService } from './infrastructure/services/email.service';
 import { AuthController } from './presentation/http/controllers/auth.controller';
 import { JwtStrategy } from './presentation/http/strategies/jwt.strategy';
 import { RolesGuard } from './presentation/http/guards/roles.guard';
 
 @Module({
   imports: [
+    ConfigModule,
     UsersModule,
     PassportModule,
     JwtModule.register({}),
@@ -39,10 +46,15 @@ import { RolesGuard } from './presentation/http/guards/roles.guard';
       provide: TOKEN_SERVICE,
       useClass: JwtTokenService,
     },
+    EmailService,
     RegisterUseCase,
     LoginUseCase,
     RefreshTokensUseCase,
     LogoutUseCase,
+    VerifyEmailUseCase,
+    ResendVerificationOtpUseCase,
+    ForgotPasswordUseCase,
+    ResetPasswordUseCase,
     JwtStrategy,
     RolesGuard,
   ],
@@ -50,8 +62,13 @@ import { RolesGuard } from './presentation/http/guards/roles.guard';
     REFRESH_TOKEN_REPOSITORY,
     PASSWORD_HASHER,
     TOKEN_SERVICE,
+    EmailService,
     RegisterUseCase,
     LoginUseCase,
+    VerifyEmailUseCase,
+    ResendVerificationOtpUseCase,
+    ForgotPasswordUseCase,
+    ResetPasswordUseCase,
   ],
 })
 export class AuthModule {}

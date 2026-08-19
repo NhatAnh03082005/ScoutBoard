@@ -15,11 +15,19 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
+import { ResendVerificationOtpDto } from '../dto/resend-verification-otp.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RegisterUseCase } from '../../../application/use-cases/register.use-case';
 import { LoginUseCase } from '../../../application/use-cases/login.use-case';
 import { RefreshTokensUseCase } from '../../../application/use-cases/refresh-tokens.use-case';
 import { LogoutUseCase } from '../../../application/use-cases/logout.use-case';
+import { VerifyEmailUseCase } from '../../../application/use-cases/verify-email.use-case';
+import { ResendVerificationOtpUseCase } from '../../../application/use-cases/resend-verification-otp.use-case';
+import { ForgotPasswordUseCase } from '../../../application/use-cases/forgot-password.use-case';
+import { ResetPasswordUseCase } from '../../../application/use-cases/reset-password.use-case';
 import { UserEmailConflictError } from '../../../../users/domain/errors/users.errors';
 import {
   InvalidCredentialsError,
@@ -43,6 +51,10 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshTokensUseCase: RefreshTokensUseCase,
     private readonly logoutUseCase: LogoutUseCase,
+    private readonly verifyEmailUseCase: VerifyEmailUseCase,
+    private readonly resendVerificationOtpUseCase: ResendVerificationOtpUseCase,
+    private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Đăng ký tài khoản người dùng mới' })
@@ -56,6 +68,34 @@ export class AuthController {
       }
       throw err;
     }
+  }
+
+  @ApiOperation({ summary: 'Xác thực tài khoản bằng mã OTP gửi qua Email' })
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-email')
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return await this.verifyEmailUseCase.execute(dto);
+  }
+
+  @ApiOperation({ summary: 'Gửi lại mã OTP xác thực email' })
+  @HttpCode(HttpStatus.OK)
+  @Post('resend-verification-otp')
+  async resendVerificationOtp(@Body() dto: ResendVerificationOtpDto) {
+    return await this.resendVerificationOtpUseCase.execute(dto);
+  }
+
+  @ApiOperation({ summary: 'Yêu cầu mã OTP đặt lại mật khẩu' })
+  @HttpCode(HttpStatus.OK)
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return await this.forgotPasswordUseCase.execute(dto);
+  }
+
+  @ApiOperation({ summary: 'Đặt lại mật khẩu mới bằng mã OTP' })
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return await this.resetPasswordUseCase.execute(dto);
   }
 
   @ApiOperation({ summary: 'Đăng nhập hệ thống' })

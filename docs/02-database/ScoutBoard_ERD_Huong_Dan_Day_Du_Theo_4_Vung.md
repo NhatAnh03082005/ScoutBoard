@@ -167,17 +167,27 @@ Lưu tài khoản đăng nhập của USER và ADMIN. GUEST không có bản ghi
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Đặc tả | Quy tắc/Validation |
 |---|---|---:|---|---|---|---|
-| `id` | `UUID` | Không | Không có | PK | Mã định danh duy nhất của tài khoản. Nên sinh bằng UUID v4 hoặc UUID v7 tại backend/database. | Không được thay đổi sau khi tạo. |
-| `email` | `VARCHAR(255)` | Không | Không có | UNIQUE | Email dùng để đăng nhập và nhận diện tài khoản. | Chuẩn hóa về chữ thường; kiểm tra đúng định dạng; không được trùng. |
-| `password_hash` | `VARCHAR(255)` | Không | Không có |  | Mật khẩu đã được băm bằng BCrypt hoặc Argon2. Không lưu mật khẩu dạng rõ. | Không trả về API; không ghi log; chỉ lưu chuỗi hash. |
-| `full_name` | `VARCHAR(150)` | Không | Không có |  | Họ tên hiển thị của người dùng. | Nên loại bỏ khoảng trắng thừa; giới hạn độ dài. |
-| `status` | `VARCHAR(30)` | Không | `ACTIVE` |  | Trạng thái hoạt động của tài khoản. | Giá trị đề xuất: `ACTIVE`, `DISABLED`, `LOCKED`. |
+| `id` | `UUID` | Không | Không có | PK | Mã định danh duy nhất của tài khoản. Sinh bằng UUID v4 tại backend/database. | Không được thay đổi sau khi tạo. |
+| `email` | `VARCHAR(255)` | Không | Không có | UNIQUE | Email dùng để đăng nhập, nhận OTP xác thực và nhận diện tài khoản. | Chuẩn hóa về chữ thường; kiểm tra đúng định dạng email; không được trùng. |
+| `password_hash` | `VARCHAR(255)` | Không | Không có |  | Mật khẩu đã được băm bằng BCrypt (salt rounds 10). Không lưu mật khẩu dạng rõ. | Không trả về API; không ghi log; chỉ lưu chuỗi hash. |
+| `full_name` | `VARCHAR(150)` | Không | Không có |  | Họ tên hiển thị của người dùng. | Loại bỏ khoảng trắng thừa; tối đa 150 ký tự. |
+| `status` | `VARCHAR(30)` | Không | `ACTIVE` |  | Trạng thái hoạt động của tài khoản do Admin quản lý. | Giá trị hợp lệ: `ACTIVE`, `DISABLED`, `LOCKED`. |
+| `failed_login_attempts` | `INTEGER` | Không | `0` |  | Số lần đăng nhập sai mật khẩu liên tiếp gần nhất. | Tự động reset về 0 khi đăng nhập thành công. |
+| `lockout_count` | `INTEGER` | Không | `0` |  | Số chu kỳ khóa lũy tiến đã trải qua (1m → 5m → 15m → 30m → 1h). | Tăng 1 sau mỗi lần vi phạm ngưỡng đăng nhập sai. |
+| `locked_until` | `TIMESTAMPTZ` | Có | `NULL` |  | Mốc thời gian tài khoản bị tạm khóa đến. | Hết thời gian này tài khoản tự động mở lại. |
+| `last_failed_login_at` | `TIMESTAMPTZ` | Có | `NULL` |  | Thời điểm đăng nhập thất bại gần nhất. | Ghi nhận timestamp lần thử sai gần nhất. |
+| `is_email_verified` | `BOOLEAN` | Không | `FALSE` |  | Cờ đánh dấu email tài khoản đã được xác thực qua OTP hay chưa. | Chuyển thành `TRUE` sau khi nhập đúng OTP xác thực. |
+| `email_verification_code` | `VARCHAR(20)` | Có | `NULL` |  | Mã OTP 6 chữ số dùng để kích hoạt / xác thực email sau đăng ký. | Mã số ngẫu nhiên 6 chữ số, thời hạn 15 phút. |
+| `email_verification_expires_at` | `TIMESTAMPTZ` | Có | `NULL` |  | Thời điểm hết hạn của mã OTP xác thực email. | Nếu quá thời gian này, OTP bị từ chối và cần gửi lại. |
+| `password_reset_code` | `VARCHAR(20)` | Có | `NULL` |  | Mã OTP 6 chữ số dùng để đặt lại mật khẩu khi quên mật khẩu. | Mã số ngẫu nhiên 6 chữ số, thời hạn 15 phút. Xóa sau khi đổi mật khẩu xong. |
+| `password_reset_expires_at` | `TIMESTAMPTZ` | Có | `NULL` |  | Thời điểm hết hạn của mã OTP đặt lại mật khẩu. | Nếu quá thời gian này, OTP bị từ chối. |
 | `created_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm tạo tài khoản, có kèm múi giờ. | Chỉ ghi một lần khi tạo. |
 | `updated_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm cập nhật tài khoản gần nhất. | Cập nhật sau mỗi lần thay đổi thông tin hoặc trạng thái. |
 
 ### 3.1.3. Lưu ý triển khai
 
-- Mọi thao tác cập nhật phải kiểm tra quyền sở hữu hoặc quyền ADMIN ở backend; không tin dữ liệu role/owner gửi từ frontend.
+- **Bảo mật OTP & Chống Enumeration**: Khi người dùng yêu cầu Forgot Password, hệ thống luôn trả về thông điệp thành công chung để tránh lộ thông tin email có tồn tại hay không. Mã OTP được gửi qua Nodemailer (hoặc xuất log console dạng formatted box trong môi trường dev).
+- **Phân quyền & Khóa lũy tiến**: Mọi thao tác cập nhật quyền và trạng thái phải đi qua `RolesGuard` ở backend. Phân tầng khóa lũy tiến tự động bảo vệ hệ thống khỏi brute-force attacks.
 
 ---
 

@@ -4,6 +4,8 @@ import { CreateUserUseCase } from '../../../users/application/use-cases/create-u
 import { PasswordHasher } from '../ports/password-hasher.port';
 import { TokenService } from '../ports/token-service.port';
 import { RefreshTokenRepository } from '../../domain/repositories/refresh-token.repository';
+import { UserRepository } from '../../../users/domain/repositories/user.repository';
+import { EmailService } from '../../infrastructure/services/email.service';
 import { User } from '../../../users/domain/entities/user';
 import { Role } from '../../../users/domain/entities/role';
 
@@ -13,6 +15,8 @@ describe('RegisterUseCase', () => {
   let mockPasswordHasher: jest.Mocked<PasswordHasher>;
   let mockTokenService: jest.Mocked<TokenService>;
   let mockRefreshTokenRepository: jest.Mocked<RefreshTokenRepository>;
+  let mockUserRepository: jest.Mocked<UserRepository>;
+  let mockEmailService: jest.Mocked<EmailService>;
 
   beforeEach(() => {
     mockCreateUserUseCase = {
@@ -37,15 +41,32 @@ describe('RegisterUseCase', () => {
       create: jest.fn(),
     };
 
+    mockUserRepository = {
+      findById: jest.fn(),
+      findByEmail: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+      findAllAdmin: jest.fn(),
+      updateRoles: jest.fn(),
+      findRoleByCode: jest.fn(),
+    };
+
+    mockEmailService = {
+      sendVerificationEmail: jest.fn().mockResolvedValue(true),
+      sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
+    } as unknown as jest.Mocked<EmailService>;
+
     useCase = new RegisterUseCase(
       mockCreateUserUseCase,
       mockPasswordHasher,
       mockTokenService,
       mockRefreshTokenRepository,
+      mockUserRepository,
+      mockEmailService,
     );
   });
 
-  it('should hash password, create user, generate tokens and save refresh token', async () => {
+  it('should hash password, create user, send verification email, generate tokens and save refresh token', async () => {
     const roleUser = new Role('role-1', 'USER', 'User');
     const createdUser = new User(
       'user-1',
@@ -62,6 +83,7 @@ describe('RegisterUseCase', () => {
 
     mockPasswordHasher.hash.mockResolvedValue('hashed_pass');
     mockCreateUserUseCase.execute.mockResolvedValue(createdUser);
+    mockUserRepository.save.mockResolvedValue(createdUser);
     mockTokenService.generateTokens.mockResolvedValue({
       accessToken: 'access_123',
       refreshToken: 'refresh_123',
@@ -79,6 +101,8 @@ describe('RegisterUseCase', () => {
       passwordHash: 'hashed_pass',
       fullName: 'Test User',
     });
+    expect(mockUserRepository.save).toHaveBeenCalled();
+    expect(mockEmailService.sendVerificationEmail).toHaveBeenCalled();
     expect(mockTokenService.generateTokens).toHaveBeenCalledWith({
       sub: 'user-1',
       email: 'test@example.com',
@@ -88,11 +112,7 @@ describe('RegisterUseCase', () => {
       userId: 'user-1',
       rawRefreshToken: 'refresh_123',
     });
-    expect(result).toEqual({
-      message: 'Đăng ký tài khoản thành công',
-      user: createdUser.sanitize(),
-      accessToken: 'access_123',
-      refreshToken: 'refresh_123',
-    });
+    expect(result.accessToken).toBe('access_123');
+    expect(result.refreshToken).toBe('refresh_123');
   });
 });

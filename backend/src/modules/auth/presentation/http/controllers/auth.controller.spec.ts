@@ -4,6 +4,10 @@ import { RegisterUseCase } from '../../../application/use-cases/register.use-cas
 import { LoginUseCase } from '../../../application/use-cases/login.use-case';
 import { RefreshTokensUseCase } from '../../../application/use-cases/refresh-tokens.use-case';
 import { LogoutUseCase } from '../../../application/use-cases/logout.use-case';
+import { VerifyEmailUseCase } from '../../../application/use-cases/verify-email.use-case';
+import { ResendVerificationOtpUseCase } from '../../../application/use-cases/resend-verification-otp.use-case';
+import { ForgotPasswordUseCase } from '../../../application/use-cases/forgot-password.use-case';
+import { ResetPasswordUseCase } from '../../../application/use-cases/reset-password.use-case';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { AccountHasNoRolesError } from '../../../domain/errors/auth.errors';
@@ -14,6 +18,10 @@ import { AuthenticatedUser } from '../strategies/jwt.strategy';
 describe('AuthController', () => {
   let controller: AuthController;
   let loginUseCase: jest.Mocked<LoginUseCase>;
+  let verifyEmailUseCase: jest.Mocked<VerifyEmailUseCase>;
+  let resendVerificationOtpUseCase: jest.Mocked<ResendVerificationOtpUseCase>;
+  let forgotPasswordUseCase: jest.Mocked<ForgotPasswordUseCase>;
+  let resetPasswordUseCase: jest.Mocked<ResetPasswordUseCase>;
   let rolesGuard: RolesGuard;
   let reflector: jest.Mocked<Reflector>;
 
@@ -22,6 +30,10 @@ describe('AuthController', () => {
     const mockLoginUseCase = { execute: jest.fn() };
     const mockRefreshTokensUseCase = { execute: jest.fn() };
     const mockLogoutUseCase = { execute: jest.fn() };
+    const mockVerifyEmailUseCase = { execute: jest.fn() };
+    const mockResendVerificationOtpUseCase = { execute: jest.fn() };
+    const mockForgotPasswordUseCase = { execute: jest.fn() };
+    const mockResetPasswordUseCase = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -30,6 +42,16 @@ describe('AuthController', () => {
         { provide: LoginUseCase, useValue: mockLoginUseCase },
         { provide: RefreshTokensUseCase, useValue: mockRefreshTokensUseCase },
         { provide: LogoutUseCase, useValue: mockLogoutUseCase },
+        { provide: VerifyEmailUseCase, useValue: mockVerifyEmailUseCase },
+        {
+          provide: ResendVerificationOtpUseCase,
+          useValue: mockResendVerificationOtpUseCase,
+        },
+        {
+          provide: ForgotPasswordUseCase,
+          useValue: mockForgotPasswordUseCase,
+        },
+        { provide: ResetPasswordUseCase, useValue: mockResetPasswordUseCase },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -38,6 +60,10 @@ describe('AuthController', () => {
 
     controller = module.get<AuthController>(AuthController);
     loginUseCase = module.get(LoginUseCase);
+    verifyEmailUseCase = module.get(VerifyEmailUseCase);
+    resendVerificationOtpUseCase = module.get(ResendVerificationOtpUseCase);
+    forgotPasswordUseCase = module.get(ForgotPasswordUseCase);
+    resetPasswordUseCase = module.get(ResetPasswordUseCase);
 
     reflector = {
       getAllAndOverride: jest.fn(),

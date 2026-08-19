@@ -16,6 +16,11 @@ export class User {
     private roles: Role[] = [],
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
+    private isEmailVerified: boolean = false,
+    private emailVerificationCode: string | null = null,
+    private emailVerificationExpiresAt: Date | null = null,
+    private passwordResetCode: string | null = null,
+    private passwordResetExpiresAt: Date | null = null,
   ) {}
 
   getEmail(): string {
@@ -54,6 +59,50 @@ export class User {
     return [...this.roles];
   }
 
+  getIsEmailVerified(): boolean {
+    return this.isEmailVerified;
+  }
+
+  getEmailVerificationCode(): string | null {
+    return this.emailVerificationCode;
+  }
+
+  getEmailVerificationExpiresAt(): Date | null {
+    return this.emailVerificationExpiresAt;
+  }
+
+  getPasswordResetCode(): string | null {
+    return this.passwordResetCode;
+  }
+
+  getPasswordResetExpiresAt(): Date | null {
+    return this.passwordResetExpiresAt;
+  }
+
+  setEmailVerification(code: string, expiresAt: Date): void {
+    this.emailVerificationCode = code;
+    this.emailVerificationExpiresAt = expiresAt;
+  }
+
+  verifyEmail(): void {
+    this.isEmailVerified = true;
+    this.emailVerificationCode = null;
+    this.emailVerificationExpiresAt = null;
+  }
+
+  setPasswordReset(code: string, expiresAt: Date): void {
+    this.passwordResetCode = code;
+    this.passwordResetExpiresAt = expiresAt;
+  }
+
+  resetPassword(newPasswordHash: string): void {
+    this.passwordHash = newPasswordHash;
+    this.passwordResetCode = null;
+    this.passwordResetExpiresAt = null;
+    this.failedLoginAttempts = 0;
+    this.lockedUntil = null;
+  }
+
   disable(): void {
     this.status = 'DISABLED';
   }
@@ -80,6 +129,7 @@ export class User {
       email: this.email,
       fullName: this.fullName,
       status: this.status,
+      isEmailVerified: this.isEmailVerified,
       failedLoginAttempts: this.failedLoginAttempts,
       lockoutCount: this.lockoutCount,
       lockedUntil: this.lockedUntil,

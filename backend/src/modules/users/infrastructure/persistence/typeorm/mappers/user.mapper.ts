@@ -31,6 +31,11 @@ export class UserMapper {
       roles,
       entity.createdAt,
       entity.updatedAt,
+      entity.isEmailVerified ?? false,
+      entity.emailVerificationCode ?? null,
+      entity.emailVerificationExpiresAt ? new Date(entity.emailVerificationExpiresAt) : null,
+      entity.passwordResetCode ?? null,
+      entity.passwordResetExpiresAt ? new Date(entity.passwordResetExpiresAt) : null,
     );
   }
 
@@ -45,6 +50,11 @@ export class UserMapper {
     entity.lockoutCount = domain.getLockoutCount();
     entity.lockedUntil = domain.getLockedUntil();
     entity.lastFailedLoginAt = domain.getLastFailedLoginAt();
+    entity.isEmailVerified = domain.getIsEmailVerified();
+    entity.emailVerificationCode = domain.getEmailVerificationCode();
+    entity.emailVerificationExpiresAt = domain.getEmailVerificationExpiresAt();
+    entity.passwordResetCode = domain.getPasswordResetCode();
+    entity.passwordResetExpiresAt = domain.getPasswordResetExpiresAt();
     return entity;
   }
 }
