@@ -261,7 +261,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   return (
     <div className="scout-auth-canvas">
-      {/* Subtle Background Geometric Depth Shapes (Middle circle removed) */}
+      {/* Subtle Background Geometric Depth Shapes */}
       <div className="scout-auth-bg-shape-1" />
       <div className="scout-auth-bg-shape-2" />
 
@@ -279,17 +279,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       <div className="scout-auth-canvas-grid">
         
         {/* =====================================================================
-            LEFT HERO: WELCOME TO SCOUTBOARD + WEBSITE OVERVIEW
+            LEFT HERO: WELCOME TO SCOUTBOARD + PLATFORM OVERVIEW
             ===================================================================== */}
         <div className="scout-auth-hero-section">
-          {/* Main Headline (Largest Font) */}
-          <h1 className="scout-auth-hero-headline">
-            WELCOME TO SCOUTBOARD
-          </h1>
+          {/* WELCOME TO Line (Big Header) */}
+          <div className="scout-auth-hero-welcome-line">
+            WELCOME TO
+          </div>
 
-          {/* Website Overview Description (White matching the card) */}
+          {/* SCOUTBOARD Brand Name (Bigger Header) */}
+          <div className="scout-auth-hero-brand-line">
+            SCOUTBOARD
+          </div>
+
+          {/* Overview of the platform */}
           <p className="scout-auth-hero-subtitle">
-            ScoutBoard is a high-performance football analytics and scouting platform designed to search, evaluate, and compare players across major leagues worldwide with precision per-90 metrics and squad building intelligence.
+            ScoutBoard is a high-performance football analytics and scouting platform designed to search, evaluate, and compare professional players across major leagues worldwide with precision per-90 metrics and squad building intelligence.
           </p>
         </div>
 
@@ -309,7 +314,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 {authSubMode === 'reset-password' && 'Reset Password'}
               </h2>
               <p className="scout-auth-card-sub">
-                {authSubMode === 'login' && 'Sign in to continue'}
+                {authSubMode === 'login' && 'Please sign in to continue'}
                 {authSubMode === 'register' && 'Sign up to unlock advanced features.'}
                 {authSubMode === 'verify-email' && 'Enter the 6-digit OTP code sent to your email inbox'}
                 {authSubMode === 'forgot-password' && 'Enter your email address to receive a password reset code'}
@@ -431,8 +436,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   {retryAfterSeconds > 0
                     ? `Locked (${formatSeconds(retryAfterSeconds)})`
                     : loading
-                    ? 'Signing in...'
-                    : 'Sign In →'}
+                      ? 'Signing in...'
+                      : 'Sign In →'}
                 </button>
 
                 {/* Switch to Register */}
