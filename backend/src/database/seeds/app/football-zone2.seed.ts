@@ -30,9 +30,26 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
   const historyRepo = dataSource.getRepository(PlayerTeamHistoryOrmEntity);
   const statsRepo = dataSource.getRepository(PlayerSeasonStatisticOrmEntity);
   const matchRepo = dataSource.getRepository(MatchOrmEntity);
-  const matchStatsRepo = dataSource.getRepository(PlayerMatchStatisticOrmEntity);
+  const matchStatsRepo = dataSource.getRepository(
+    PlayerMatchStatisticOrmEntity,
+  );
 
   console.log('⚽ Starting Football Seeding (Zone 2)...');
+
+  // Purge any old duplicate records from legacy providers (e.g. 'FOOTBALL_DATA')
+  console.log('🧹 Purging legacy duplicated provider data (FOOTBALL_DATA)...');
+  await dataSource.query(`
+    DELETE FROM "player_match_statistics" WHERE "player_id" IN (SELECT "id" FROM "players" WHERE "external_provider" != 'API_FOOTBALL');
+    DELETE FROM "player_season_statistics" WHERE "player_id" IN (SELECT "id" FROM "players" WHERE "external_provider" != 'API_FOOTBALL');
+    DELETE FROM "player_team_history" WHERE "player_id" IN (SELECT "id" FROM "players" WHERE "external_provider" != 'API_FOOTBALL');
+    DELETE FROM "player_positions" WHERE "player_id" IN (SELECT "id" FROM "players" WHERE "external_provider" != 'API_FOOTBALL');
+    DELETE FROM "players" WHERE "external_provider" != 'API_FOOTBALL';
+    DELETE FROM "season_teams" WHERE "team_id" IN (SELECT "id" FROM "teams" WHERE "external_provider" != 'API_FOOTBALL');
+    DELETE FROM "matches" WHERE "external_provider" != 'API_FOOTBALL';
+    DELETE FROM "teams" WHERE "external_provider" != 'API_FOOTBALL';
+    DELETE FROM "seasons" WHERE "external_provider" != 'API_FOOTBALL';
+    DELETE FROM "competitions" WHERE "external_provider" != 'API_FOOTBALL';
+  `);
 
   // Maps for in-memory lookups during seeding
   const compMap = new Map<string, CompetitionOrmEntity>(); // extId -> Competition
@@ -138,7 +155,10 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
         where: { seasonId: season2024.id, teamId: team.id },
       });
       if (!st) {
-        st = seasonTeamRepo.create({ seasonId: season2024.id, teamId: team.id });
+        st = seasonTeamRepo.create({
+          seasonId: season2024.id,
+          teamId: team.id,
+        });
         await seasonTeamRepo.save(st);
       }
       seasonTeamSet.add(`${season2024.id}:${team.id}`);
@@ -150,7 +170,10 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
         where: { seasonId: season2025.id, teamId: team.id },
       });
       if (!st) {
-        st = seasonTeamRepo.create({ seasonId: season2025.id, teamId: team.id });
+        st = seasonTeamRepo.create({
+          seasonId: season2025.id,
+          teamId: team.id,
+        });
         await seasonTeamRepo.save(st);
       }
       seasonTeamSet.add(`${season2025.id}:${team.id}`);
@@ -166,7 +189,10 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
           where: { seasonId: clSeason2024.id, teamId: team.id },
         });
         if (!st) {
-          st = seasonTeamRepo.create({ seasonId: clSeason2024.id, teamId: team.id });
+          st = seasonTeamRepo.create({
+            seasonId: clSeason2024.id,
+            teamId: team.id,
+          });
           await seasonTeamRepo.save(st);
         }
         seasonTeamSet.add(`${clSeason2024.id}:${team.id}`);
@@ -183,7 +209,10 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
           where: { seasonId: clSeason2025.id, teamId: team.id },
         });
         if (!st) {
-          st = seasonTeamRepo.create({ seasonId: clSeason2025.id, teamId: team.id });
+          st = seasonTeamRepo.create({
+            seasonId: clSeason2025.id,
+            teamId: team.id,
+          });
           await seasonTeamRepo.save(st);
         }
         seasonTeamSet.add(`${clSeason2025.id}:${team.id}`);
@@ -204,59 +233,75 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
       where: { externalProvider: provider, externalId: pData.extId },
     });
 
-    if (!player) {
-      player = playerRepo.create({
-        externalProvider: provider,
-        externalId: pData.extId,
-        name: pData.name,
-        shortName: pData.shortName || pData.name,
-        dateOfBirth: pData.dob,
-        nationality: pData.nationality,
-        heightCm: pData.heightCm,
-        weightKg: pData.weightKg || Math.round(pData.heightCm * 0.42),
-        preferredFoot: pData.foot,
-        primaryPosition: pData.primaryPos,
-        shirtNumber: pData.shirtNumber,
-        currentTeamId: currentTeam.id,
-        status: 'ACTIVE',
-      });
-    } else {
-      player.currentTeamId = currentTeam.id;
-      player.primaryPosition = pData.primaryPos;
-      player.shirtNumber = pData.shirtNumber;
-    }
-    player = await playerRepo.save(player);
+    player = await dataSource.transaction(async (manager) => {
+      const transactionPlayerRepo = manager.getRepository(PlayerOrmEntity);
+      const transactionPositionRepo = manager.getRepository(
+        PlayerPositionOrmEntity,
+      );
 
-    // STEP 8: PLAYER_POSITIONS
-    let primaryPos = await posRepo.findOne({
-      where: { playerId: player.id, positionCode: pData.primaryPos },
-    });
-    if (!primaryPos) {
-      primaryPos = posRepo.create({
-        playerId: player.id,
-        positionCode: pData.primaryPos,
-        isPrimary: true,
-      });
-    } else {
-      primaryPos.isPrimary = true;
-    }
-    await posRepo.save(primaryPos);
-
-    if (pData.secondaryPos && pData.secondaryPos !== pData.primaryPos) {
-      let secPos = await posRepo.findOne({
-        where: { playerId: player.id, positionCode: pData.secondaryPos },
-      });
-      if (!secPos) {
-        secPos = posRepo.create({
-          playerId: player.id,
-          positionCode: pData.secondaryPos,
-          isPrimary: false,
+      if (!player) {
+        player = transactionPlayerRepo.create({
+          externalProvider: provider,
+          externalId: pData.extId,
+          name: pData.name,
+          shortName: pData.shortName || pData.name,
+          dateOfBirth: pData.dob,
+          nationality: pData.nationality,
+          heightCm: pData.heightCm,
+          weightKg: pData.weightKg || Math.round(pData.heightCm * 0.42),
+          preferredFoot: pData.foot,
+          primaryPosition: pData.primaryPos,
+          shirtNumber: pData.shirtNumber,
+          currentTeamId: currentTeam.id,
+          status: 'ACTIVE',
         });
       } else {
-        secPos.isPrimary = false;
+        player.currentTeamId = currentTeam.id;
+        player.primaryPosition = pData.primaryPos;
+        player.shirtNumber = pData.shirtNumber;
       }
-      await posRepo.save(secPos);
-    }
+      player = await transactionPlayerRepo.save(player);
+
+      await transactionPositionRepo.update(
+        { playerId: player.id },
+        { isPrimary: false },
+      );
+
+      let primaryPos = await transactionPositionRepo.findOne({
+        where: { playerId: player.id, positionCode: pData.primaryPos },
+      });
+      if (!primaryPos) {
+        primaryPos = transactionPositionRepo.create({
+          playerId: player.id,
+          positionCode: pData.primaryPos,
+          isPrimary: true,
+        });
+      } else {
+        primaryPos.isPrimary = true;
+      }
+      await transactionPositionRepo.save(primaryPos);
+
+      if (pData.secondaryPos && pData.secondaryPos !== pData.primaryPos) {
+        let secondaryPos = await transactionPositionRepo.findOne({
+          where: { playerId: player.id, positionCode: pData.secondaryPos },
+        });
+        if (!secondaryPos) {
+          secondaryPos = transactionPositionRepo.create({
+            playerId: player.id,
+            positionCode: pData.secondaryPos,
+            isPrimary: false,
+          });
+        } else {
+          secondaryPos.isPrimary = false;
+        }
+        await transactionPositionRepo.save(secondaryPos);
+      }
+
+      return player;
+    });
+
+    if (!player) continue;
+    const seededPlayerId = player.id;
 
     // STEP 9: PLAYER_TEAM_HISTORY
     if (pData.transferInfo) {
@@ -287,7 +332,7 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
       });
       if (!currentHistory) {
         currentHistory = historyRepo.create({
-          playerId: player.id,
+          playerId: seededPlayerId,
           teamId: currentTeam.id,
           startDate: pData.transferInfo.transferDate,
           endDate: null,
@@ -346,7 +391,7 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
 
       let stat = await statsRepo.findOne({
         where: {
-          playerId: player.id,
+          playerId: seededPlayerId,
           seasonId: season.id,
           competitionId: comp.id,
           teamId: team.id,
@@ -355,7 +400,7 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
 
       if (!stat) {
         stat = statsRepo.create({
-          playerId: player.id,
+          playerId: seededPlayerId,
           seasonId: season.id,
           competitionId: comp.id,
           teamId: team.id,
@@ -379,6 +424,20 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
           keyPassesPer90: kp90,
           tacklesPer90: tk90,
           interceptionsPer90: int90,
+          saves: statRaw.saves ?? null,
+          goalsConceded: statRaw.gc ?? null,
+          cleanSheets: statRaw.cs ?? null,
+          penaltiesSaved: statRaw.ps ?? null,
+          penaltiesFaced: statRaw.pf ?? null,
+          savesPer90:
+            statRaw.saves !== undefined
+              ? Number(((statRaw.saves * 90) / mins).toFixed(2))
+              : null,
+          goalsConcededPer90:
+            statRaw.gc !== undefined
+              ? Number(((statRaw.gc * 90) / mins).toFixed(2))
+              : null,
+          savePercentage: statRaw.savePct ?? null,
           advancedStatistics: {
             xg: Number((statRaw.gl * 0.85).toFixed(2)),
             xa: Number((statRaw.ast * 0.9).toFixed(2)),
@@ -405,6 +464,20 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
         stat.keyPassesPer90 = kp90;
         stat.tacklesPer90 = tk90;
         stat.interceptionsPer90 = int90;
+        stat.saves = statRaw.saves ?? null;
+        stat.goalsConceded = statRaw.gc ?? null;
+        stat.cleanSheets = statRaw.cs ?? null;
+        stat.penaltiesSaved = statRaw.ps ?? null;
+        stat.penaltiesFaced = statRaw.pf ?? null;
+        stat.savesPer90 =
+          statRaw.saves !== undefined
+            ? Number(((statRaw.saves * 90) / mins).toFixed(2))
+            : null;
+        stat.goalsConcededPer90 =
+          statRaw.gc !== undefined
+            ? Number(((statRaw.gc * 90) / mins).toFixed(2))
+            : null;
+        stat.savePercentage = statRaw.savePct ?? null;
       }
       await statsRepo.save(stat);
     };
@@ -449,19 +522,75 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
   // ==========================================
   // STEP 11: MATCHES & PLAYER MATCH STATISTICS FOR ALL PLAYERS
   // ==========================================
-  console.log('⚔️  Seeding Matches & Player Match Statistics for ALL players...');
+  console.log(
+    '⚔️  Seeding Matches & Player Match Statistics for ALL players...',
+  );
 
   const matchesDataConfig = [
     // Premier League
-    { compExt: 'PL', seasonExt: 'PL-2025', homeExt: '57', awayExt: '65', date: '2025-10-18T15:00:00Z', hScore: 2, aScore: 1, extId: 'match-pl-1' },
-    { compExt: 'PL', seasonExt: 'PL-2025', homeExt: '49', awayExt: '57', date: '2025-11-02T16:30:00Z', hScore: 1, aScore: 1, extId: 'match-pl-2' },
+    {
+      compExt: 'PL',
+      seasonExt: 'PL-2025',
+      homeExt: '57',
+      awayExt: '65',
+      date: '2025-10-18T15:00:00Z',
+      hScore: 2,
+      aScore: 1,
+      extId: 'match-pl-1',
+    },
+    {
+      compExt: 'PL',
+      seasonExt: 'PL-2025',
+      homeExt: '49',
+      awayExt: '57',
+      date: '2025-11-02T16:30:00Z',
+      hScore: 1,
+      aScore: 1,
+      extId: 'match-pl-2',
+    },
     // Bundesliga
-    { compExt: 'BL', seasonExt: 'BL-2025', homeExt: '157', awayExt: '165', date: '2025-10-25T17:30:00Z', hScore: 3, aScore: 2, extId: 'match-bl-1' },
+    {
+      compExt: 'BL',
+      seasonExt: 'BL-2025',
+      homeExt: '157',
+      awayExt: '165',
+      date: '2025-10-25T17:30:00Z',
+      hScore: 3,
+      aScore: 2,
+      extId: 'match-bl-1',
+    },
     // La Liga
-    { compExt: 'LL', seasonExt: 'LL-2025', homeExt: '541', awayExt: '529', date: '2025-10-26T20:00:00Z', hScore: 2, aScore: 1, extId: 'match-ll-1' },
+    {
+      compExt: 'LL',
+      seasonExt: 'LL-2025',
+      homeExt: '541',
+      awayExt: '529',
+      date: '2025-10-26T20:00:00Z',
+      hScore: 2,
+      aScore: 1,
+      extId: 'match-ll-1',
+    },
     // Champions League
-    { compExt: 'CL', seasonExt: 'CL-2025', homeExt: '57', awayExt: '541', date: '2025-11-05T20:00:00Z', hScore: 1, aScore: 0, extId: 'match-cl-1' },
-    { compExt: 'CL', seasonExt: 'CL-2025', homeExt: '157', awayExt: '85', date: '2025-11-26T20:00:00Z', hScore: 2, aScore: 2, extId: 'match-cl-2' },
+    {
+      compExt: 'CL',
+      seasonExt: 'CL-2025',
+      homeExt: '57',
+      awayExt: '541',
+      date: '2025-11-05T20:00:00Z',
+      hScore: 1,
+      aScore: 0,
+      extId: 'match-cl-1',
+    },
+    {
+      compExt: 'CL',
+      seasonExt: 'CL-2025',
+      homeExt: '157',
+      awayExt: '85',
+      date: '2025-11-26T20:00:00Z',
+      hScore: 2,
+      aScore: 2,
+      extId: 'match-cl-2',
+    },
   ];
 
   for (const mCfg of matchesDataConfig) {
@@ -495,22 +624,53 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
 
   // Universal Player Match Statistics Seeder: Ensure EVERY player in the DB has at least 2 match statistics!
   const allPlayersInDb = await playerRepo.find();
-  const allMatchesInDb = await matchRepo.find({ relations: ['homeTeam', 'awayTeam'] });
+  const allMatchesInDb = await matchRepo.find({
+    relations: ['homeTeam', 'awayTeam'],
+  });
   const defaultComp = Array.from(compMap.values())[0];
   const defaultSeason = Array.from(seasonMap.values())[0];
 
   for (const player of allPlayersInDb) {
     if (!player.currentTeamId) continue;
 
-    const existingCount = await matchStatsRepo.count({ where: { playerId: player.id } });
-    if (existingCount === 0) {
+    const isGK = player.primaryPosition === 'GK';
+    const existingStats = await matchStatsRepo.find({
+      where: { playerId: player.id },
+    });
+
+    if (existingStats.length > 0) {
+      for (const pms of existingStats) {
+        if (isGK) {
+          pms.saves = 4;
+          pms.goalsConceded = 1;
+          pms.cleanSheets = 0;
+          pms.penaltiesSaved = 0;
+          pms.passesAttempted = 28;
+          pms.passesCompleted = 22;
+          pms.goals = 0;
+          pms.assists = 0;
+          pms.shots = 0;
+          pms.keyPasses = 0;
+        } else {
+          pms.saves = null;
+          pms.goalsConceded = null;
+          pms.cleanSheets = null;
+          pms.penaltiesSaved = null;
+        }
+        await matchStatsRepo.save(pms);
+      }
+    } else {
       // Find match involving player's current team or create one
       let match = allMatchesInDb.find(
-        (m) => m.homeTeamId === player.currentTeamId || m.awayTeamId === player.currentTeamId,
+        (m) =>
+          m.homeTeamId === player.currentTeamId ||
+          m.awayTeamId === player.currentTeamId,
       );
 
       if (!match) {
-        const opponentTeam = Array.from(teamMap.values()).find((t) => t.id !== player.currentTeamId);
+        const opponentTeam = Array.from(teamMap.values()).find(
+          (t) => t.id !== player.currentTeamId,
+        );
         if (!opponentTeam) continue;
 
         match = matchRepo.create({
@@ -537,19 +697,512 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
         minutesPlayed: 90,
         isStarter: true,
         rating: Number((7.1 + Math.random() * 2.0).toFixed(1)),
-        goals: (player.shirtNumber || 0) % 3 === 0 ? 1 : 0,
-        assists: (player.shirtNumber || 0) % 4 === 0 ? 1 : 0,
-        shots: 2,
-        keyPasses: 2,
-        passesAttempted: 50 + Math.floor(Math.random() * 20),
-        passesCompleted: 40 + Math.floor(Math.random() * 15),
-        tackles: 3,
-        interceptions: 1,
+        goals: isGK ? 0 : (player.shirtNumber || 0) % 3 === 0 ? 1 : 0,
+        assists: isGK ? 0 : (player.shirtNumber || 0) % 4 === 0 ? 1 : 0,
+        shots: isGK ? 0 : 2,
+        keyPasses: isGK ? 0 : 2,
+        passesAttempted: isGK ? 28 : 50 + Math.floor(Math.random() * 20),
+        passesCompleted: isGK ? 22 : 40 + Math.floor(Math.random() * 15),
+        tackles: isGK ? 0 : 3,
+        interceptions: isGK ? 1 : 1,
         yellowCards: 0,
         redCards: 0,
+        saves: isGK ? 4 : null,
+        goalsConceded: isGK ? 1 : null,
+        cleanSheets: isGK ? 0 : null,
+        penaltiesSaved: isGK ? 0 : null,
       });
       await matchStatsRepo.save(pms1);
     }
+  }
+
+  // ==========================================
+  // STEP 12: SPECIALIZED DATA ENRICHMENT (SALAH, HAALAND, WAN-BISSAKA)
+  // ==========================================
+  console.log(
+    '🌟 Enriching specialized career histories and match logs for Star Players...',
+  );
+
+  // 1. Fix Pass Accuracy for any outfield player whose passes were 0 in DB
+  const zeroPassStats = await statsRepo.find({ where: { passesAttempted: 0 } });
+  for (const zStat of zeroPassStats) {
+    if (zStat.minutesPlayed > 0) {
+      const isGK = zStat.saves !== null && zStat.saves > 0;
+      const mp = zStat.matchesPlayed || Math.ceil(zStat.minutesPlayed / 80);
+      zStat.passesAttempted = mp * (isGK ? 28 : 46);
+      zStat.passesCompleted = Math.round(
+        zStat.passesAttempted * (isGK ? 0.74 : 0.83),
+      );
+      await statsRepo.save(zStat);
+    }
+  }
+
+  // 2. Career History Enrichment Helper
+  const seedCareerHistory = async (
+    playerName: string,
+    histories: Array<{
+      teamExtId: string;
+      start: string;
+      end: string | null;
+      shirt: number;
+      isCurrent: boolean;
+    }>,
+  ) => {
+    const p = await playerRepo.findOne({ where: { name: playerName } });
+    if (!p) return;
+
+    // Delete any old/default history for this specific player to prevent duplicate records
+    await historyRepo.delete({ playerId: p.id });
+
+    for (const h of histories) {
+      const t = teamMap.get(h.teamExtId);
+      if (!t) continue;
+
+      const hist = historyRepo.create({
+        playerId: p.id,
+        teamId: t.id,
+        startDate: h.start,
+        endDate: h.end,
+        shirtNumber: h.shirt,
+        isCurrent: h.isCurrent,
+      });
+      await historyRepo.save(hist);
+    }
+  };
+
+  // Seed Career History for Mohamed Salah (Chelsea -> Roma -> Liverpool)
+  await seedCareerHistory('Mohamed Salah', [
+    {
+      teamExtId: '61',
+      start: '2014-01-26',
+      end: '2015-08-05',
+      shirt: 17,
+      isCurrent: false,
+    },
+    {
+      teamExtId: '100',
+      start: '2015-08-06',
+      end: '2017-06-30',
+      shirt: 11,
+      isCurrent: false,
+    },
+    {
+      teamExtId: '64',
+      start: '2017-07-01',
+      end: null,
+      shirt: 11,
+      isCurrent: true,
+    },
+  ]);
+
+  // Seed Career History for Erling Haaland (Salzburg -> Dortmund -> Man City)
+  await seedCareerHistory('Erling Haaland', [
+    {
+      teamExtId: '187',
+      start: '2019-01-01',
+      end: '2019-12-31',
+      shirt: 30,
+      isCurrent: false,
+    },
+    {
+      teamExtId: '4',
+      start: '2020-01-01',
+      end: '2022-06-30',
+      shirt: 9,
+      isCurrent: false,
+    },
+    {
+      teamExtId: '65',
+      start: '2022-07-01',
+      end: null,
+      shirt: 9,
+      isCurrent: true,
+    },
+  ]);
+
+  // Seed Career History for Aaron Wan-Bissaka (Man United -> West Ham)
+  await seedCareerHistory('Aaron Wan-Bissaka', [
+    {
+      teamExtId: '66',
+      start: '2019-07-01',
+      end: '2024-08-10',
+      shirt: 29,
+      isCurrent: false,
+    },
+    {
+      teamExtId: '563',
+      start: '2024-08-11',
+      end: null,
+      shirt: 29,
+      isCurrent: true,
+    },
+  ]);
+
+  // 3. Rich Match Statistics for Salah and Haaland
+  const salahPlayer = await playerRepo.findOne({
+    where: { name: 'Mohamed Salah' },
+  });
+  const haalandPlayer = await playerRepo.findOne({
+    where: { name: 'Erling Haaland' },
+  });
+  const plComp = compMap.get('PL');
+  const clComp = compMap.get('CL');
+  const pl2025Season = seasonMap.get('PL-2025');
+  const cl2025Season = seasonMap.get('CL-2025');
+
+  const liverpoolTeam = teamMap.get('64');
+  const manCityTeam = teamMap.get('65');
+  const arsenalTeam = teamMap.get('57');
+  const realMadridTeam = teamMap.get('86');
+  const chelseaTeam = teamMap.get('61');
+  const bayernTeam = teamMap.get('503');
+
+  const createDetailedMatchStat = async (
+    matchExtId: string,
+    player: typeof salahPlayer,
+    team: typeof liverpoolTeam,
+    comp: typeof plComp,
+    season: typeof pl2025Season,
+    homeTeam: typeof liverpoolTeam,
+    awayTeam: typeof manCityTeam,
+    date: string,
+    hScore: number,
+    aScore: number,
+    stat: {
+      mins: number;
+      rating: number;
+      gl: number;
+      ast: number;
+      sh: number;
+      kp: number;
+      passAtt: number;
+      passCmp: number;
+      tk: number;
+      int: number;
+    },
+  ) => {
+    if (!player || !team || !comp || !season || !homeTeam || !awayTeam) return;
+
+    let m = await matchRepo.findOne({
+      where: { externalProvider: provider, externalId: matchExtId },
+    });
+    if (!m) {
+      m = matchRepo.create({
+        externalProvider: provider,
+        externalId: matchExtId,
+        competitionId: comp.id,
+        seasonId: season.id,
+        homeTeamId: homeTeam.id,
+        awayTeamId: awayTeam.id,
+        matchDate: new Date(date),
+        status: 'FINISHED',
+        homeScore: hScore,
+        awayScore: aScore,
+      });
+      m = await matchRepo.save(m);
+    }
+
+    let pms = await matchStatsRepo.findOne({
+      where: { matchId: m.id, playerId: player.id },
+    });
+    if (!pms) {
+      pms = matchStatsRepo.create({
+        matchId: m.id,
+        playerId: player.id,
+        teamId: team.id,
+        minutesPlayed: stat.mins,
+        isStarter: true,
+        rating: stat.rating,
+        goals: stat.gl,
+        assists: stat.ast,
+        shots: stat.sh,
+        keyPasses: stat.kp,
+        passesAttempted: stat.passAtt,
+        passesCompleted: stat.passCmp,
+        tackles: stat.tk,
+        interceptions: stat.int,
+        yellowCards: 0,
+        redCards: 0,
+        saves: null,
+        goalsConceded: null,
+        cleanSheets: null,
+        penaltiesSaved: null,
+      });
+    } else {
+      pms.minutesPlayed = stat.mins;
+      pms.rating = stat.rating;
+      pms.goals = stat.gl;
+      pms.assists = stat.ast;
+      pms.shots = stat.sh;
+      pms.keyPasses = stat.kp;
+      pms.passesAttempted = stat.passAtt;
+      pms.passesCompleted = stat.passCmp;
+      pms.tackles = stat.tk;
+      pms.interceptions = stat.int;
+    }
+    await matchStatsRepo.save(pms);
+  };
+
+  // Seed 5 Matches for Mohamed Salah
+  if (
+    salahPlayer &&
+    liverpoolTeam &&
+    plComp &&
+    clComp &&
+    pl2025Season &&
+    cl2025Season
+  ) {
+    await createDetailedMatchStat(
+      'match-salah-1',
+      salahPlayer,
+      liverpoolTeam,
+      plComp,
+      pl2025Season,
+      liverpoolTeam,
+      manCityTeam,
+      '2025-11-20T17:30:00Z',
+      2,
+      1,
+      {
+        mins: 90,
+        rating: 9.2,
+        gl: 1,
+        ast: 1,
+        sh: 4,
+        kp: 3,
+        passAtt: 42,
+        passCmp: 36,
+        tk: 1,
+        int: 1,
+      },
+    );
+    await createDetailedMatchStat(
+      'match-salah-2',
+      salahPlayer,
+      liverpoolTeam,
+      clComp,
+      cl2025Season,
+      liverpoolTeam,
+      realMadridTeam,
+      '2025-11-05T20:00:00Z',
+      2,
+      0,
+      {
+        mins: 90,
+        rating: 8.9,
+        gl: 2,
+        ast: 0,
+        sh: 5,
+        kp: 2,
+        passAtt: 38,
+        passCmp: 32,
+        tk: 0,
+        int: 0,
+      },
+    );
+    await createDetailedMatchStat(
+      'match-salah-3',
+      salahPlayer,
+      liverpoolTeam,
+      plComp,
+      pl2025Season,
+      arsenalTeam,
+      liverpoolTeam,
+      '2025-10-27T16:30:00Z',
+      2,
+      2,
+      {
+        mins: 90,
+        rating: 8.3,
+        gl: 1,
+        ast: 0,
+        sh: 3,
+        kp: 2,
+        passAtt: 35,
+        passCmp: 30,
+        tk: 1,
+        int: 1,
+      },
+    );
+    await createDetailedMatchStat(
+      'match-salah-4',
+      salahPlayer,
+      liverpoolTeam,
+      plComp,
+      pl2025Season,
+      liverpoolTeam,
+      chelseaTeam,
+      '2025-10-20T15:30:00Z',
+      2,
+      1,
+      {
+        mins: 88,
+        rating: 8.7,
+        gl: 1,
+        ast: 1,
+        sh: 4,
+        kp: 4,
+        passAtt: 36,
+        passCmp: 31,
+        tk: 2,
+        int: 0,
+      },
+    );
+    await createDetailedMatchStat(
+      'match-salah-5',
+      salahPlayer,
+      liverpoolTeam,
+      clComp,
+      cl2025Season,
+      liverpoolTeam,
+      bayernTeam,
+      '2025-09-18T20:00:00Z',
+      3,
+      1,
+      {
+        mins: 82,
+        rating: 8.5,
+        gl: 0,
+        ast: 2,
+        sh: 2,
+        kp: 3,
+        passAtt: 30,
+        passCmp: 26,
+        tk: 1,
+        int: 1,
+      },
+    );
+  }
+
+  // Seed 5 Matches for Erling Haaland
+  if (
+    haalandPlayer &&
+    manCityTeam &&
+    plComp &&
+    clComp &&
+    pl2025Season &&
+    cl2025Season
+  ) {
+    await createDetailedMatchStat(
+      'match-haaland-1',
+      haalandPlayer,
+      manCityTeam,
+      plComp,
+      pl2025Season,
+      manCityTeam,
+      arsenalTeam,
+      '2025-09-22T16:30:00Z',
+      2,
+      2,
+      {
+        mins: 90,
+        rating: 9.1,
+        gl: 1,
+        ast: 0,
+        sh: 5,
+        kp: 1,
+        passAtt: 18,
+        passCmp: 14,
+        tk: 0,
+        int: 0,
+      },
+    );
+    await createDetailedMatchStat(
+      'match-haaland-2',
+      haalandPlayer,
+      manCityTeam,
+      clComp,
+      cl2025Season,
+      manCityTeam,
+      realMadridTeam,
+      '2025-11-26T20:00:00Z',
+      3,
+      2,
+      {
+        mins: 90,
+        rating: 9.6,
+        gl: 2,
+        ast: 1,
+        sh: 6,
+        kp: 2,
+        passAtt: 20,
+        passCmp: 16,
+        tk: 1,
+        int: 0,
+      },
+    );
+    await createDetailedMatchStat(
+      'match-haaland-3',
+      haalandPlayer,
+      manCityTeam,
+      plComp,
+      pl2025Season,
+      liverpoolTeam,
+      manCityTeam,
+      '2025-11-20T17:30:00Z',
+      2,
+      1,
+      {
+        mins: 90,
+        rating: 7.9,
+        gl: 1,
+        ast: 0,
+        sh: 4,
+        kp: 0,
+        passAtt: 15,
+        passCmp: 12,
+        tk: 0,
+        int: 0,
+      },
+    );
+    await createDetailedMatchStat(
+      'match-haaland-4',
+      haalandPlayer,
+      manCityTeam,
+      clComp,
+      cl2025Season,
+      manCityTeam,
+      chelseaTeam,
+      '2025-10-02T20:00:00Z',
+      3,
+      0,
+      {
+        mins: 85,
+        rating: 9.3,
+        gl: 2,
+        ast: 0,
+        sh: 6,
+        kp: 1,
+        passAtt: 19,
+        passCmp: 15,
+        tk: 0,
+        int: 0,
+      },
+    );
+    await createDetailedMatchStat(
+      'match-haaland-5',
+      haalandPlayer,
+      manCityTeam,
+      plComp,
+      pl2025Season,
+      chelseaTeam,
+      manCityTeam,
+      '2025-08-18T16:30:00Z',
+      0,
+      2,
+      {
+        mins: 90,
+        rating: 8.6,
+        gl: 1,
+        ast: 0,
+        sh: 4,
+        kp: 1,
+        passAtt: 16,
+        passCmp: 13,
+        tk: 0,
+        int: 0,
+      },
+    );
   }
 
   // ==========================================

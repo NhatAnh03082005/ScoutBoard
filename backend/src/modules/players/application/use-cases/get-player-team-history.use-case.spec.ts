@@ -12,6 +12,7 @@ describe('GetPlayerTeamHistoryUseCase', () => {
       search: jest.fn(),
       findTeamHistoryByPlayerId: jest.fn(),
       findSeasonStatisticsByPlayerId: jest.fn(),
+      findSeasonStatisticsByCompetitionAndSeason: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
     };

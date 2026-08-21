@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Query, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { SearchPlayersUseCase } from 'src/modules/players/application/use-cases/search-players.use-case';
 import { GetPlayerByIdUseCase } from 'src/modules/players/application/use-cases/get-player-by-id.use-case';
@@ -13,6 +21,8 @@ import { PlayerListResponseDto } from '../dto/player-response.dto';
 import { PlayerTeamHistoryResponseDto } from '../dto/player-team-history-response.dto';
 import { PlayerSeasonStatisticResponseDto } from '../dto/player-season-statistic-response.dto';
 import { PlayerMatchStatisticListResponseDto } from '../dto/player-match-statistic-response.dto';
+import { UpdatePlayerPrimaryPositionDto } from '../dto/update-player-primary-position.dto';
+import { UpdatePlayerPrimaryPositionUseCase } from 'src/modules/players/application/use-cases/update-player-primary-position.use-case';
 
 @ApiTags('Players')
 @Controller('players')
@@ -24,6 +34,7 @@ export class PlayersController {
     private readonly getPlayerSeasonStatisticsUseCase: GetPlayerSeasonStatisticsUseCase,
     private readonly getPlayerMatchStatisticsUseCase: GetPlayerMatchStatisticsUseCase,
     private readonly getComparisonCandidatesUseCase: GetComparisonCandidatesUseCase,
+    private readonly updatePlayerPrimaryPositionUseCase: UpdatePlayerPrimaryPositionUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Tìm kiếm & danh sách cầu thủ cơ bản' })
@@ -53,7 +64,23 @@ export class PlayersController {
     return this.getPlayerByIdUseCase.execute(id);
   }
 
-  @ApiOperation({ summary: 'Lịch sử thi đấu / chuyển nhượng của cầu thủ qua các đội' })
+  @ApiOperation({ summary: 'Cập nhật vị trí chính của cầu thủ' })
+  @ApiResponse({ status: 200, description: 'Đã cập nhật vị trí chính' })
+  @ApiResponse({ status: 404, description: 'Cầu thủ không tồn tại' })
+  @Patch(':id/primary-position')
+  async updatePrimaryPosition(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdatePlayerPrimaryPositionDto,
+  ) {
+    return this.updatePlayerPrimaryPositionUseCase.execute({
+      playerId: id,
+      positionCode: body.positionCode.trim().toUpperCase(),
+    });
+  }
+
+  @ApiOperation({
+    summary: 'Lịch sử thi đấu / chuyển nhượng của cầu thủ qua các đội',
+  })
   @ApiResponse({
     status: 200,
     description: 'Danh sách lịch sử thi đấu của cầu thủ qua các đội',
@@ -70,7 +97,9 @@ export class PlayersController {
     return this.getPlayerTeamHistoryUseCase.execute(id);
   }
 
-  @ApiOperation({ summary: 'Thống kê chỉ số thi đấu theo mùa giải của cầu thủ' })
+  @ApiOperation({
+    summary: 'Thống kê chỉ số thi đấu theo mùa giải của cầu thủ',
+  })
   @ApiResponse({
     status: 200,
     description: 'Danh sách chỉ số thống kê theo mùa giải của cầu thủ',
@@ -87,10 +116,13 @@ export class PlayersController {
     return this.getPlayerSeasonStatisticsUseCase.execute(id);
   }
 
-  @ApiOperation({ summary: 'Thống kê chỉ số thi đấu chi tiết từng trận của cầu thủ' })
+  @ApiOperation({
+    summary: 'Thống kê chỉ số thi đấu chi tiết từng trận của cầu thủ',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Danh sách thống kê trận đấu có phân trang và bối cảnh trận đấu',
+    description:
+      'Danh sách thống kê trận đấu có phân trang và bối cảnh trận đấu',
     type: PlayerMatchStatisticListResponseDto,
   })
   @ApiResponse({
@@ -105,7 +137,9 @@ export class PlayersController {
     return this.getPlayerMatchStatisticsUseCase.execute(id, query);
   }
 
-  @ApiOperation({ summary: 'Tìm kiếm ứng viên so sánh cầu thủ theo phạm vi bối cảnh' })
+  @ApiOperation({
+    summary: 'Tìm kiếm ứng viên so sánh cầu thủ theo phạm vi bối cảnh',
+  })
   @ApiResponse({
     status: 200,
     description: 'Danh sách ứng viên so sánh có phân trang',

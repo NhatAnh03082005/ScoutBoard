@@ -12,6 +12,11 @@ describe('GetComparisonCandidatesUseCase', () => {
   const mockCurrentPlayer = {
     id: 'saka-id',
     name: 'Bukayo Saka',
+    primaryPosition: 'RW',
+    positions: [
+      { id: 'pos-1', positionCode: 'RM', isPrimary: false },
+      { id: 'pos-2', positionCode: 'LW', isPrimary: false },
+    ],
   } as PlayerOrmEntity;
 
   const mockCandidatePlayer = {
@@ -22,7 +27,7 @@ describe('GetComparisonCandidatesUseCase', () => {
     nationality: 'England',
     preferredFoot: PreferredFoot.LEFT,
     heightCm: 189,
-    primaryPosition: 'AM',
+    primaryPosition: 'RW',
     imageUrl: 'https://example.com/palmer.png',
     currentTeam: {
       id: 'team-chelsea',
@@ -39,6 +44,7 @@ describe('GetComparisonCandidatesUseCase', () => {
       search: jest.fn(),
       findTeamHistoryByPlayerId: jest.fn(),
       findSeasonStatisticsByPlayerId: jest.fn(),
+      findSeasonStatisticsByCompetitionAndSeason: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
     };
@@ -105,7 +111,44 @@ describe('GetComparisonCandidatesUseCase', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
-  it('should return candidates for COMPETITION scope with full mapped player info', async () => {
+  it('should return empty list if current player has no recorded positions', async () => {
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'no-pos-id',
+      name: 'Unknown',
+      primaryPosition: null,
+      positions: [],
+    } as any);
+
+    const result = await useCase.execute('no-pos-id', {
+      scope: ComparisonScope.ALL,
+      seasonId: 'season-1',
+      limit: 20,
+      offset: 0,
+    });
+
+    expect(result.items).toEqual([]);
+    expect(result.pagination.total).toBe(0);
+    expect(mockPlayerRepo.findComparisonCandidates).not.toHaveBeenCalled();
+  });
+
+  it('should return empty list if requested position filter is not in Player A compatible positions', async () => {
+    mockPlayerRepo.findById.mockResolvedValue(mockCurrentPlayer); // has RW, RM, LW
+
+    const result = await useCase.execute('saka-id', {
+      scope: ComparisonScope.COMPETITION,
+      seasonId: 'season-1',
+      competitionId: 'comp-1',
+      position: 'GK', // Incompatible with Saka
+      limit: 20,
+      offset: 0,
+    });
+
+    expect(result.items).toEqual([]);
+    expect(result.pagination.total).toBe(0);
+    expect(mockPlayerRepo.findComparisonCandidates).not.toHaveBeenCalled();
+  });
+
+  it('should return candidates for COMPETITION scope with compatiblePositions passed to repository', async () => {
     mockPlayerRepo.findById.mockResolvedValue(mockCurrentPlayer);
     mockPlayerRepo.findComparisonCandidates.mockResolvedValue({
       items: [mockCandidatePlayer],
@@ -117,7 +160,7 @@ describe('GetComparisonCandidatesUseCase', () => {
       seasonId: 'season-1',
       competitionId: 'comp-1',
       search: 'Palmer',
-      position: 'AM',
+      position: 'RW',
       preferredFoot: PreferredFoot.LEFT,
       nationality: 'England',
       minAge: 20,
@@ -132,7 +175,10 @@ describe('GetComparisonCandidatesUseCase', () => {
 
     expect(mockPlayerRepo.findComparisonCandidates).toHaveBeenCalledWith(
       'saka-id',
-      query,
+      {
+        ...query,
+        compatiblePositions: ['RW', 'RM', 'LW'],
+      },
     );
     expect(result.items).toHaveLength(1);
     expect(result.items[0]).toEqual({
@@ -143,7 +189,9 @@ describe('GetComparisonCandidatesUseCase', () => {
       nationality: 'England',
       preferredFoot: 'LEFT',
       heightCm: 189,
-      primaryPosition: 'AM',
+      primaryPosition: 'RW',
+      positions: [],
+      shirtNumber: undefined,
       currentTeam: {
         id: 'team-chelsea',
         name: 'Chelsea FC',
@@ -177,7 +225,10 @@ describe('GetComparisonCandidatesUseCase', () => {
 
     expect(mockPlayerRepo.findComparisonCandidates).toHaveBeenCalledWith(
       'saka-id',
-      query,
+      {
+        ...query,
+        compatiblePositions: ['RW', 'RM', 'LW'],
+      },
     );
     expect(result.items).toHaveLength(1);
     expect(result.pagination.total).toBe(1);

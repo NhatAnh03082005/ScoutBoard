@@ -2,10 +2,11 @@ import { NotFoundException } from '@nestjs/common';
 import {
   GetPlayerSeasonStatisticsUseCase,
   calculatePassAccuracy,
+  calculatePer90,
 } from './get-player-season-statistics.use-case';
 import { PlayerReadRepository } from '../ports/player-read.repository';
 
-describe('GetPlayerSeasonStatisticsUseCase & Pass Accuracy Helper', () => {
+describe('GetPlayerSeasonStatisticsUseCase & Metric Helpers', () => {
   let useCase: GetPlayerSeasonStatisticsUseCase;
   let mockPlayerRepo: jest.Mocked<PlayerReadRepository>;
 
@@ -15,6 +16,7 @@ describe('GetPlayerSeasonStatisticsUseCase & Pass Accuracy Helper', () => {
       search: jest.fn(),
       findTeamHistoryByPlayerId: jest.fn(),
       findSeasonStatisticsByPlayerId: jest.fn(),
+      findSeasonStatisticsByCompetitionAndSeason: jest.fn().mockResolvedValue([]),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
     };
@@ -45,6 +47,21 @@ describe('GetPlayerSeasonStatisticsUseCase & Pass Accuracy Helper', () => {
     });
   });
 
+  describe('calculatePer90', () => {
+    it('should calculate per 90 correctly', () => {
+      expect(calculatePer90(10, 900)).toBe(1);
+      expect(calculatePer90(5, 900)).toBe(0.5);
+      expect(calculatePer90(0, 900)).toBe(0);
+    });
+
+    it('should return null for invalid inputs or 0 minutes', () => {
+      expect(calculatePer90(null, 900)).toBeNull();
+      expect(calculatePer90(undefined, 900)).toBeNull();
+      expect(calculatePer90(10, 0)).toBeNull();
+      expect(calculatePer90(10, -50)).toBeNull();
+    });
+  });
+
   it('should throw NotFoundException if player does not exist', async () => {
     mockPlayerRepo.findById.mockResolvedValue(null);
 
@@ -64,11 +81,13 @@ describe('GetPlayerSeasonStatisticsUseCase & Pass Accuracy Helper', () => {
     expect(mockPlayerRepo.findSeasonStatisticsByPlayerId).toHaveBeenCalledWith('player-1');
   });
 
-  it('should calculate goalsPer90 = 1 and passAccuracy = 80 when attempted = 500, completed = 400', async () => {
+  it('should calculate goalsPer90 = 1 and passAccuracy = 80 for outfield player', async () => {
     mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Saka' } as any);
     mockPlayerRepo.findSeasonStatisticsByPlayerId.mockResolvedValue([
       {
         id: 'stat-1',
+        seasonId: 's-1',
+        competitionId: 'c-1',
         matchesPlayed: 10,
         starts: 10,
         minutesPlayed: 900,
@@ -91,39 +110,72 @@ describe('GetPlayerSeasonStatisticsUseCase & Pass Accuracy Helper', () => {
     const result = await useCase.execute('player-1');
 
     expect(result[0].goalsPer90).toBe(1);
+    expect(result[0].assistsPer90).toBe(0.5);
+    expect(result[0].shotsPer90).toBe(3);
+    expect(result[0].shotsOnTargetPer90).toBe(1.5);
     expect(result[0].passesAttempted).toBe(500);
     expect(result[0].passesCompleted).toBe(400);
     expect(result[0].passAccuracy).toBe(80);
     expect(result[0].passesPer90).toBe(50);
+    expect(result[0].keyPassesPer90).toBe(2);
+    expect(result[0].tacklesPer90).toBe(1);
+    expect(result[0].interceptionsPer90).toBe(0.5);
+    expect(result[0].duelsWonPer90).toBe(4);
+    // Verify GK fields on outfield player are null
+    expect(result[0].saves).toBeNull();
+    expect(result[0].goalsConceded).toBeNull();
+    expect(result[0].cleanSheets).toBeNull();
+    expect(result[0].penaltiesSaved).toBeNull();
+    expect(result[0].savesPer90).toBeNull();
   });
 
-  it('should return null for all per90 metrics and passAccuracy when minutesPlayed = 0 and passesAttempted = 0', async () => {
-    mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Saka' } as any);
+  it('CASE: Goalkeeper season statistics & GK per-90 calculation', async () => {
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'gk-1',
+      name: 'David Raya',
+      primaryPosition: 'GK',
+    } as any);
+
     mockPlayerRepo.findSeasonStatisticsByPlayerId.mockResolvedValue([
       {
-        id: 'stat-3',
-        matchesPlayed: 0,
-        starts: 0,
-        minutesPlayed: 0,
+        id: 'stat-gk-1',
+        seasonId: 's-1',
+        competitionId: 'c-1',
+        matchesPlayed: 10,
+        starts: 10,
+        minutesPlayed: 900,
         goals: 0,
         assists: 0,
         shots: 0,
         shotsOnTarget: 0,
-        passesAttempted: 0,
-        passesCompleted: 0,
+        passesAttempted: 300,
+        passesCompleted: 240,
         keyPasses: 0,
         tackles: 0,
-        interceptions: 0,
-        duelsWon: 0,
+        interceptions: 2,
+        duelsWon: 5,
+        saves: 30,
+        goalsConceded: 8,
+        cleanSheets: 5,
+        penaltiesSaved: 1,
+        penaltiesFaced: 2,
+        savePercentage: 78.9,
         season: { id: 's-1', seasonCode: '2025-2026', isCurrent: true },
         competition: { id: 'c-1', name: 'Premier League', country: 'England' },
         team: { id: 't-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
       } as any,
     ]);
 
-    const result = await useCase.execute('player-1');
+    const result = await useCase.execute('gk-1');
 
-    expect(result[0].passAccuracy).toBeNull();
-    expect(result[0].passesPer90).toBeNull();
+    expect(result[0].saves).toBe(30);
+    expect(result[0].goalsConceded).toBe(8);
+    expect(result[0].cleanSheets).toBe(5);
+    expect(result[0].penaltiesSaved).toBe(1);
+    expect(result[0].penaltiesFaced).toBe(2);
+    expect(result[0].savesPer90).toBe(3); // 30 * 90 / 900 = 3.00
+    expect(result[0].goalsConcededPer90).toBe(0.8); // 8 * 90 / 900 = 0.80
+    expect(result[0].savePercentage).toBe(78.9);
+    expect(result[0].cleanSheetPercentage).toBe(50); // 5 / 10 * 100 = 50%
   });
 });

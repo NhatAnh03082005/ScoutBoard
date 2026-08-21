@@ -20,7 +20,6 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
   onSeasonChange,
   onCompetitionChange,
 }) => {
-  // Extract unique seasons from current player's statistics
   const seasonOptions = React.useMemo(() => {
     const map = new Map<string, { id: string; seasonCode: string; isCurrent: boolean }>();
     seasonStatistics.forEach((stat) => {
@@ -38,7 +37,6 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
     });
   }, [seasonStatistics]);
 
-  // Extract available competitions for the currently selected season
   const competitionOptions = React.useMemo(() => {
     const map = new Map<string, { id: string; name: string }>();
     seasonStatistics
@@ -59,32 +57,56 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
 
   return (
     <div
-      className="player-filters-card"
       style={{
-        padding: '20px',
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '16px',
+        padding: '24px',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
         marginBottom: '24px',
-        background: 'rgba(15, 23, 42, 0.65)',
-        border: '1px solid rgba(59, 130, 246, 0.3)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '18px' }}>🌐</span>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
-            Comparison Scope & Context
-          </h3>
+      {/* Header Row */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '12px',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            color: '#2563eb',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <span>🌐</span>
+          <span>COMPARISON SCOPE & CONTEXT</span>
         </div>
 
-        {/* Active Context Tag */}
+        {/* Active Context Badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '12px', color: '#94a3b8' }}>Active Context:</span>
+          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            ACTIVE CONTEXT:
+          </span>
           <span
-            className="role-pill"
             style={{
-              background: 'rgba(34, 197, 94, 0.15)',
-              color: '#4ade80',
-              border: '1px solid rgba(34, 197, 94, 0.3)',
-              fontWeight: 600,
+              background: '#eff6ff',
+              color: '#2563eb',
+              border: '1px solid #bfdbfe',
+              borderRadius: '9999px',
+              padding: '4px 12px',
+              fontWeight: 700,
+              fontSize: '12px',
             }}
           >
             {selectedSeason?.seasonCode || 'Season'} ·{' '}
@@ -93,69 +115,131 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', alignItems: 'flex-end' }}>
-        {/* Scope Radio Mode */}
+      {/* Grid Row */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '20px',
+          alignItems: 'flex-end',
+        }}
+      >
+        {/* Modernized Scope Selector (Segmented Pill Switch) */}
         <div>
-          <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>
-            Phạm Vi So Sánh (Scope)
+          <label
+            style={{
+              fontSize: '11px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              color: '#64748b',
+              marginBottom: '6px',
+              display: 'block',
+            }}
+          >
+            COMPARISON SCOPE
           </label>
-          <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
-            <label
+          <div
+            style={{
+              display: 'inline-flex',
+              padding: '4px',
+              background: '#f1f5f9',
+              borderRadius: '12px',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              gap: '4px',
+              width: '100%',
+              boxSizing: 'border-box',
+              height: '40px',
+              alignItems: 'center',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => onScopeChange('COMPETITION')}
               style={{
+                flex: 1,
+                height: '100%',
+                background: scope === 'COMPETITION' ? '#ffffff' : 'transparent',
+                color: scope === 'COMPETITION' ? '#2563eb' : '#64748b',
+                fontWeight: scope === 'COMPETITION' ? 900 : 700,
+                boxShadow: scope === 'COMPETITION' ? '0 1px 2px rgba(0, 0, 0, 0.05)' : 'none',
+                padding: '0 12px',
+                borderRadius: '8px',
+                fontSize: '11.5px',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                color: scope === 'COMPETITION' ? '#38bdf8' : '#cbd5e1',
-                fontWeight: scope === 'COMPETITION' ? 600 : 400,
+                justifyContent: 'center',
+                whiteSpace: 'nowrap',
               }}
             >
-              <input
-                type="radio"
-                name="comparisonScope"
-                value="COMPETITION"
-                checked={scope === 'COMPETITION'}
-                onChange={() => onScopeChange('COMPETITION')}
-                style={{ accentColor: '#38bdf8' }}
-              />
               Specific Competition
-            </label>
+            </button>
 
-            <label
+            <button
+              type="button"
+              onClick={() => onScopeChange('ALL')}
               style={{
+                flex: 1,
+                height: '100%',
+                background: scope === 'ALL' ? '#ffffff' : 'transparent',
+                color: scope === 'ALL' ? '#2563eb' : '#64748b',
+                fontWeight: scope === 'ALL' ? 900 : 700,
+                boxShadow: scope === 'ALL' ? '0 1px 2px rgba(0, 0, 0, 0.05)' : 'none',
+                padding: '0 12px',
+                borderRadius: '8px',
+                fontSize: '11.5px',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                color: scope === 'ALL' ? '#38bdf8' : '#cbd5e1',
-                fontWeight: scope === 'ALL' ? 600 : 400,
+                justifyContent: 'center',
+                whiteSpace: 'nowrap',
               }}
             >
-              <input
-                type="radio"
-                name="comparisonScope"
-                value="ALL"
-                checked={scope === 'ALL'}
-                onChange={() => onScopeChange('ALL')}
-                style={{ accentColor: '#38bdf8' }}
-              />
-              All Competitions (Aggregate)
-            </label>
+              All Competitions
+            </button>
           </div>
         </div>
 
         {/* Season Selector */}
         <div>
-          <label className="input-label" style={{ marginBottom: '6px', display: 'block' }}>
-            Mùa Giải (Season)
+          <label
+            style={{
+              fontSize: '11px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              color: '#64748b',
+              marginBottom: '6px',
+              display: 'block',
+            }}
+          >
+            SEASON
           </label>
           <select
-            className="scout-select"
             value={seasonId}
             onChange={(e) => onSeasonChange(e.target.value)}
-            style={{ width: '100%' }}
+            style={{
+              height: '40px',
+              width: '100%',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '0 14px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#1e293b',
+              outline: 'none',
+              transition: 'all 0.15s ease',
+            }}
           >
             {seasonOptions.map((s) => (
               <option key={s.id} value={s.id}>
@@ -168,14 +252,35 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
         {/* Competition Selector (Only in COMPETITION scope) */}
         {scope === 'COMPETITION' && (
           <div>
-            <label className="input-label" style={{ marginBottom: '6px', display: 'block' }}>
-              Giải Đấu (Competition)
+            <label
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: '#64748b',
+                marginBottom: '6px',
+                display: 'block',
+              }}
+            >
+              COMPETITION
             </label>
             <select
-              className="scout-select"
               value={competitionId}
               onChange={(e) => onCompetitionChange(e.target.value)}
-              style={{ width: '100%' }}
+              style={{
+                height: '40px',
+                width: '100%',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '0 14px',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#1e293b',
+                outline: 'none',
+                transition: 'all 0.15s ease',
+              }}
             >
               {competitionOptions.length === 0 ? (
                 <option value="">No competitions available</option>

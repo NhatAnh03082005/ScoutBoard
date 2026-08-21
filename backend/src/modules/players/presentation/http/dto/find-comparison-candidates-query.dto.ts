@@ -76,7 +76,7 @@ export class FindComparisonCandidatesQueryDto {
   nationality?: string;
 
   @ApiPropertyOptional({
-    description: 'Vị trí thi đấu (GK, CB, LB, RB, DM, CM, AM, LW, RW, ST...)',
+    description: 'Vị trí thi đấu (GK, CB, LB, RB, LWB, RWB, CDM, CM, CAM, LM, RM, ST, CF, LW, RW)',
   })
   @IsOptional()
   @IsString()

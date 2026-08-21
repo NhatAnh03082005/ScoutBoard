@@ -28,7 +28,9 @@
 | **Core UI Library** | [React](https://react.dev/) | `^19.2.7` | Thư viện xây dựng giao diện người dùng tương tác dạng component. |
 | **Build Tool & Dev** | [Vite](https://vitejs.dev/) | `^8.1.1` | Build tool thế hệ mới siêu nhanh, tối ưu hóa bundle qua Rollup/esbuild. |
 | **Language** | [TypeScript](https://www.typescriptlang.org/) | `~6.0.2` | Type Safety cho toàn bộ React Components, API Services và Models. |
-| **CSS & Design System**| **Vanilla CSS** (Custom Design Tokens) | N/A | Hệ thống Design System màu sắc Dark Theme, Glassmorphism, 50/50 Split-Screen Fixed Layout (không giật khung). |
+| **Data Visualization** | **Pure Vector SVG Engine** | Native SVG | Dựng biểu đồ Radar Chart 5 trục, đa giác lưới đồng tâm 5 cấp, gradients & glow filters (Zero dependency). |
+| **CSS & Design System**| **Vanilla CSS** (Custom Design Tokens) | N/A | Hệ thống Design System màu sắc Dark Theme, Glassmorphism, EA FC HUD & Broadcast Micro-animations. |
+| **Position Roles** | Role Categorization Engine | N/A | Chuẩn hóa 4 nhóm vai trò (GK, DEF, MID, ATT) đồng bộ màu sắc và metrics giao diện. |
 | **Linter** | [oxlint](https://oxc.rs/) | `^1.71.0` | Linter hiệu năng cao kiểm tra cú pháp và chất lượng mã nguồn. |
 
 ---
@@ -115,6 +117,12 @@ ScoutBoard Backend Layer Structure
 │   - Lọc ứng viên tự động loại trừ cầu thủ gốc (No Self Comparison).    │
 │   - Bảng đối đầu chi tiết: Biometrics, Thời gian, Tấn công,            │
 │     Chuyền bóng kiến tạo, Phòng ngự tranh chấp với Highlight Bar.      │
+│ • Task D8.1 (Position Integrity & Any Position Search):                │
+│   - Enforce Single Primary Position DB Constraint + Transaction flow.  │
+│   - Chuẩn hóa mã vị trí CDM, CAM, LWB, RWB, LM, RM, CF, ST, CB, LB, RB.│
+│ • Task D9 (Position-Aware Player Hero Card & Vector SVG Radar Chart):  │
+│   - 5 KPI nổi bật trên Hero Card biến đổi theo vai trò GK/DEF/MID/ATT. │
+│   - Pure Vector SVG Radar Chart 5 trục với dynamic normalization 0-100.│
 └────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -149,6 +157,7 @@ Hệ thống sở hữu bộ kiểm thử tự động toàn diện với **38 T
 | **Players**| `GetPlayerMatchStatisticsUseCase` | 5 | ✅ PASS |
 | **Players**| `GetComparisonCandidatesUseCase`  | 6 | ✅ PASS |
 | **Players**| `GetPlayerTeamHistoryUseCase`     | 3 | ✅ PASS |
+| **Players**| `UpdatePlayerPrimaryPositionUseCase`| 2 | ✅ PASS |
 | **Teams**  | `GetTeamByIdUseCase` & `ListTeams` | 6 | ✅ PASS |
 | **Seasons**| `GetSeasonByIdUseCase` & `List`   | 6 | ✅ PASS |
 | **Competitions** | `ListCompetitions` & `Seasons` | 8 | ✅ PASS |
@@ -166,11 +175,32 @@ $$\text{Pass Accuracy (\%)} = \begin{cases} \left( \dfrac{\sum \text{passes\_com
 $$\text{Metric Per 90} = \begin{cases} \dfrac{\text{Raw Metric Value} \times 90}{\text{Minutes Played}} & \text{khi } \text{Minutes Played} > 0 \\ \text{null} & \text{khi } \text{Minutes Played} = 0 \end{cases}$$
 > **Nguyên tắc vàng:** Khi tổng hợp nhiều giải đấu (`ALL COMPETITIONS`), hệ thống **tổng hợp (SUM) toàn bộ số liệu thô và số phút thi đấu** rồi mới chia theo mẫu số tổng phút, **tuyệt đối không lấy trung bình cộng của các chỉ số per-90 riêng lẻ**.
 
+### 5.3. Hình Học Tọa Độ Lượng Giác Vẽ Biểu Đồ Radar (SVG Radar Geometry)
+Dựng đa giác mạng nhện trực tiếp bằng SVG nguyên bản:
+$$x = \text{center} + r \cdot \cos(\theta), \quad y = \text{center} + r \cdot \sin(\theta)$$
+- **Tâm đa giác:** $\text{center} = 150\text{px}$, bán kính tối đa $R = 95\text{px}$.
+- **Góc khởi đầu:** $\theta_0 = -\frac{\pi}{2}$ (đỉnh trên cùng).
+- **Góc giữa 5 trục:** $\Delta \theta = \frac{2\pi}{5} = 72^\circ$.
+- **Lưới đồng tâm:** 5 mức tỷ lệ $[0.2, 0.4, 0.6, 0.8, 1.0]$.
+
+### 5.4. Công Thức Chuẩn Hóa Thang Điểm 0–100 cho Radar (Linear Min-Max Normalization)
+$$\text{Score} = \text{clamp}\left( \dfrac{\text{val} - \text{min}}{\text{max} - \text{min}} \times 100, 0, 100 \right)$$
+Đối với chỉ số nghịch đảo (như Goals Conceded / 90 của Thủ môn):
+$$\text{Score}_{\text{inverse}} = 100 - \text{clamp}\left( \dfrac{\text{val} - \text{min}}{\text{max} - \text{min}} \times 100, 0, 100 \right)$$
+
+#### **Bảng Thang Đo Chuẩn Hóa theo Nhóm Vị Trí (Position-Aware Bounds):**
+| Nhóm vị trí | Trục chiến thuật | Metric nguồn | Thang đo $[\text{min}, \text{max}]$ |
+| :--- | :--- | :--- | :--- |
+| **Thủ môn (GK)** | **SHOT STOPPING**<br>**CLEAN SHEETS**<br>**DISTRIBUTION**<br>**GOAL PREVENTION**<br>**PENALTY STOPPING** | `savesPer90`<br>`cleanSheets`<br>`passAccuracy`<br>`goalsConcededPer90`<br>`penaltiesSaved` | $[0, 5.0] \text{ saves/90}$<br>$[0, 16] \text{ clean sheets}$<br>$[40\%, 90\%]$<br>$[0.6, 2.4] \text{ GA/90 (inverse)}$<br>$[0, 3] \text{ penalties saved}$ |
+| **Hậu vệ (DEF)** | **TACKLING**<br>**INTERCEPTIONS**<br>**DUEL ABILITY**<br>**PASS ACCURACY**<br>**BUILD-UP** | `tacklesPer90`<br>`interceptionsPer90`<br>`duelsWonPer90`<br>`passAccuracy`<br>`passesPer90` | $[0, 3.5] \text{ tackles/90}$<br>$[0, 2.5] \text{ int/90}$<br>$[0, 7.0] \text{ duels/90}$<br>$[60\%, 95\%]$<br>$[0, 75] \text{ passes/90}$ |
+| **Tiền vệ (MID)** | **PASS VOLUME**<br>**PASS ACCURACY**<br>**CREATIVITY**<br>**RECOVERY**<br>**GOAL THREAT** | `passesPer90`<br>`passAccuracy`<br>`keyPassesPer90`<br>`tacklesPer90 + interceptionsPer90`<br>`goalsPer90 + assistsPer90` | $[0, 80] \text{ passes/90}$<br>$[65\%, 95\%]$<br>$[0, 3.0] \text{ KP/90}$<br>$[0, 4.5] \text{ actions/90}$<br>$[0, 0.8] \text{ G+A/90}$ |
+| **Tiền đạo (ATT)** | **SCORING**<br>**SHOOTING**<br>**ON TARGET**<br>**CHANCE CREATION**<br>**PLAYMAKING** | `goalsPer90`<br>`shotsPer90`<br>`shotsOnTargetPer90`<br>`keyPassesPer90`<br>`assistsPer90` | $[0, 1.0] \text{ goals/90}$<br>$[0, 4.5] \text{ shots/90}$<br>$[0, 2.0] \text{ SoT/90}$<br>$[0, 2.8] \text{ KP/90}$<br>$[0, 0.5] \text{ assists/90}$ |
+
 ---
 
 ## 6. KẾT QUẢ KIỂM THỬ VÀ CHẤT LƯỢNG MÃ NGUỒN
 
-- **Backend Unit Tests**: **38/38 Test Suites PASS (128/128 Tests Passed, 100% Success)**.
+- **Backend Unit Tests**: **39/39 Test Suites PASS (133/133 Tests Passed, 100% Success)**.
 - **Backend Build**: `nest build` biên dịch thành công 100%, **0 lỗi**.
 - **Frontend Build**: `tsc -b && vite build` tạo bundle thành công, **0 lỗi TypeScript/Lint**.
 
@@ -178,10 +208,10 @@ $$\text{Metric Per 90} = \begin{cases} \dfrac{\text{Raw Metric Value} \times 90}
 
 ## 7. LỘ TRÌNH PHÁT TRIỂN TIẾP THEO (NEXT MILESTONES)
 
-1. **Task D8.1**: *Comparison Quality & UI Polish* (tối ưu hóa giao diện đối đầu, responsive, biểu đồ thanh trực quan).
-2. **Task D9**: *Radar Chart Comparison* (biểu đồ mạng nhện đa giác so sánh 5 trục: Shooting, Passing, Dribbling, Defending, Physical).
-3. **Chốt Zone 2 ➔ Chuyển sang Zone 3**:
+1. **Chốt Zone 2 ➔ Chuyển sang Zone 3 (User-Generated Data)**:
    - Triển khai Migration cho `shortlists`, `shortlist_players`, `squads`, `squad_players`.
-   - Xây dựng Shortlist Management (lưu trữ danh sách mục tiêu tuyển trạch).
-   - Xây dựng Squad Builder (sa bàn chiến thuật đội hình kéo thả).
+   - Xây dựng Shortlist Management (lưu trữ danh sách mục tiêu tuyển trạch theo thư mục).
+   - Xây dựng Squad Builder (sa bàn chiến thuật đội hình kéo thả, tính Chemistry & OVR).
+2. **Zone 4 (Audit & Sync Automation)**:
+   - Cơ chế đồng bộ dữ liệu bóng đá định kỳ và lưu vết thay đổi (Audit Logs).
 

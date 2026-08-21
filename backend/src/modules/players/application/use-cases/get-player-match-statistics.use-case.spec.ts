@@ -12,6 +12,7 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
       search: jest.fn(),
       findTeamHistoryByPlayerId: jest.fn(),
       findSeasonStatisticsByPlayerId: jest.fn(),
+      findSeasonStatisticsByCompetitionAndSeason: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
     };
@@ -99,6 +100,60 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
     expect(result.items[0].passesAttempted).toBe(50);
     expect(result.items[0].passesCompleted).toBe(45);
     expect(result.items[0].passAccuracy).toBe(90);
+    expect(result.items[0].saves).toBeNull();
     expect(result.pagination.total).toBe(1);
+  });
+
+  it('should return goalkeeper match statistics (saves, cleanSheets, etc.)', async () => {
+    mockPlayerRepo.findById.mockResolvedValue({ id: 'gk-1', name: 'David Raya', primaryPosition: 'GK' } as any);
+    mockPlayerRepo.findMatchStatisticsByPlayerId.mockResolvedValue({
+      items: [
+        {
+          id: 'pms-gk-1',
+          minutesPlayed: 90,
+          isStarter: true,
+          rating: 7.8,
+          goals: 0,
+          assists: 0,
+          shots: 0,
+          keyPasses: 0,
+          passesAttempted: 28,
+          passesCompleted: 24,
+          tackles: 0,
+          interceptions: 1,
+          yellowCards: 0,
+          redCards: 0,
+          saves: 5,
+          goalsConceded: 0,
+          cleanSheets: 1,
+          penaltiesSaved: 0,
+          statistics: null,
+          team: { id: 'team-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
+          match: {
+            id: 'match-101',
+            matchDate: new Date('2025-10-15T20:00:00Z'),
+            status: 'FINISHED',
+            homeScore: 2,
+            awayScore: 0,
+            competition: { id: 'comp-1', name: 'Premier League', country: 'England' },
+            season: { id: 'season-1', seasonCode: '2025-2026' },
+            homeTeam: { id: 'team-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
+            awayTeam: { id: 'team-2', name: 'Chelsea FC', shortName: 'Chelsea', logoUrl: null },
+          },
+        } as any,
+      ],
+      total: 1,
+    });
+
+    const result = await useCase.execute('gk-1', { limit: 10, offset: 0 });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].saves).toBe(5);
+    expect(result.items[0].goalsConceded).toBe(0);
+    expect(result.items[0].cleanSheets).toBe(1);
+    expect(result.items[0].penaltiesSaved).toBe(0);
+    expect(result.items[0].passesAttempted).toBe(28);
+    expect(result.items[0].passesCompleted).toBe(24);
+    expect(result.items[0].passAccuracy).toBe(85.71);
   });
 });

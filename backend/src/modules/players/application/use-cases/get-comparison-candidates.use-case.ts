@@ -56,10 +56,52 @@ export class GetComparisonCandidatesUseCase {
       );
     }
 
+    // 1. Extract all unique positions of Player A (Primary + Secondary)
+    const playerAPositions = new Set<string>();
+    if (currentPlayer.primaryPosition) {
+      playerAPositions.add(currentPlayer.primaryPosition.trim());
+    }
+    (currentPlayer.positions || []).forEach((p) => {
+      if (p.positionCode) {
+        playerAPositions.add(p.positionCode.trim());
+      }
+    });
+    const compatiblePositions = Array.from(playerAPositions);
+
+    // If Player A has no positions recorded, return empty list
+    if (compatiblePositions.length === 0) {
+      return {
+        items: [],
+        pagination: {
+          limit: query.limit,
+          offset: query.offset,
+          total: 0,
+        },
+      };
+    }
+
+    // 2. If a specific position filter was requested, verify it is in Player A's compatible positions
+    if (query.position && query.position.trim() !== '') {
+      const requestedPos = query.position.trim();
+      if (!compatiblePositions.includes(requestedPos)) {
+        return {
+          items: [],
+          pagination: {
+            limit: query.limit,
+            offset: query.offset,
+            total: 0,
+          },
+        };
+      }
+    }
+
     const { items, total } =
       await this.playerReadRepository.findComparisonCandidates(
         currentPlayerId,
-        query,
+        {
+          ...query,
+          compatiblePositions,
+        },
       );
 
     const mappedItems: PlayerItemDto[] = items.map((player) => ({
@@ -71,6 +113,12 @@ export class GetComparisonCandidatesUseCase {
       preferredFoot: player.preferredFoot,
       heightCm: player.heightCm,
       primaryPosition: player.primaryPosition,
+      positions: (player.positions || []).map((position) => ({
+        id: position.id,
+        positionCode: position.positionCode,
+        isPrimary: position.isPrimary,
+      })),
+      shirtNumber: player.shirtNumber,
       currentTeam: player.currentTeam
         ? {
             id: player.currentTeam.id,

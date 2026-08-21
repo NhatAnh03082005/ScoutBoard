@@ -34,6 +34,7 @@ export interface FindComparisonCandidatesQuery {
   scope: ComparisonScope;
   seasonId: string;
   competitionId?: string;
+  compatiblePositions?: string[];
   currentTeamId?: string;
   search?: string;
   position?: string;
@@ -57,6 +58,10 @@ export interface PlayerReadRepository {
   ): Promise<PlayerTeamHistoryOrmEntity[]>;
   findSeasonStatisticsByPlayerId(
     playerId: string,
+  ): Promise<PlayerSeasonStatisticOrmEntity[]>;
+  findSeasonStatisticsByCompetitionAndSeason(
+    seasonId: string,
+    competitionId: string,
   ): Promise<PlayerSeasonStatisticOrmEntity[]>;
   findMatchStatisticsByPlayerId(
     playerId: string,

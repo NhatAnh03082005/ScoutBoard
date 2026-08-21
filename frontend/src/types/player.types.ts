@@ -12,9 +12,11 @@ export interface PlayerItem {
   imageUrl?: string | null;
   dateOfBirth?: string | null;
   nationality?: string | null;
-  preferredFoot?: 'LEFT' | 'RIGHT' | 'BOTH' | string | null;
+  preferredFoot?: "LEFT" | "RIGHT" | "BOTH" | string | null;
   heightCm?: number | null;
   primaryPosition?: string | null;
+  positions?: PlayerPositionItem[];
+  shirtNumber?: number | null;
   currentTeam?: PlayerTeam | null;
 }
 
@@ -79,7 +81,7 @@ export interface PlayerSeasonStatisticItem {
   interceptions: number;
   duelsWon: number;
 
-  // Per-90 Metrics
+  // Outfield Per-90 Metrics
   goalsPer90: number | null;
   assistsPer90: number | null;
   shotsPer90: number | null;
@@ -89,6 +91,17 @@ export interface PlayerSeasonStatisticItem {
   tacklesPer90: number | null;
   interceptionsPer90: number | null;
   duelsWonPer90: number | null;
+
+  // Goalkeeper Specific Metrics (Nullable for Outfield)
+  saves?: number | null;
+  goalsConceded?: number | null;
+  cleanSheets?: number | null;
+  penaltiesSaved?: number | null;
+  penaltiesFaced?: number | null;
+  savesPer90?: number | null;
+  goalsConcededPer90?: number | null;
+  savePercentage?: number | null;
+  cleanSheetPercentage?: number | null;
 }
 
 export interface PlayerMatchStatisticItem {
@@ -126,6 +139,10 @@ export interface PlayerMatchStatisticItem {
   interceptions: number;
   yellowCards: number;
   redCards: number;
+  saves?: number | null;
+  goalsConceded?: number | null;
+  cleanSheets?: number | null;
+  penaltiesSaved?: number | null;
   statistics: Record<string, unknown> | null;
 }
 
@@ -168,7 +185,7 @@ export interface PlayerMatchFilterParams {
   offset?: number;
 }
 
-export type ComparisonScopeType = 'COMPETITION' | 'ALL';
+export type ComparisonScopeType = "COMPETITION" | "ALL";
 
 export interface ComparisonCandidateParams {
   scope: ComparisonScopeType;

@@ -17,6 +17,17 @@ export class PlayerTeamResponseDto {
   country: string | null;
 }
 
+export class PlayerPositionResponseDto {
+  @ApiProperty({ description: 'ID của vị trí' })
+  id: string;
+
+  @ApiProperty({ description: 'Mã vị trí' })
+  positionCode: string;
+
+  @ApiProperty({ description: 'Vị trí chính hay không' })
+  isPrimary: boolean;
+}
+
 export class PlayerItemDto {
   @ApiProperty({ description: 'ID của cầu thủ (UUID)' })
   id: string;
@@ -41,6 +52,15 @@ export class PlayerItemDto {
 
   @ApiProperty({ description: 'Vị trí sở trường chính', nullable: true })
   primaryPosition: string | null;
+
+  @ApiProperty({
+    description: 'Danh sách các vị trí của cầu thủ',
+    type: [PlayerPositionResponseDto],
+  })
+  positions: PlayerPositionResponseDto[];
+
+  @ApiProperty({ description: 'Số áo thi đấu', nullable: true })
+  shirtNumber: number | null;
 
   @ApiProperty({
     description: 'Thông tin CLB hiện tại',

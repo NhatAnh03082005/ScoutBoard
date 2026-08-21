@@ -60,8 +60,10 @@ Hệ thống được phân định quyền sở hữu dữ liệu tuyệt đố
 ### **Frontend (Client Web App)**
 - **Core Library:** [React 19](https://react.dev/) (Single Page Application - SPA).
 - **Build Tool:** [Vite 8](https://vitejs.dev/) (Hot Module Replacement & Speed Opt).
-- **Styling:** Vanilla CSS3 + Custom Design Tokens (Dark Mode, Glassmorphism, Micro-animations).
+- **Data Visualization:** **Pure Vector SVG Radar Chart Engine** (0-dependency, responsive qua `viewBox`, đa giác lưới đồng tâm 5 cấp, radial spokes, SVG Linear Gradients & Glow Filters).
+- **Styling:** Vanilla CSS3 + Custom Design Tokens (Dark Mode, Glassmorphism, EA FC HUD & Broadcast Micro-animations).
 - **HTTP Client:** Fetch API chuẩn hóa với Countdown Timer thời gian thực.
+- **Position & Role Categorization System:** Utility chuẩn hóa 4 nhóm vai trò (GK, DEF, MID, ATT) đồng bộ màu sắc và metrics.
 
 ---
 
@@ -105,9 +107,29 @@ Hệ thống được phân định quyền sở hữu dữ liệu tuyệt đố
 
 ---
 
-### **Module 3: ETL Read-Only Modules (`competitions`, `seasons`, `teams`, `players`, `matches`)**
-- Áp dụng Clean Architecture Read-Only Repositories (`PlayerReadRepository`, `TeamReadRepository`, v.v.).
-- Cung cấp các API tìm kiếm, lọc, danh sách dữ liệu bóng đá cho Frontend tiêu thụ.
+### **Module 3: Player Analytics & Scouting Intelligence (`src/modules/players`)**
+1. **Tìm kiếm & Lọc Cầu thủ Đa chiều (`GET /players`):**
+   - Lọc theo tên, giải đấu, CLB, quốc tịch, chân thuận, độ tuổi, chiều cao.
+   - **Hỗ trợ Any Position Filter:** Khớp cả vị trí chính (`primaryPosition`) và các vị trí phụ liên kết (`player.positions`).
+2. **Đảm bảo tính toàn vẹn vị trí (Position Integrity & Single Primary Rule):**
+   - Bảng `player_positions` là source of truth với partial unique constraint `IDX_player_positions_one_primary_per_player`.
+   - Endpoint cập nhật nguyên tử có pessimistic lock: `PATCH /players/:id/primary-position`.
+3. **Hero Banner theo Vai trò (Position-Aware Hero Card):**
+   - Tự động thay đổi 2 chỉ số nổi bật theo vai trò:
+     - **GK:** `SAVES` | `CLEAN SHEETS`
+     - **DEF:** `TACKLES` | `INTERCEPTIONS`
+     - **MID / ATT / Fallback:** `GOALS` | `ASSISTS`
+4. **Biểu đồ Radar Đa giác Chiến thuật (Pure Vector SVG Tactical Radar Chart):**
+   - Vẽ trực tiếp bằng toán học lượng giác và SVG Engine thuần (0 dependency).
+   - Tự động hoán đổi 5 trục chiến thuật phù hợp với từng vai trò cầu thủ (GK, DEF, MID, ATT).
+5. **So sánh Cầu thủ (`GET /players/comparison-candidates`):**
+   - So sánh trực quan theo mùa giải hoặc tổng hợp toàn bộ giải đấu (`ALL COMPETITIONS`).
+
+---
+
+### **Module 4: ETL Read-Only Modules (`competitions`, `seasons`, `teams`, `matches`)**
+- Áp dụng Clean Architecture Read-Only Repositories (`TeamReadRepository`, `MatchReadRepository`, v.v.).
+- Quản lý lịch thi đấu, thống kê chi tiết từng trận đấu (Match Logs) và lịch sử chuyển nhượng (Career History).
 
 ---
 
@@ -254,14 +276,49 @@ npm run dev
 
 ---
 
-## 🧪 7. Kiểm Thử Tự Động & Quality Checks (Test Suite)
+---
+
+## 📊 7. Các Công Thức Nghiệp Vụ & Visualization Engine
+
+### **7.1. Công thức Tỷ Lệ Chuyền Chính Xác (Pass Accuracy)**
+$$\text{Pass Accuracy (\%)} = \begin{cases} \left( \dfrac{\sum \text{passes\_completed}}{\sum \text{passes\_attempted}} \right) \times 100 & \text{khi } \text{passes\_attempted} > 0 \\ \text{null} & \text{khi } \text{passes\_attempted} = 0 \end{cases}$$
+
+### **7.2. Công thức Chuẩn Hóa Chỉ Số Theo 90 Phút (Per-90 Normalization)**
+$$\text{Metric Per 90} = \begin{cases} \dfrac{\text{Raw Metric Value} \times 90}{\text{Minutes Played}} & \text{khi } \text{Minutes Played} > 0 \\ \text{null} & \text{khi } \text{Minutes Played} = 0 \end{cases}$$
+
+### **7.3. Động Cơ Vẽ Biểu Đồ Radar Thuần Vector (Pure SVG Radar Geometry Engine)**
+Biểu đồ Radar được dựng hoàn toàn bằng toán học lượng giác và SVG nguyên bản (`<polygon>`, `<line>`, `<circle>`, `<text>`):
+- **Chuyển đổi Tọa độ Cực sang Tọa độ Descartes:**
+  $$x = x_{\text{center}} + r \cdot \cos(\theta), \quad y = y_{\text{center}} + r \cdot \sin(\theta)$$
+  Trong đó:
+  - $x_{\text{center}} = y_{\text{center}} = 150\text{px}$, bán kính tối đa $R = 95\text{px}$.
+  - Góc khởi tạo đỉnh trên cùng: $\theta_0 = -\frac{\pi}{2}$.
+  - Bước góc giữa 5 trục đa giác: $\Delta \theta = \frac{2\pi}{5} = 72^\circ$.
+
+### **7.4. Công thức Chuẩn Hóa Thang Điểm 0–100 cho Radar (Linear Min-Max Normalization)**
+Không phụ thuộc Percentile hay truy vấn so sánh toàn bộ quần thể, mỗi chỉ số được chuẩn hóa cục bộ tại Frontend dựa trên ngưỡng thực tế trong bóng đá chuyên nghiệp:
+$$\text{Score} = \text{clamp}\left( \dfrac{\text{val} - \text{min}}{\text{max} - \text{min}} \times 100, 0, 100 \right)$$
+Đối với chỉ số nghịch đảo (như số bàn thua trung bình mỗi trận của Thủ môn):
+$$\text{Score}_{\text{inverse}} = 100 - \text{clamp}\left( \dfrac{\text{val} - \text{min}}{\text{max} - \text{min}} \times 100, 0, 100 \right)$$
+
+#### **Bảng Thang Đo Chiến Thuật theo Nhóm Vị Trí:**
+| Nhóm vai trò | Trục chiến thuật (Axis) | Chỉ số nguồn (Source Metric) | Thang đo chuẩn $[\text{min}, \text{max}]$ |
+| :--- | :--- | :--- | :--- |
+| **Goalkeeper (GK)** | **SHOT STOPPING**<br>**CLEAN SHEETS**<br>**DISTRIBUTION**<br>**GOAL PREVENTION**<br>**PENALTY STOPPING** | `savesPer90`<br>`cleanSheets`<br>`passAccuracy`<br>`goalsConcededPer90`<br>`penaltiesSaved` | $[0, 5.0] \text{ saves/90}$<br>$[0, 16] \text{ clean sheets}$<br>$[40\%, 90\%]$<br>$[0.6, 2.4] \text{ GA/90 (nghịch đảo)}$<br>$[0, 3] \text{ penalties saved}$ |
+| **Defender (DEF)** | **TACKLING**<br>**INTERCEPTIONS**<br>**DUEL ABILITY**<br>**PASS ACCURACY**<br>**BUILD-UP** | `tacklesPer90`<br>`interceptionsPer90`<br>`duelsWonPer90`<br>`passAccuracy`<br>`passesPer90` | $[0, 3.5] \text{ tackles/90}$<br>$[0, 2.5] \text{ int/90}$<br>$[0, 7.0] \text{ duels/90}$<br>$[60\%, 95\%]$<br>$[0, 75] \text{ passes/90}$ |
+| **Midfielder (MID)** | **PASS VOLUME**<br>**PASS ACCURACY**<br>**CREATIVITY**<br>**RECOVERY**<br>**GOAL THREAT** | `passesPer90`<br>`passAccuracy`<br>`keyPassesPer90`<br>`tacklesPer90 + interceptionsPer90`<br>`goalsPer90 + assistsPer90` | $[0, 80] \text{ passes/90}$<br>$[65\%, 95\%]$<br>$[0, 3.0] \text{ KP/90}$<br>$[0, 4.5] \text{ actions/90}$<br>$[0, 0.8] \text{ G+A/90}$ |
+| **Attacker (ATT)** | **SCORING**<br>**SHOOTING**<br>**ON TARGET**<br>**CHANCE CREATION**<br>**PLAYMAKING** | `goalsPer90`<br>`shotsPer90`<br>`shotsOnTargetPer90`<br>`keyPassesPer90`<br>`assistsPer90` | $[0, 1.0] \text{ goals/90}$<br>$[0, 4.5] \text{ shots/90}$<br>$[0, 2.0] \text{ SoT/90}$<br>$[0, 2.8] \text{ KP/90}$<br>$[0, 0.5] \text{ assists/90}$ |
+
+---
+
+## 🧪 8. Kiểm Thử Tự Động & Quality Checks (Test Suite)
 
 Dự án tích hợp bộ unit test toàn diện cho tất cả Use Cases, Domain Entities và Controllers:
 
 ```bash
 cd backend
 
-# Chạy toàn bộ bộ test tự động (12 Test Suites, 32 Tests)
+# Chạy toàn bộ bộ test tự động (39 Test Suites, 133 Tests)
 npm run test
 
 # Kiểm tra Linter & Sửa lỗi tự động
@@ -273,12 +330,12 @@ npm run build
 
 ### Kết quả kiểm thử tự động:
 ```text
-Test Suites: 12 passed, 12 total
-Tests:       32 passed, 32 total
+Test Suites: 39 passed, 39 total
+Tests:       133 passed, 133 total
 Snapshots:   0 total
-Time:        3.178 s
-Build:       100% PASSED (nest build)
-Lint:        100% PASSED (0 errors, 0 warnings)
+Time:        3.138 s
+Backend Build:  100% PASSED (nest build)
+Frontend Build: 100% PASSED (tsc -b && vite build)
 ```
 
 ---

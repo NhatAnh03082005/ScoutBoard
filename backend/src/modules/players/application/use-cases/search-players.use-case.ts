@@ -89,6 +89,12 @@ export class SearchPlayersUseCase {
       preferredFoot: player.preferredFoot,
       heightCm: player.heightCm,
       primaryPosition: player.primaryPosition,
+      positions: (player.positions || []).map((position) => ({
+        id: position.id,
+        positionCode: position.positionCode,
+        isPrimary: position.isPrimary,
+      })),
+      shirtNumber: player.shirtNumber,
       currentTeam: player.currentTeam
         ? {
             id: player.currentTeam.id,

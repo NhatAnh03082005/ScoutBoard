@@ -6,6 +6,7 @@ import { GetPlayerTeamHistoryUseCase } from 'src/modules/players/application/use
 import { GetPlayerSeasonStatisticsUseCase } from 'src/modules/players/application/use-cases/get-player-season-statistics.use-case';
 import { GetPlayerMatchStatisticsUseCase } from 'src/modules/players/application/use-cases/get-player-match-statistics.use-case';
 import { GetComparisonCandidatesUseCase } from 'src/modules/players/application/use-cases/get-comparison-candidates.use-case';
+import { UpdatePlayerPrimaryPositionUseCase } from 'src/modules/players/application/use-cases/update-player-primary-position.use-case';
 import { SearchPlayersQueryDto } from '../dto/search-players-query.dto';
 import { ComparisonScope } from 'src/modules/players/domain/enums/comparison-scope.enum';
 
@@ -29,6 +30,9 @@ describe('PlayersController', () => {
   let mockGetComparisonCandidatesUseCase: {
     execute: jest.Mock;
   };
+  let mockUpdatePlayerPrimaryPositionUseCase: {
+    execute: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockSearchUseCase = {
@@ -47,6 +51,9 @@ describe('PlayersController', () => {
       execute: jest.fn(),
     };
     mockGetComparisonCandidatesUseCase = {
+      execute: jest.fn(),
+    };
+    mockUpdatePlayerPrimaryPositionUseCase = {
       execute: jest.fn(),
     };
 
@@ -76,6 +83,10 @@ describe('PlayersController', () => {
         {
           provide: GetComparisonCandidatesUseCase,
           useValue: mockGetComparisonCandidatesUseCase,
+        },
+        {
+          provide: UpdatePlayerPrimaryPositionUseCase,
+          useValue: mockUpdatePlayerPrimaryPositionUseCase,
         },
       ],
     }).compile();
@@ -120,7 +131,13 @@ describe('PlayersController', () => {
       const expectedHistory = [
         {
           id: 'hist-1',
-          team: { id: 'team-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null, country: 'England' },
+          team: {
+            id: 'team-1',
+            name: 'Arsenal FC',
+            shortName: 'Arsenal',
+            logoUrl: null,
+            country: 'England',
+          },
           joinedAt: '2024-07-01',
           leftAt: null,
           shirtNumber: 7,
@@ -131,7 +148,9 @@ describe('PlayersController', () => {
 
       const result = await controller.getTeamHistory('player-123');
 
-      expect(mockGetTeamHistoryUseCase.execute).toHaveBeenCalledWith('player-123');
+      expect(mockGetTeamHistoryUseCase.execute).toHaveBeenCalledWith(
+        'player-123',
+      );
       expect(result).toEqual(expectedHistory);
     });
   });
@@ -142,8 +161,17 @@ describe('PlayersController', () => {
         {
           id: 'stat-1',
           season: { id: 's-1', seasonCode: '2025-2026', isCurrent: true },
-          competition: { id: 'c-1', name: 'Premier League', country: 'England' },
-          team: { id: 't-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
+          competition: {
+            id: 'c-1',
+            name: 'Premier League',
+            country: 'England',
+          },
+          team: {
+            id: 't-1',
+            name: 'Arsenal FC',
+            shortName: 'Arsenal',
+            logoUrl: null,
+          },
           appearances: 31,
           starts: 28,
           minutesPlayed: 2480,
@@ -164,7 +192,9 @@ describe('PlayersController', () => {
 
       const result = await controller.getSeasonStatistics('player-123');
 
-      expect(mockGetSeasonStatisticsUseCase.execute).toHaveBeenCalledWith('player-123');
+      expect(mockGetSeasonStatisticsUseCase.execute).toHaveBeenCalledWith(
+        'player-123',
+      );
       expect(result).toEqual(expectedStats);
     });
   });
@@ -180,7 +210,10 @@ describe('PlayersController', () => {
 
       const result = await controller.getMatchStatistics('player-123', query);
 
-      expect(mockGetMatchStatisticsUseCase.execute).toHaveBeenCalledWith('player-123', query);
+      expect(mockGetMatchStatisticsUseCase.execute).toHaveBeenCalledWith(
+        'player-123',
+        query,
+      );
       expect(result).toEqual(expectedResponse);
     });
   });
@@ -198,11 +231,19 @@ describe('PlayersController', () => {
         items: [],
         pagination: { limit: 20, offset: 0, total: 0 },
       };
-      mockGetComparisonCandidatesUseCase.execute.mockResolvedValue(expectedResponse);
+      mockGetComparisonCandidatesUseCase.execute.mockResolvedValue(
+        expectedResponse,
+      );
 
-      const result = await controller.getComparisonCandidates('player-123', query);
+      const result = await controller.getComparisonCandidates(
+        'player-123',
+        query,
+      );
 
-      expect(mockGetComparisonCandidatesUseCase.execute).toHaveBeenCalledWith('player-123', query);
+      expect(mockGetComparisonCandidatesUseCase.execute).toHaveBeenCalledWith(
+        'player-123',
+        query,
+      );
       expect(result).toEqual(expectedResponse);
     });
   });

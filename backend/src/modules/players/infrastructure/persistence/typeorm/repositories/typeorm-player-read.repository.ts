@@ -64,6 +64,19 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
     });
   }
 
+  async findSeasonStatisticsByCompetitionAndSeason(
+    seasonId: string,
+    competitionId: string,
+  ): Promise<PlayerSeasonStatisticOrmEntity[]> {
+    const statsRepo = this.repository.manager.getRepository(
+      PlayerSeasonStatisticOrmEntity,
+    );
+    return statsRepo.find({
+      where: { seasonId, competitionId },
+      relations: ['player'],
+    });
+  }
+
   async findMatchStatisticsByPlayerId(
     playerId: string,
     query: FindPlayerMatchStatisticsQuery,
@@ -74,8 +87,8 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
 
     const qb = matchStatsRepo
       .createQueryBuilder('pms')
+      .innerJoinAndSelect('pms.match', 'match')
       .leftJoinAndSelect('pms.team', 'team')
-      .leftJoinAndSelect('pms.match', 'match')
       .leftJoinAndSelect('match.homeTeam', 'homeTeam')
       .leftJoinAndSelect('match.awayTeam', 'awayTeam')
       .leftJoinAndSelect('match.competition', 'competition')
@@ -113,7 +126,8 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
   ): Promise<{ items: PlayerOrmEntity[]; total: number }> {
     const qb = this.repository
       .createQueryBuilder('player')
-      .leftJoinAndSelect('player.currentTeam', 'currentTeam');
+      .leftJoinAndSelect('player.currentTeam', 'currentTeam')
+      .leftJoinAndSelect('player.positions', 'positions');
 
     if (query.search && query.search.trim() !== '') {
       const searchTerm = `%${query.search.trim()}%`;
@@ -201,6 +215,7 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
     const qb = this.repository
       .createQueryBuilder('player')
       .leftJoinAndSelect('player.currentTeam', 'currentTeam')
+      .leftJoinAndSelect('player.positions', 'positions')
       .innerJoin('player_season_statistics', 'pss', 'pss.player_id = player.id')
       .where('player.id != :currentPlayerId', { currentPlayerId });
 
@@ -247,11 +262,17 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       });
     }
 
-    if (query.position && query.position.trim() !== '') {
-      const posCode = query.position.trim();
-      qb.innerJoin('player.positions', 'pos').andWhere(
-        '(player.primaryPosition = :posCode OR pos.positionCode = :posCode)',
-        { posCode },
+    const targetPositions =
+      query.position && query.position.trim() !== ''
+        ? [query.position.trim()]
+        : query.compatiblePositions && query.compatiblePositions.length > 0
+          ? query.compatiblePositions
+          : undefined;
+
+    if (targetPositions && targetPositions.length > 0) {
+      qb.andWhere(
+        '(player.primaryPosition IN (:...targetPositions) OR EXISTS (SELECT 1 FROM player_positions pp WHERE pp.player_id = player.id AND pp.position_code IN (:...targetPositions)))',
+        { targetPositions },
       );
     }
 

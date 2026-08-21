@@ -12,11 +12,12 @@ import {
 } from './services/api';
 import type { UserProfile } from './services/api';
 
+import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { PlayerSearchPage } from './pages/PlayerSearchPage';
 
-export function App() {
-  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'profile' | 'admin' | 'players'>('players');
+export default function App() {
+  const [activeTab, setActiveTab] = useState<'home' | 'players' | 'profile' | 'admin' | 'login' | 'register'>('players');
 
   // Global Session State
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -99,7 +100,7 @@ export function App() {
       );
       setAdminUsers(usersList);
     } catch (err: any) {
-      setError(err.message || 'Không thể tải danh sách quản lý người dùng');
+      setError(err.message || 'Failed to load user management list.');
     }
   };
 
@@ -125,7 +126,7 @@ export function App() {
       }
     }
     clearTokens();
-    setSuccess('Đã đăng xuất thành công!');
+    setSuccess('Signed out successfully!');
     setLoading(false);
   };
 
@@ -139,14 +140,14 @@ export function App() {
 
     try {
       const res = await verifyEmailApi(user.email, profileOtpCode);
-      setSuccess(res.message || 'Xác thực email thành công!');
+      setSuccess(res.message || 'Email verified successfully!');
       if (accessToken) {
         const refreshed = await getMeApi(accessToken);
         setUser(refreshed);
       }
       setProfileOtpCode('');
     } catch (err: any) {
-      setError(err.message || 'Xác thực OTP thất bại.');
+      setError(err.message || 'OTP verification failed.');
     } finally {
       setProfileOtpLoading(false);
     }
@@ -160,9 +161,9 @@ export function App() {
 
     try {
       const res = await resendVerificationOtpApi(user.email);
-      setSuccess(res.message || 'Đã gửi lại mã OTP thành công.');
+      setSuccess(res.message || 'OTP code resent successfully.');
     } catch (err: any) {
-      setError(err.message || 'Không thể gửi lại mã OTP.');
+      setError(err.message || 'Failed to resend OTP code.');
     } finally {
       setProfileOtpLoading(false);
     }
@@ -178,11 +179,11 @@ export function App() {
     try {
       if (isUnlockAction) {
         await unlockUserApi(accessToken, selectedUserForModal.id);
-        setSuccess(`Đã mở khóa tài khoản ${selectedUserForModal.email} thành công!`);
+        setSuccess(`Unlocked account ${selectedUserForModal.email} successfully!`);
       } else if (pendingStatus) {
         await updateUserStatusApi(accessToken, selectedUserForModal.id, pendingStatus);
         setSuccess(
-          `Đã cập nhật trạng thái tài khoản ${selectedUserForModal.email} thành ${pendingStatus}!`,
+          `Updated status of ${selectedUserForModal.email} to ${pendingStatus}!`,
         );
       }
       setSelectedUserForModal(null);
@@ -190,7 +191,7 @@ export function App() {
       setIsUnlockAction(false);
       await fetchAdminUsers();
     } catch (err: any) {
-      setError(err.message || 'Thao tác thất bại');
+      setError(err.message || 'Action failed.');
     } finally {
       setLoading(false);
     }
@@ -211,17 +212,17 @@ export function App() {
     try {
       await updateUserRolesApi(accessToken, targetUser.id, newRoles);
       setSuccess(
-        `Đã cập nhật vai trò của ${targetUser.email} thành [${newRoles.join(', ')}]!`,
+        `Updated roles of ${targetUser.email} to [${newRoles.join(', ')}]!`,
       );
       await fetchAdminUsers();
     } catch (err: any) {
-      setError(err.message || 'Cập nhật vai trò thất bại');
+      setError(err.message || 'Role update failed.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 1. Render Dedicated Login Page Component for Auth
+  // 1. Render Dedicated Login Page Component for Auth View
   if (!user && (activeTab === 'login' || activeTab === 'register')) {
     return (
       <LoginPage
@@ -238,427 +239,378 @@ export function App() {
     );
   }
 
-  // 2. Render Main Application Layout (Players / Profile / Admin)
+  // 2. Render Main Application Layout with Global Public Shell
   return (
-    <div className={`scout-container ${activeTab === 'admin' || activeTab === 'players' ? 'wide' : ''}`}>
-      <div className="scout-header">
-        <div className="scout-logo-badge">
-          ⚽ ScoutBoard Platform
-        </div>
-        <h1 className="scout-title">
-          {activeTab === 'players'
-            ? 'Tìm Kiếm Cầu Thủ'
-            : activeTab === 'admin'
-            ? 'Quản Lý Người Dùng (Admin)'
-            : 'Trạng Thái Phiên'}
-        </h1>
-        <p className="scout-subtitle">
-          {activeTab === 'players'
-            ? 'Hệ thống tìm kiếm, lọc & phân tích hồ sơ cầu thủ bóng đá'
-            : activeTab === 'admin'
-            ? 'Progressive Lockout & Quản lý vai trò người dùng'
-            : 'Hệ thống Quản lý Token & Phân quyền RBAC'}
-        </p>
-      </div>
+    <div className="scout-app-shell">
+      {/* Global Top Navbar */}
+      <header className="scout-navbar">
+        <div className="scout-navbar-container">
+          {/* Brand Logo */}
+          <div
+            className="scout-navbar-brand"
+            onClick={() => {
+              setActiveTab('players');
+              setError(null);
+              setSuccess(null);
+            }}
+            role="button"
+            tabIndex={0}
+          >
+            <div className="scout-navbar-logo-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="m4.93 4.93 4.24 4.24" />
+                <path d="m14.83 9.17 4.24-4.24" />
+                <path d="m14.83 14.83 4.24 4.24" />
+                <path d="m9.17 14.83-4.24 4.24" />
+                <polygon points="12,7 16,10 14.5,15 9.5,15 8,10" />
+              </svg>
+            </div>
+            <span className="scout-navbar-brand-name">ScoutBoard</span>
+          </div>
 
-      {error && <div className="alert-banner alert-error">❌ {error}</div>}
-      {success && <div className="alert-banner alert-success">✅ {success}</div>}
-
-      {/* Main Navigation Bar */}
-      <div className="scout-tabs" style={{ marginBottom: '24px' }}>
-        <button
-          className={`tab-btn ${activeTab === 'players' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('players');
-            setError(null);
-            setSuccess(null);
-          }}
-        >
-          ⚽ Tìm Cầu Thủ
-        </button>
-
-        {user ? (
-          <>
+          {/* Left / Center Navigation Links */}
+          <nav className="scout-navbar-nav">
             <button
-              className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+              type="button"
+              className={`scout-nav-link ${activeTab === 'home' ? 'active' : ''}`}
               onClick={() => {
-                setActiveTab('profile');
+                setActiveTab('home');
                 setError(null);
                 setSuccess(null);
               }}
             >
-              👤 Cá Nhân
+              About
             </button>
 
-            {isAdmin && (
+            <button
+              type="button"
+              className={`scout-nav-link ${activeTab === 'players' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('players');
+                setError(null);
+                setSuccess(null);
+              }}
+            >
+              Find Players
+            </button>
+
+            {user && (
               <button
-                className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                type="button"
+                className={`scout-nav-link ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('profile');
+                  setError(null);
+                  setSuccess(null);
+                }}
+              >
+                Profile
+              </button>
+            )}
+
+            {user && isAdmin && (
+              <button
+                type="button"
+                className={`scout-nav-link ${activeTab === 'admin' ? 'active' : ''}`}
                 onClick={() => {
                   setActiveTab('admin');
                   setError(null);
                   setSuccess(null);
                 }}
               >
-                👑 Quản Lý
+                Admin
               </button>
             )}
-          </>
-        ) : (
-          <>
-            <button
-              className={`tab-btn ${activeTab === 'login' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('login');
-                setError(null);
-                setSuccess(null);
-              }}
-            >
-              🔑 Đăng Nhập
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('register');
-                setError(null);
-                setSuccess(null);
-              }}
-            >
-              📝 Đăng Ký
-            </button>
-          </>
-        )}
-      </div>
+          </nav>
 
-      {/* 1. PLAYERS TAB */}
-      {activeTab === 'players' && <PlayerSearchPage />}
-
-      {/* 2. PROFILE TAB */}
-      {activeTab === 'profile' && user && (
-        <div>
-          {/* Email Verification Status Alert Banner */}
-          {user.isEmailVerified ? (
-            <div className="alert-banner alert-success" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span>🛡️ <strong>Tài khoản đã xác thực Email chính chủ:</strong> {user.email}</span>
-              <span className="scout-badge scout-badge-active" style={{ fontSize: '11px' }}>VERIFIED</span>
-            </div>
-          ) : (
-            <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '20px' }}>⚠️</span>
-                  <div>
-                    <h4 style={{ margin: 0, color: '#fca5a5', fontSize: '15px', fontWeight: 700 }}>Tài khoản chưa được kích hoạt Email</h4>
-                    <p style={{ margin: '2px 0 0', color: '#cbd5e1', fontSize: '13px' }}>Vui lòng nhập mã OTP đã nhận qua hòm thư để xác thực tài khoản của bạn.</p>
-                  </div>
-                </div>
-                <span className="scout-badge scout-badge-disabled" style={{ fontSize: '11px' }}>UNVERIFIED</span>
-              </div>
-
-              <form onSubmit={handleVerifyEmailOnProfile} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '12px' }}>
-                <input
-                  type="text"
-                  className="scout-input"
-                  style={{ width: '180px', letterSpacing: '4px', textAlign: 'center', fontWeight: 'bold' }}
-                  placeholder="OTP 6 số"
-                  maxLength={6}
-                  value={profileOtpCode}
-                  onChange={(e) => setProfileOtpCode(e.target.value.replace(/\D/g, ''))}
-                  required
-                />
+          {/* Right Auth / Account Actions */}
+          <div className="scout-navbar-auth">
+            {user ? (
+              <div className="scout-navbar-user-group">
+                <span className="scout-navbar-user-email">
+                  {user.fullName || user.email}
+                </span>
                 <button
-                  type="submit"
-                  disabled={profileOtpLoading || !profileOtpCode}
-                  className="scout-btn scout-btn-sm"
-                  style={{ width: 'auto' }}
+                  type="button"
+                  onClick={handleLogout}
+                  className="scout-navbar-btn-logout"
+                  disabled={loading}
                 >
-                  {profileOtpLoading ? 'Đang kích hoạt...' : 'Kích Hoạt Ngay'}
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="scout-navbar-guest-group">
+                <button
+                  type="button"
+                  className={`scout-navbar-btn-text ${activeTab === 'register' ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveTab('register');
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                >
+                  Sign Up
                 </button>
                 <button
                   type="button"
-                  onClick={handleResendOtpOnProfile}
-                  disabled={profileOtpLoading}
-                  className="scout-btn scout-btn-secondary scout-btn-sm"
-                  style={{ width: 'auto' }}
+                  className="scout-navbar-btn-primary"
+                  onClick={() => {
+                    setActiveTab('login');
+                    setError(null);
+                    setSuccess(null);
+                  }}
                 >
-                  Gửi Lại OTP
+                  Login
                 </button>
-              </form>
-            </div>
-          )}
-
-          <div className="scout-card">
-            <h3 style={{ marginBottom: '16px', color: '#f8fafc' }}>Thông Tin Người Dùng</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div><strong>Họ và tên:</strong> {user.fullName}</div>
-              <div><strong>Email:</strong> {user.email}</div>
-              <div>
-                <strong>Trạng thái Email:</strong>{' '}
-                {user.isEmailVerified ? (
-                  <span style={{ color: '#22c55e', fontWeight: 600 }}>Đã xác thực</span>
-                ) : (
-                  <span style={{ color: '#ef4444', fontWeight: 600 }}>Chưa xác thực</span>
-                )}
               </div>
-              <div>
-                <strong>Vai trò:</strong>{' '}
-                {user.roles?.join(', ') ||
-                  user.userRoles?.map((r) => r.role?.name || r.role?.code).join(', ') ||
-                  'USER'}
-              </div>
-              <div><strong>ID Tài khoản:</strong> <code>{user.id}</code></div>
-            </div>
-
-            <div style={{ marginTop: '24px' }}>
-              <button
-                className="scout-btn scout-btn-secondary"
-                onClick={handleLogout}
-                disabled={loading}
-              >
-                {loading ? 'Đang xử lý...' : '🚪 Đăng Xuất'}
-              </button>
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </header>
 
-      {/* 3. ADMIN MANAGEMENT TAB */}
-      {activeTab === 'admin' && isAdmin && (
-        <div>
-          <div className="scout-card" style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ color: '#f8fafc', margin: 0 }}>Quản Lý Người Dùng & Progressive Lockout</h3>
-              <button
-                className="scout-btn scout-btn-secondary scout-btn-sm"
-                style={{ width: 'auto' }}
-                onClick={fetchAdminUsers}
-                disabled={loading}
-              >
-                🔄 Làm Mới
-              </button>
-            </div>
+      {/* Global Alerts */}
+      <div className="scout-shell-content">
+        {error && <div className="alert-banner alert-error" style={{ maxWidth: '1360px', margin: '16px auto' }}>⚠️ {error}</div>}
+        {success && <div className="alert-banner alert-success" style={{ maxWidth: '1360px', margin: '16px auto' }}>✅ {success}</div>}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-              <input
-                type="text"
-                className="scout-input"
-                placeholder="🔍 Tìm theo email hoặc tên..."
-                value={adminSearch}
-                onChange={(e) => setAdminSearch(e.target.value)}
-              />
-              <select
-                className="scout-select"
-                value={adminStatusFilter}
-                onChange={(e) => setAdminStatusFilter(e.target.value)}
-              >
-                <option value="">Tất cả trạng thái</option>
-                <option value="ACTIVE">Hoạt động (ACTIVE)</option>
-                <option value="DISABLED">Vô hiệu hóa (DISABLED)</option>
-                <option value="LOCKED">Khóa tạm thời (LOCKED)</option>
-              </select>
-              <select
-                className="scout-select"
-                value={adminRoleFilter}
-                onChange={(e) => setAdminRoleFilter(e.target.value)}
-              >
-                <option value="">Tất cả vai trò</option>
-                <option value="ADMIN">Quản trị viên (ADMIN)</option>
-                <option value="USER">Người dùng (USER)</option>
-              </select>
-            </div>
-          </div>
+        {/* 1. HOME TAB */}
+        {activeTab === 'home' && (
+          <HomePage
+            onNavigateToSearch={() => setActiveTab('players')}
+            onNavigateToLogin={() => setActiveTab('login')}
+            isAuthenticated={!!user}
+          />
+        )}
 
-          {/* User Table */}
-          <div className="scout-table-container">
-            <table className="scout-table">
-              <thead>
-                <tr>
-                  <th>Email / Họ Tên</th>
-                  <th>Vai Trò</th>
-                  <th>Trạng Thái</th>
-                  <th>Email Verified</th>
-                  <th>Lần Thử Sai</th>
-                  <th>Khóa Tạm Đến</th>
-                  <th style={{ textAlign: 'right' }}>Hành Động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {adminUsers.map((u) => {
-                  const effectiveStatus = u.effectiveStatus || u.status;
-                  const isUserAdmin =
-                    u.roles?.includes('ADMIN') ??
-                    u.userRoles?.some((ur) => ur.role?.code === 'ADMIN') ??
-                    false;
+        {/* 2. PLAYERS TAB */}
+        {activeTab === 'players' && <PlayerSearchPage />}
 
-                  return (
-                    <tr key={u.id}>
-                      <td>
-                        <div style={{ fontWeight: 600, color: '#f8fafc' }}>{u.email}</div>
-                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{u.fullName}</div>
-                      </td>
-                      <td>
-                        <span className={`scout-badge ${isUserAdmin ? 'scout-badge-admin' : 'scout-badge-user'}`}>
-                          {isUserAdmin ? 'ADMIN' : 'USER'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`scout-badge scout-badge-${effectiveStatus.toLowerCase()}`}>
-                          {effectiveStatus}
-                        </span>
-                      </td>
-                      <td>
-                        {u.isEmailVerified ? (
-                          <span style={{ color: '#22c55e', fontSize: '13px' }}>✓ Đã xác thực</span>
-                        ) : (
-                          <span style={{ color: '#ef4444', fontSize: '13px' }}>✕ Chưa</span>
-                        )}
-                      </td>
-                      <td>{u.failedLoginAttempts || 0}</td>
-                      <td>
-                        {u.lockedUntil ? (
-                          <span style={{ color: '#f59e0b', fontSize: '12px' }}>
-                            {new Date(u.lockedUntil).toLocaleTimeString()}
-                          </span>
-                        ) : (
-                          <span style={{ color: '#64748b', fontSize: '12px' }}>—</span>
-                        )}
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                          {effectiveStatus === 'LOCKED' && (
-                            <button
-                              className="scout-btn scout-btn-sm"
-                              style={{ width: 'auto', background: '#10b981', padding: '4px 8px', fontSize: '12px' }}
-                              onClick={() => {
-                                setSelectedUserForModal(u);
-                                setIsUnlockAction(true);
-                              }}
-                            >
-                              🔓 Mở Khóa
-                            </button>
-                          )}
-
-                          {effectiveStatus !== 'DISABLED' ? (
-                            <button
-                              className="scout-btn scout-btn-secondary scout-btn-sm"
-                              style={{ width: 'auto', padding: '4px 8px', fontSize: '12px' }}
-                              disabled={u.id === user?.id}
-                              onClick={() => {
-                                setSelectedUserForModal(u);
-                                setPendingStatus('DISABLED');
-                                setIsUnlockAction(false);
-                              }}
-                            >
-                              Khóa
-                            </button>
-                          ) : (
-                            <button
-                              className="scout-btn scout-btn-sm"
-                              style={{ width: 'auto', background: '#3b82f6', padding: '4px 8px', fontSize: '12px' }}
-                              onClick={() => {
-                                setSelectedUserForModal(u);
-                                setPendingStatus('ACTIVE');
-                                setIsUnlockAction(false);
-                              }}
-                            >
-                              Kích Hoạt
-                            </button>
-                          )}
-
-                          <button
-                            className="scout-btn scout-btn-secondary scout-btn-sm"
-                            style={{ width: 'auto', padding: '4px 8px', fontSize: '12px' }}
-                            disabled={u.id === user?.id}
-                            onClick={() => handleToggleAdminRole(u)}
-                          >
-                            {isUserAdmin ? 'Gỡ Admin' : 'Thêm Admin'}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {adminUsers.length === 0 && (
-                  <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
-                      Không tìm thấy người dùng nào phù hợp.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* CONFIRMATION MODAL */}
-      {selectedUserForModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <h3 className="modal-title">
-              {isUnlockAction
-                ? '🔓 Xác Nhận Mở Khóa Tài Khoản'
-                : '⚠️ Xác Nhận Cập Nhật Trạng Thái'}
-            </h3>
-
-            {isUnlockAction ? (
-              <p style={{ fontSize: '14px', color: '#cbd5e1' }}>
-                Bạn có chắc chắn muốn <strong>MỞ KHÓA NGAY</strong> cho tài khoản{' '}
-                <strong>{selectedUserForModal.email}</strong>?
-                <br />
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                  (Thao tác này sẽ reset bộ đếm nhập sai và đưa trạng thái về ACTIVE).
-                </span>
-              </p>
+        {/* 3. PROFILE TAB */}
+        {activeTab === 'profile' && user && (
+          <div className="scout-profile-container" style={{ maxWidth: '800px', margin: '32px auto', padding: '0 16px' }}>
+            {user.isEmailVerified ? (
+              <div className="alert-banner alert-success" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>🛡️ <strong>Verified Account:</strong> {user.email}</span>
+                <span className="scout-badge scout-badge-active" style={{ fontSize: '11px' }}>VERIFIED</span>
+              </div>
             ) : (
-              <p style={{ fontSize: '14px', color: '#cbd5e1' }}>
-                Bạn có chắc chắn muốn chuyển trạng thái tài khoản{' '}
-                <strong>{selectedUserForModal.email}</strong> từ{' '}
-                <span style={{ color: '#f59e0b' }}>
-                  {selectedUserForModal.status}
-                </span>{' '}
-                thành <span style={{ color: '#22c55e' }}>{pendingStatus}</span> không?
-              </p>
+              <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '20px' }}>⚠️</span>
+                    <div>
+                      <h4 style={{ margin: 0, color: '#fca5a5', fontSize: '15px', fontWeight: 700 }}>Email Not Verified</h4>
+                      <p style={{ margin: '2px 0 0', color: '#fecaca', fontSize: '13px' }}>Please verify the 6-digit OTP code sent to <strong>{user.email}</strong> to unlock full features.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleResendOtpOnProfile}
+                    disabled={profileOtpLoading}
+                    className="scout-btn scout-btn-sm scout-btn-secondary"
+                    style={{ whiteSpace: 'nowrap', margin: 0 }}
+                  >
+                    {profileOtpLoading ? 'Sending...' : 'Resend OTP'}
+                  </button>
+                </div>
+
+                <form onSubmit={handleVerifyEmailOnProfile} style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                  <input
+                    type="text"
+                    className="scout-input"
+                    style={{ letterSpacing: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px', maxWidth: '180px' }}
+                    placeholder="6-digit OTP"
+                    maxLength={6}
+                    value={profileOtpCode}
+                    onChange={(e) => setProfileOtpCode(e.target.value.replace(/\D/g, ''))}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="scout-btn scout-btn-sm"
+                    disabled={profileOtpLoading || profileOtpCode.length !== 6}
+                    style={{ margin: 0 }}
+                  >
+                    {profileOtpLoading ? 'Verifying...' : 'Verify Now'}
+                  </button>
+                </form>
+              </div>
             )}
 
-            {!isUnlockAction &&
-              selectedUserForModal.id === user?.id &&
-              pendingStatus !== 'ACTIVE' && (
-                <div className="alert-banner alert-error" style={{ marginBottom: 0 }}>
-                  ⛔ <strong>Ràng buộc A5.1</strong>: Bạn KHÔNG THỂ tự vô hiệu hóa hoặc khóa chính tài khoản Admin đang sử dụng!
+            <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>Account Profile</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '13px' }}>
+                <div>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Email</span>
+                  <strong style={{ color: '#0f172a' }}>{user.email}</strong>
                 </div>
-              )}
-
-            <div className="modal-actions">
-              <button
-                className="scout-btn scout-btn-secondary scout-btn-sm"
-                onClick={() => {
-                  setSelectedUserForModal(null);
-                  setPendingStatus(null);
-                  setIsUnlockAction(false);
-                }}
-              >
-                Hủy Bỏ
-              </button>
-
-              <button
-                className="scout-btn scout-btn-sm"
-                style={{ width: 'auto' }}
-                disabled={
-                  loading ||
-                  (!isUnlockAction &&
-                    selectedUserForModal.id === user?.id &&
-                    pendingStatus !== 'ACTIVE')
-                }
-                onClick={confirmModalAction}
-              >
-                {loading ? 'Đang xử lý...' : 'Xác Nhận'}
-              </button>
+                <div>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Full Name</span>
+                  <strong style={{ color: '#0f172a' }}>{user.fullName || '—'}</strong>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Status</span>
+                  <span className="scout-badge scout-badge-active" style={{ marginTop: '4px' }}>{user.status}</span>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Roles</span>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                    {user.roles?.map((r) => (
+                      <span key={r} className="scout-badge" style={{ background: '#eff6ff', color: '#1d4ed8' }}>{r}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* 4. ADMIN TAB */}
+        {activeTab === 'admin' && user && isAdmin && (
+          <div className="scout-admin-container" style={{ maxWidth: '1200px', margin: '32px auto', padding: '0 16px' }}>
+            <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
+              <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>User Management Filters</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                <input
+                  type="text"
+                  className="scout-input"
+                  placeholder="Search by email, name..."
+                  value={adminSearch}
+                  onChange={(e) => setAdminSearch(e.target.value)}
+                />
+                <select
+                  className="scout-select"
+                  value={adminStatusFilter}
+                  onChange={(e) => setAdminStatusFilter(e.target.value)}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                  <option value="LOCKED">LOCKED</option>
+                  <option value="SUSPENDED">SUSPENDED</option>
+                </select>
+                <select
+                  className="scout-select"
+                  value={adminRoleFilter}
+                  onChange={(e) => setAdminRoleFilter(e.target.value)}
+                >
+                  <option value="">All Roles</option>
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="USER">USER</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Admin Table */}
+            <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>User List ({adminUsers.length})</h3>
+                <button
+                  type="button"
+                  onClick={fetchAdminUsers}
+                  className="scout-btn scout-btn-sm scout-btn-secondary"
+                >
+                  🔄 Reload
+                </button>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', fontSize: '12px' }}>
+                      <th style={{ padding: '10px 8px' }}>Email</th>
+                      <th style={{ padding: '10px 8px' }}>Full Name</th>
+                      <th style={{ padding: '10px 8px' }}>Status</th>
+                      <th style={{ padding: '10px 8px' }}>Roles</th>
+                      <th style={{ padding: '10px 8px' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminUsers.map((u) => {
+                      const userIsAdmin = u.roles?.includes('ADMIN') ?? u.userRoles?.some((ur) => ur.role?.code === 'ADMIN');
+                      return (
+                        <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9', fontSize: '13px' }}>
+                          <td style={{ padding: '10px 8px', fontWeight: 600, color: '#0f172a' }}>{u.email}</td>
+                          <td style={{ padding: '10px 8px', color: '#475569' }}>{u.fullName || '—'}</td>
+                          <td style={{ padding: '10px 8px' }}>
+                            <span className={`scout-badge ${u.status === 'ACTIVE' ? 'scout-badge-active' : 'scout-badge-locked'}`}>
+                              {u.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 8px' }}>
+                            <span className="scout-badge" style={{ background: userIsAdmin ? '#fef3c7' : '#eff6ff', color: userIsAdmin ? '#92400e' : '#1d4ed8' }}>
+                              {userIsAdmin ? 'ADMIN' : 'USER'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 8px' }}>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              {u.status === 'LOCKED' && (
+                                <button
+                                  type="button"
+                                  className="scout-btn scout-btn-sm"
+                                  style={{ padding: '4px 10px', fontSize: '11px', background: '#22c55e' }}
+                                  onClick={() => {
+                                    setSelectedUserForModal(u);
+                                    setIsUnlockAction(true);
+                                  }}
+                                >
+                                  Unlock
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="scout-btn scout-btn-sm scout-btn-secondary"
+                                style={{ padding: '4px 10px', fontSize: '11px' }}
+                                onClick={() => handleToggleAdminRole(u)}
+                              >
+                                {userIsAdmin ? 'Demote to USER' : 'Promote to ADMIN'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Unlock Modal */}
+            {selectedUserForModal && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                <div style={{ background: '#ffffff', borderRadius: '12px', padding: '24px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#0f172a' }}>Confirm Action</h4>
+                  <p style={{ color: '#475569', fontSize: '13px', marginBottom: '20px' }}>
+                    Are you sure you want to unlock user <strong>{selectedUserForModal.email}</strong>?
+                  </p>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      className="scout-btn scout-btn-secondary"
+                      onClick={() => {
+                        setSelectedUserForModal(null);
+                        setIsUnlockAction(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="scout-btn"
+                      onClick={confirmModalAction}
+                      disabled={loading}
+                    >
+                      {loading ? 'Processing...' : 'Confirm'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-export default App;

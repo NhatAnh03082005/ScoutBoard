@@ -91,7 +91,7 @@ export class PlayerSeasonStatisticResponseDto {
   @ApiProperty({ description: 'Số tranh chấp thắng' })
   duelsWon: number;
 
-  // Per-90 Metrics
+  // Outfield Per-90 Metrics
   @ApiProperty({ description: 'Số bàn thắng / 90 phút', nullable: true })
   goalsPer90: number | null;
 
@@ -118,4 +118,32 @@ export class PlayerSeasonStatisticResponseDto {
 
   @ApiProperty({ description: 'Số tranh chấp thắng / 90 phút', nullable: true })
   duelsWonPer90: number | null;
+
+  // Goalkeeper Specific Metrics (Nullable for Outfield Players)
+  @ApiProperty({ description: 'Số pha cứu thua', nullable: true })
+  saves: number | null;
+
+  @ApiProperty({ description: 'Số bàn thua', nullable: true })
+  goalsConceded: number | null;
+
+  @ApiProperty({ description: 'Số trận sạch lưới', nullable: true })
+  cleanSheets: number | null;
+
+  @ApiProperty({ description: 'Số quả phạt đền cản phá thành công', nullable: true })
+  penaltiesSaved: number | null;
+
+  @ApiProperty({ description: 'Số quả phạt đền phải đối mặt', nullable: true })
+  penaltiesFaced: number | null;
+
+  @ApiProperty({ description: 'Số pha cứu thua / 90 phút', nullable: true })
+  savesPer90: number | null;
+
+  @ApiProperty({ description: 'Số bàn thua / 90 phút', nullable: true })
+  goalsConcededPer90: number | null;
+
+  @ApiProperty({ description: 'Tỷ lệ cứu thua (%) do provider cung cấp', nullable: true })
+  savePercentage: number | null;
+
+  @ApiProperty({ description: 'Tỷ lệ giữ sạch lưới (%)', nullable: true })
+  cleanSheetPercentage: number | null;
 }

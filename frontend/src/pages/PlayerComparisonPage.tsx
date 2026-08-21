@@ -45,9 +45,9 @@ interface AggregatedStats {
 }
 
 const calculateAge = (dateOfBirth?: string | null): string => {
-  if (!dateOfBirth) return 'N/A';
+  if (!dateOfBirth) return '—';
   const birthDate = new Date(dateOfBirth);
-  if (isNaN(birthDate.getTime())) return 'N/A';
+  if (isNaN(birthDate.getTime())) return '—';
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const m = today.getMonth() - birthDate.getMonth();
@@ -212,7 +212,9 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
   const processedStatsB = extractStats(statsB);
 
   // Context Info Labels
-  const activeSeasonRecord = statsA.find((s) => s.season?.id === seasonId) || statsB.find((s) => s.season?.id === seasonId);
+  const activeSeasonRecord =
+    statsA.find((s) => s.season?.id === seasonId) ||
+    statsB.find((s) => s.season?.id === seasonId);
   const seasonName = activeSeasonRecord?.season?.seasonCode || 'Season';
 
   let contextLabel = `${seasonName} · All Competitions`;
@@ -225,15 +227,15 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
 
   if (loading) {
     return (
-      <div className="player-comparison-page">
+      <div className="player-comparison-page" style={{ padding: '12px 0' }}>
         <div
-          className="alert-banner"
+          className="scout-b2b-control-card"
           style={{
-            background: 'rgba(59, 130, 246, 0.15)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            color: '#93c5fd',
             textAlign: 'center',
-            padding: '40px',
+            padding: '48px 24px',
+            color: '#64748b',
+            fontSize: '14px',
+            fontWeight: 600,
           }}
         >
           ⌛ Loading side-by-side comparison data...
@@ -244,11 +246,18 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
 
   if (error || !playerA || !playerB) {
     return (
-      <div className="player-comparison-page">
-        <div className="alert-banner alert-error" style={{ marginBottom: '20px' }}>
-          ❌ {error || 'Không thể hiển thị thông tin so sánh'}
+      <div className="player-comparison-page" style={{ padding: '12px 0' }}>
+        <div
+          className="scout-b2b-alert-error"
+          style={{ marginBottom: '20px', fontSize: '13.5px' }}
+        >
+          ⚠️ {error || 'Không thể hiển thị thông tin so sánh'}
         </div>
-        <button type="button" className="scout-btn scout-btn-secondary" onClick={onBackToSetup}>
+        <button
+          type="button"
+          className="scout-b2b-btn scout-b2b-btn-secondary"
+          onClick={onBackToSetup}
+        >
           ← Back to Setup
         </button>
       </div>
@@ -279,44 +288,57 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
     const textB = valB !== null && valB !== undefined ? `${formatNumber(valB)}${isPercentage ? '%' : ''}` : '—';
 
     return (
-      <tr key={label}>
+      <tr key={label} className="scout-b2b-table-row">
+        {/* Player A Metric Value */}
         <td
           style={{
             textAlign: 'right',
-            fontWeight: highlightA ? 800 : 500,
-            color: highlightA ? '#4ade80' : '#e2e8f0',
-            background: highlightA ? 'rgba(34, 197, 94, 0.1)' : undefined,
+            fontWeight: highlightA ? 800 : 600,
+            color: highlightA ? '#15803d' : '#334155',
+            background: highlightA ? '#f0fdf4' : undefined,
             width: '35%',
-            fontSize: '14px',
+            fontSize: '13.5px',
+            padding: '10px 16px',
+            borderBottom: '1px solid #f1f5f9',
           }}
         >
-          {textA} {highlightA && '★'}
+          {textA} {highlightA && <span style={{ color: '#16a34a', marginLeft: '4px' }}>★</span>}
         </td>
+
+        {/* Center Metric Title */}
         <td
           style={{
             textAlign: 'center',
-            fontWeight: 600,
-            color: '#94a3b8',
-            fontSize: '12px',
+            fontWeight: 700,
+            color: '#475569',
+            fontSize: '11.5px',
             textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            background: 'rgba(15, 23, 42, 0.4)',
+            letterSpacing: '0.05em',
+            background: '#f8fafc',
             width: '30%',
+            padding: '10px 12px',
+            borderBottom: '1px solid #f1f5f9',
+            borderLeft: '1px solid #f1f5f9',
+            borderRight: '1px solid #f1f5f9',
           }}
         >
           {label}
         </td>
+
+        {/* Player B Metric Value */}
         <td
           style={{
             textAlign: 'left',
-            fontWeight: highlightB ? 800 : 500,
-            color: highlightB ? '#4ade80' : '#e2e8f0',
-            background: highlightB ? 'rgba(34, 197, 94, 0.1)' : undefined,
+            fontWeight: highlightB ? 800 : 600,
+            color: highlightB ? '#15803d' : '#334155',
+            background: highlightB ? '#f0fdf4' : undefined,
             width: '35%',
-            fontSize: '14px',
+            fontSize: '13.5px',
+            padding: '10px 16px',
+            borderBottom: '1px solid #f1f5f9',
           }}
         >
-          {highlightB && '★ '}
+          {highlightB && <span style={{ color: '#16a34a', marginRight: '4px' }}>★</span>}
           {textB}
         </td>
       </tr>
@@ -342,17 +364,31 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
             type="button"
-            className="scout-btn scout-btn-secondary scout-btn-sm"
+            className="scout-b2b-btn scout-b2b-btn-secondary"
             onClick={onBackToSetup}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            style={{
+              height: '36px',
+              padding: '0 14px',
+              fontSize: '12.5px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
           >
             ← Change Candidate / Scope
           </button>
           <button
             type="button"
-            className="scout-btn scout-btn-secondary scout-btn-sm"
+            className="scout-b2b-btn scout-b2b-btn-secondary"
             onClick={onBackToDetail}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            style={{
+              height: '36px',
+              padding: '0 14px',
+              fontSize: '12.5px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
           >
             👤 Back to {nameA}
           </button>
@@ -360,14 +396,18 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
 
         {/* Active Scope Pill */}
         <div
-          className="role-pill"
           style={{
-            background: 'rgba(56, 189, 248, 0.15)',
-            color: '#38bdf8',
-            border: '1px solid rgba(56, 189, 248, 0.3)',
+            background: '#eff6ff',
+            color: '#1d4ed8',
+            border: '1px solid #bfdbfe',
+            borderRadius: '999px',
             padding: '6px 16px',
-            fontSize: '13px',
+            fontSize: '12.5px',
             fontWeight: 700,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
           }}
         >
           ⚖️ Context: {contextLabel}
@@ -376,30 +416,38 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
 
       {/* Side-by-Side Profiles Header Card */}
       <div
-        className="player-filters-card"
+        className="scout-b2b-control-card"
         style={{
           padding: '24px',
           marginBottom: '24px',
-          background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          background: '#ffffff',
+          border: '1px solid #bfdbfe',
         }}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '20px', alignItems: 'center' }}>
-          {/* Player A Profile */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
+            gap: '24px',
+            alignItems: 'center',
+          }}
+        >
+          {/* Player A Profile (Left) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div
               style={{
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: 'rgba(56, 189, 248, 0.15)',
-                border: '2px solid rgba(56, 189, 248, 0.5)',
+                background: '#eff6ff',
+                border: '2px solid #3b82f6',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '28px',
                 overflow: 'hidden',
                 flexShrink: 0,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.06)',
               }}
             >
               {playerA.imageUrl ? (
@@ -417,15 +465,44 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             </div>
 
             <div>
-              <div style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase' }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: '#2563eb',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
                 Player A
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: '#f8fafc' }}>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
                 {nameA}
               </div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                🛡️ {playerA.currentTeam?.name || 'Free Agent'} ·{' '}
-                <span className="role-pill" style={{ padding: '2px 6px', fontSize: '10px' }}>
+              <div
+                style={{
+                  fontSize: '12.5px',
+                  color: '#64748b',
+                  marginTop: '3px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span>🛡️ {playerA.currentTeam?.name || 'Free Agent'}</span>
+                <span>·</span>
+                <span
+                  style={{
+                    background: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #bfdbfe',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                  }}
+                >
                   {playerA.primaryPosition || 'Player'}
                 </span>
               </div>
@@ -436,31 +513,70 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
           <div
             style={{
               fontWeight: 900,
-              fontSize: '20px',
-              color: '#94a3b8',
-              padding: '8px 16px',
+              fontSize: '16px',
+              color: '#475569',
+              padding: '6px 16px',
               borderRadius: '999px',
-              background: 'rgba(15, 23, 42, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#f1f5f9',
+              border: '1px solid #cbd5e1',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
             }}
           >
             VS
           </div>
 
-          {/* Player B Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-end', textAlign: 'right' }}>
+          {/* Player B Profile (Right) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              justifyContent: 'flex-end',
+              textAlign: 'right',
+            }}
+          >
             <div>
-              <div style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700, textTransform: 'uppercase' }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: '#d97706',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
                 Player B
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: '#f8fafc' }}>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
                 {nameB}
               </div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                <span className="role-pill" style={{ padding: '2px 6px', fontSize: '10px' }}>
+              <div
+                style={{
+                  fontSize: '12.5px',
+                  color: '#64748b',
+                  marginTop: '3px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  gap: '6px',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span
+                  style={{
+                    background: '#fef3c7',
+                    color: '#b45309',
+                    border: '1px solid #fde68a',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                  }}
+                >
                   {playerB.primaryPosition || 'Player'}
-                </span>{' '}
-                · 🛡️ {playerB.currentTeam?.name || 'Free Agent'}
+                </span>
+                <span>·</span>
+                <span>🛡️ {playerB.currentTeam?.name || 'Free Agent'}</span>
               </div>
             </div>
 
@@ -469,14 +585,15 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: 'rgba(245, 158, 11, 0.15)',
-                border: '2px solid rgba(245, 158, 11, 0.5)',
+                background: '#fef3c7',
+                border: '2px solid #f59e0b',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '28px',
                 overflow: 'hidden',
                 flexShrink: 0,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.06)',
               }}
             >
               {playerB.imageUrl ? (
@@ -496,43 +613,119 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
         </div>
       </div>
 
-      {/* Head-to-Head Stats Comparison Tables */}
-      <div className="dashboard-card" style={{ padding: 0, overflow: 'hidden', marginBottom: '24px' }}>
-        <table className="admin-table" style={{ margin: 0 }}>
+      {/* Head-to-Head Stats Comparison Table */}
+      <div
+        className="scout-b2b-control-card"
+        style={{ padding: 0, overflow: 'hidden', marginBottom: '24px', border: '1px solid #bfdbfe' }}
+      >
+        <table className="scout-b2b-table" style={{ margin: 0, width: '100%' }}>
           <thead>
-            <tr style={{ background: 'rgba(15, 23, 42, 0.8)' }}>
-              <th style={{ textAlign: 'right', width: '35%', color: '#38bdf8' }}>{nameA}</th>
-              <th style={{ textAlign: 'center', width: '30%' }}>Metric</th>
-              <th style={{ textAlign: 'left', width: '35%', color: '#f59e0b' }}>{nameB}</th>
+            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+              <th
+                style={{
+                  textAlign: 'right',
+                  width: '35%',
+                  color: '#2563eb',
+                  fontWeight: 900,
+                  fontSize: '14px',
+                  padding: '12px 16px',
+                }}
+              >
+                {nameA}
+              </th>
+              <th
+                style={{
+                  textAlign: 'center',
+                  width: '30%',
+                  color: '#475569',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  padding: '12px 12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                Metric
+              </th>
+              <th
+                style={{
+                  textAlign: 'left',
+                  width: '35%',
+                  color: '#d97706',
+                  fontWeight: 900,
+                  fontSize: '14px',
+                  padding: '12px 16px',
+                }}
+              >
+                {nameB}
+              </th>
             </tr>
           </thead>
           <tbody>
             {/* Section 1: Bio & Physical Comparison */}
-            <tr style={{ background: 'rgba(56, 189, 248, 0.06)' }}>
-              <td colSpan={3} style={{ textAlign: 'center', fontWeight: 700, color: '#38bdf8', fontSize: '12px', letterSpacing: '0.05em' }}>
+            <tr style={{ background: '#eff6ff', borderTop: '1px solid #bfdbfe', borderBottom: '1px solid #bfdbfe' }}>
+              <td
+                colSpan={3}
+                style={{
+                  textAlign: 'center',
+                  fontWeight: 900,
+                  color: '#1d4ed8',
+                  fontSize: '12px',
+                  letterSpacing: '0.06em',
+                  padding: '8px',
+                }}
+              >
                 📋 PROFILE & BIOMETRICS
               </td>
             </tr>
-            <tr>
-              <td style={{ textAlign: 'right', color: '#cbd5e1' }}>{calculateAge(playerA.dateOfBirth)}</td>
-              <td style={{ textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>AGE</td>
-              <td style={{ textAlign: 'left', color: '#cbd5e1' }}>{calculateAge(playerB.dateOfBirth)}</td>
+            <tr className="scout-b2b-table-row">
+              <td style={{ textAlign: 'right', color: '#0f172a', fontWeight: 600, fontSize: '13.5px', padding: '10px 16px' }}>
+                {calculateAge(playerA.dateOfBirth)}
+              </td>
+              <td style={{ textAlign: 'center', color: '#475569', fontWeight: 700, fontSize: '11.5px', background: '#f8fafc', padding: '10px 12px' }}>
+                AGE
+              </td>
+              <td style={{ textAlign: 'left', color: '#0f172a', fontWeight: 600, fontSize: '13.5px', padding: '10px 16px' }}>
+                {calculateAge(playerB.dateOfBirth)}
+              </td>
             </tr>
-            <tr>
-              <td style={{ textAlign: 'right', color: '#cbd5e1' }}>{playerA.nationality || '—'}</td>
-              <td style={{ textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>NATIONALITY</td>
-              <td style={{ textAlign: 'left', color: '#cbd5e1' }}>{playerB.nationality || '—'}</td>
+            <tr className="scout-b2b-table-row">
+              <td style={{ textAlign: 'right', color: '#0f172a', fontWeight: 600, fontSize: '13.5px', padding: '10px 16px' }}>
+                {playerA.nationality || '—'}
+              </td>
+              <td style={{ textAlign: 'center', color: '#475569', fontWeight: 700, fontSize: '11.5px', background: '#f8fafc', padding: '10px 12px' }}>
+                NATIONALITY
+              </td>
+              <td style={{ textAlign: 'left', color: '#0f172a', fontWeight: 600, fontSize: '13.5px', padding: '10px 16px' }}>
+                {playerB.nationality || '—'}
+              </td>
             </tr>
-            <tr>
-              <td style={{ textAlign: 'right', color: '#cbd5e1' }}>{playerA.preferredFoot || '—'}</td>
-              <td style={{ textAlign: 'center', color: '#94a3b8', fontSize: '12px' }}>PREFERRED FOOT</td>
-              <td style={{ textAlign: 'left', color: '#cbd5e1' }}>{playerB.preferredFoot || '—'}</td>
+            <tr className="scout-b2b-table-row">
+              <td style={{ textAlign: 'right', color: '#0f172a', fontWeight: 600, fontSize: '13.5px', padding: '10px 16px' }}>
+                {playerA.preferredFoot || '—'}
+              </td>
+              <td style={{ textAlign: 'center', color: '#475569', fontWeight: 700, fontSize: '11.5px', background: '#f8fafc', padding: '10px 12px' }}>
+                PREFERRED FOOT
+              </td>
+              <td style={{ textAlign: 'left', color: '#0f172a', fontWeight: 600, fontSize: '13.5px', padding: '10px 16px' }}>
+                {playerB.preferredFoot || '—'}
+              </td>
             </tr>
             {renderMetricRow('HEIGHT (CM)', playerA.heightCm, playerB.heightCm)}
 
             {/* Section 2: Playing Time */}
-            <tr style={{ background: 'rgba(56, 189, 248, 0.06)' }}>
-              <td colSpan={3} style={{ textAlign: 'center', fontWeight: 700, color: '#38bdf8', fontSize: '12px', letterSpacing: '0.05em' }}>
+            <tr style={{ background: '#eff6ff', borderTop: '1px solid #bfdbfe', borderBottom: '1px solid #bfdbfe' }}>
+              <td
+                colSpan={3}
+                style={{
+                  textAlign: 'center',
+                  fontWeight: 900,
+                  color: '#1d4ed8',
+                  fontSize: '12px',
+                  letterSpacing: '0.06em',
+                  padding: '8px',
+                }}
+              >
                 ⏱️ PLAYING TIME & PARTICIPATION
               </td>
             </tr>
@@ -541,8 +734,18 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             {renderMetricRow('MINUTES PLAYED', processedStatsA?.minutesPlayed, processedStatsB?.minutesPlayed)}
 
             {/* Section 3: Attacking Output */}
-            <tr style={{ background: 'rgba(56, 189, 248, 0.06)' }}>
-              <td colSpan={3} style={{ textAlign: 'center', fontWeight: 700, color: '#38bdf8', fontSize: '12px', letterSpacing: '0.05em' }}>
+            <tr style={{ background: '#eff6ff', borderTop: '1px solid #bfdbfe', borderBottom: '1px solid #bfdbfe' }}>
+              <td
+                colSpan={3}
+                style={{
+                  textAlign: 'center',
+                  fontWeight: 900,
+                  color: '#1d4ed8',
+                  fontSize: '12px',
+                  letterSpacing: '0.06em',
+                  padding: '8px',
+                }}
+              >
                 ⚡ ATTACKING OUTPUT
               </td>
             </tr>
@@ -556,8 +759,18 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             {renderMetricRow('SHOTS ON TARGET / 90', processedStatsA?.shotsOnTargetPer90, processedStatsB?.shotsOnTargetPer90)}
 
             {/* Section 4: Passing & Playmaking */}
-            <tr style={{ background: 'rgba(56, 189, 248, 0.06)' }}>
-              <td colSpan={3} style={{ textAlign: 'center', fontWeight: 700, color: '#38bdf8', fontSize: '12px', letterSpacing: '0.05em' }}>
+            <tr style={{ background: '#eff6ff', borderTop: '1px solid #bfdbfe', borderBottom: '1px solid #bfdbfe' }}>
+              <td
+                colSpan={3}
+                style={{
+                  textAlign: 'center',
+                  fontWeight: 900,
+                  color: '#1d4ed8',
+                  fontSize: '12px',
+                  letterSpacing: '0.06em',
+                  padding: '8px',
+                }}
+              >
                 🎯 PASSING & CREATIVITY
               </td>
             </tr>
@@ -569,8 +782,18 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             {renderMetricRow('KEY PASSES / 90', processedStatsA?.keyPassesPer90, processedStatsB?.keyPassesPer90)}
 
             {/* Section 5: Defending & Duels */}
-            <tr style={{ background: 'rgba(56, 189, 248, 0.06)' }}>
-              <td colSpan={3} style={{ textAlign: 'center', fontWeight: 700, color: '#38bdf8', fontSize: '12px', letterSpacing: '0.05em' }}>
+            <tr style={{ background: '#eff6ff', borderTop: '1px solid #bfdbfe', borderBottom: '1px solid #bfdbfe' }}>
+              <td
+                colSpan={3}
+                style={{
+                  textAlign: 'center',
+                  fontWeight: 900,
+                  color: '#1d4ed8',
+                  fontSize: '12px',
+                  letterSpacing: '0.06em',
+                  padding: '8px',
+                }}
+              >
                 🛡️ DEFENDING & DUELS
               </td>
             </tr>

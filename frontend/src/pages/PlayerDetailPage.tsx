@@ -1,24 +1,34 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import type {
   PlayerDetail,
   PlayerTeamHistoryItem,
   PlayerSeasonStatisticItem,
   PlayerMatchStatisticItem,
-} from '../types/player.types';
+} from "../types/player.types";
 import {
   getPlayerByIdApi,
   getPlayerTeamHistoryApi,
   getPlayerSeasonStatisticsApi,
   getPlayerMatchStatisticsApi,
-} from '../services/player.service';
+} from "../services/player.service";
+import { getPositionRoleInfo, getPositionCategory } from "../utils/position.utils";
+import { PlayerRadarChart } from "../components/player/PlayerRadarChart";
+import { getRadarMetrics } from "../utils/radar.utils";
 
 interface PlayerDetailPageProps {
   playerId: string;
   onBack: () => void;
-  onCompare?: (player: PlayerDetail, seasonStatistics: PlayerSeasonStatisticItem[]) => void;
+  onCompare?: (
+    player: PlayerDetail,
+    seasonStatistics: PlayerSeasonStatisticItem[],
+  ) => void;
 }
 
-export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, onBack, onCompare }) => {
+export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
+  playerId,
+  onBack,
+  onCompare,
+}) => {
   const [player, setPlayer] = useState<PlayerDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,17 +39,22 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
   const [historyError, setHistoryError] = useState<string | null>(null);
 
   // Season Statistics state
-  const [seasonStatistics, setSeasonStatistics] = useState<PlayerSeasonStatisticItem[]>([]);
+  const [seasonStatistics, setSeasonStatistics] = useState<
+    PlayerSeasonStatisticItem[]
+  >([]);
   const [statsLoading, setStatsLoading] = useState<boolean>(true);
   const [statsError, setStatsError] = useState<string | null>(null);
 
   // Selectors State (Grouped by Season Code)
-  const [selectedSeasonCode, setSelectedSeasonCode] = useState<string>('');
-  const [selectedCompetitionId, setSelectedCompetitionId] = useState<string>('');
-  const [selectedTeamId, setSelectedTeamId] = useState<string>('');
+  const [selectedSeasonCode, setSelectedSeasonCode] = useState<string>("");
+  const [selectedCompetitionId, setSelectedCompetitionId] =
+    useState<string>("");
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
   // Match Statistics (Match Log) state
-  const [matchStatistics, setMatchStatistics] = useState<PlayerMatchStatisticItem[]>([]);
+  const [matchStatistics, setMatchStatistics] = useState<
+    PlayerMatchStatisticItem[]
+  >([]);
   const [matchLoading, setMatchLoading] = useState<boolean>(false);
   const [matchError, setMatchError] = useState<string | null>(null);
   const [matchOffset, setMatchOffset] = useState<number>(0);
@@ -48,6 +63,18 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
 
   // Request race guard counter
   const latestMatchRequestIdRef = useRef<number>(0);
+
+
+
+  // Helper to format full name into dramatic sports title
+  const formatSportsName = (fullName: string) => {
+    if (!fullName) return { firstName: "", lastName: "" };
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) return { firstName: "", lastName: parts[0] };
+    const lastName = parts[parts.length - 1];
+    const firstName = parts.slice(0, -1).join(" ");
+    return { firstName, lastName };
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -67,7 +94,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
       })
       .catch((err: any) => {
         if (isMounted) {
-          setError(err.message || 'Không thể tải thông tin chi tiết cầu thủ');
+          setError(err.message || "Unable to load player details.");
         }
       })
       .finally(() => {
@@ -85,7 +112,9 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
       })
       .catch((err: any) => {
         if (isMounted) {
-          setHistoryError(err.message || 'Không thể tải lịch sử thi đấu của cầu thủ');
+          setHistoryError(
+            err.message || "Unable to load player career history.",
+          );
         }
       })
       .finally(() => {
@@ -100,21 +129,20 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
         if (isMounted) {
           setSeasonStatistics(stats);
 
-          // Default Season Selection Rule:
-          // 1. Season with isCurrent = true
-          // 2. Otherwise first season in list
           if (stats.length > 0) {
             const currentSeasonStat = stats.find((s) => s.season.isCurrent);
             const defaultSeasonCode = currentSeasonStat
-              ? currentSeasonStat.season.seasonCode || 'N/A'
-              : stats[0].season.seasonCode || 'N/A';
+              ? currentSeasonStat.season.seasonCode || "N/A"
+              : stats[0].season.seasonCode || "N/A";
             setSelectedSeasonCode(defaultSeasonCode);
           }
         }
       })
       .catch((err: any) => {
         if (isMounted) {
-          setStatsError(err.message || 'Không thể tải thống kê mùa giải của cầu thủ');
+          setStatsError(
+            err.message || "Unable to load player season statistics.",
+          );
         }
       })
       .finally(() => {
@@ -128,11 +156,11 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
     };
   }, [playerId]);
 
-  // Derived: Available Seasons list grouped by seasonCode (deduplicated)
+  // Derived: Available Seasons list grouped by seasonCode
   const availableSeasons = useMemo(() => {
     const map = new Map<string, { seasonCode: string; isCurrent: boolean }>();
     seasonStatistics.forEach((stat) => {
-      const code = stat.season.seasonCode || 'N/A';
+      const code = stat.season.seasonCode || "N/A";
       if (!map.has(code)) {
         map.set(code, {
           seasonCode: code,
@@ -146,9 +174,12 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
   // Derived: Available Competitions for the selected season code
   const availableCompetitions = useMemo(() => {
     if (!selectedSeasonCode) return [];
-    const map = new Map<string, { id: string; name: string; country: string | null }>();
+    const map = new Map<
+      string,
+      { id: string; name: string; country: string | null }
+    >();
     seasonStatistics
-      .filter((s) => (s.season.seasonCode || 'N/A') === selectedSeasonCode)
+      .filter((s) => (s.season.seasonCode || "N/A") === selectedSeasonCode)
       .forEach((s) => {
         if (!map.has(s.competition.id)) {
           map.set(s.competition.id, s.competition);
@@ -157,15 +188,17 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
     return Array.from(map.values());
   }, [seasonStatistics, selectedSeasonCode]);
 
-  // Auto-select valid competition when selectedSeasonCode or availableCompetitions changes
+  // Auto-select valid competition
   useEffect(() => {
     if (availableCompetitions.length > 0) {
-      const isValid = availableCompetitions.some((c) => c.id === selectedCompetitionId);
+      const isValid = availableCompetitions.some(
+        (c) => c.id === selectedCompetitionId,
+      );
       if (!isValid) {
         setSelectedCompetitionId(availableCompetitions[0].id);
       }
     } else {
-      setSelectedCompetitionId('');
+      setSelectedCompetitionId("");
     }
   }, [selectedSeasonCode, availableCompetitions]);
 
@@ -173,11 +206,13 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
   const matchingRecords = useMemo(() => {
     if (!selectedSeasonCode || !selectedCompetitionId) return [];
     return seasonStatistics.filter(
-      (s) => (s.season.seasonCode || 'N/A') === selectedSeasonCode && s.competition.id === selectedCompetitionId,
+      (s) =>
+        (s.season.seasonCode || "N/A") === selectedSeasonCode &&
+        s.competition.id === selectedCompetitionId,
     );
   }, [seasonStatistics, selectedSeasonCode, selectedCompetitionId]);
 
-  // Derived: Available Teams if > 1 record for selected Season + Competition
+  // Derived: Available Teams
   const availableTeams = useMemo(() => {
     if (matchingRecords.length <= 1) return [];
     const map = new Map<string, { id: string; name: string }>();
@@ -189,7 +224,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
     return Array.from(map.values());
   }, [matchingRecords]);
 
-  // Auto-select team if multiple teams exist
+  // Auto-select team
   useEffect(() => {
     if (availableTeams.length > 0) {
       const isValid = availableTeams.some((t) => t.id === selectedTeamId);
@@ -197,11 +232,11 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
         setSelectedTeamId(availableTeams[0].id);
       }
     } else {
-      setSelectedTeamId('');
+      setSelectedTeamId("");
     }
   }, [availableTeams]);
 
-  // Reset match log pagination offset to 0 whenever context (Season, Competition, Team) changes
+  // Reset match log pagination offset to 0 whenever context changes
   useEffect(() => {
     setMatchOffset(0);
   }, [selectedSeasonCode, selectedCompetitionId, selectedTeamId]);
@@ -214,15 +249,26 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
     return match || matchingRecords[0];
   }, [matchingRecords, selectedTeamId]);
 
-  // Fetch Match Statistics (Match Log) with race condition guard & fallback
+  // Fetch Match Statistics (Filtered strictly by selected Season & Competition)
   useEffect(() => {
     if (!playerId) return;
+    if (statsLoading) return;
+
+    // If player has season statistics, wait until context (season & competition) is ready
+    if (
+      seasonStatistics.length > 0 &&
+      (!selectedStatistic || !selectedCompetitionId)
+    ) {
+      return;
+    }
 
     const requestId = ++latestMatchRequestIdRef.current;
     setMatchLoading(true);
     setMatchError(null);
 
-    const seasonId = selectedStatistic ? selectedStatistic.season.id : undefined;
+    const seasonId = selectedStatistic
+      ? selectedStatistic.season.id
+      : undefined;
     const competitionId = selectedCompetitionId || undefined;
     const teamId = selectedTeamId || undefined;
 
@@ -234,25 +280,16 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
       offset: matchOffset,
     })
       .then((res) => {
-        if (requestId !== latestMatchRequestIdRef.current) return;
-        // Fallback: If 0 items returned for specific filters, fetch all recent match stats for player
-        if (res.items.length === 0 && (seasonId || competitionId || teamId) && matchOffset === 0) {
-          return getPlayerMatchStatisticsApi(playerId, {
-            limit: matchLimit,
-            offset: 0,
-          });
-        }
-        return res;
-      })
-      .then((res) => {
         if (requestId === latestMatchRequestIdRef.current && res) {
           setMatchStatistics(res.items);
-          setMatchTotal(res.pagination ? res.pagination.total : res.items.length);
+          setMatchTotal(
+            res.pagination ? res.pagination.total : res.items.length,
+          );
         }
       })
       .catch((err: any) => {
         if (requestId === latestMatchRequestIdRef.current) {
-          setMatchError(err.message || 'Không thể tải danh sách trận đấu của cầu thủ');
+          setMatchError(err.message || "Unable to load player match log.");
         }
       })
       .finally(() => {
@@ -260,44 +297,116 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
           setMatchLoading(false);
         }
       });
-  }, [playerId, selectedStatistic, selectedCompetitionId, selectedTeamId, matchOffset]);
+  }, [
+    playerId,
+    statsLoading,
+    seasonStatistics.length,
+    selectedStatistic,
+    selectedCompetitionId,
+    selectedTeamId,
+    matchOffset,
+  ]);
 
   const calculateAge = (dateOfBirth?: string | null): string => {
-    if (!dateOfBirth) return 'N/A';
+    if (!dateOfBirth) return "—";
     const birthDate = new Date(dateOfBirth);
-    if (isNaN(birthDate.getTime())) return 'N/A';
+    if (isNaN(birthDate.getTime())) return "—";
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    return `${age} yrs (${birthDate.toLocaleDateString()})`;
+    return `${age}`;
   };
 
   const formatPer90 = (val: number | null | undefined): string => {
-    if (val === null || val === undefined || isNaN(val)) return 'N/A';
+    if (val === null || val === undefined || isNaN(val)) return "—";
     return val.toFixed(2);
   };
 
-  // Helper: Determine Match Outcome & Opponent Info for a Match Log item safely
+  const isGoalkeeper = player?.primaryPosition === "GK";
+  const positionRole = getPositionRoleInfo(player?.primaryPosition);
+  const positionCategory = getPositionCategory(player?.primaryPosition);
+
+  // Position-aware KPI statistics for Hero Banner (2 dynamic role stats)
+  const heroRoleStats: [
+    { label: string; value: string | number; valClass: string },
+    { label: string; value: string | number; valClass: string },
+  ] = useMemo(() => {
+    if (positionCategory === "GK") {
+      return [
+        {
+          label: "SAVES",
+          value: selectedStatistic ? (selectedStatistic.saves ?? 0) : "—",
+          valClass: "val-saves",
+        },
+        {
+          label: "CLEAN SHEETS",
+          value: selectedStatistic ? (selectedStatistic.cleanSheets ?? 0) : "—",
+          valClass: "val-cleansheets",
+        },
+      ];
+    }
+
+    if (positionCategory === "DEF") {
+      return [
+        {
+          label: "TACKLES",
+          value: selectedStatistic ? (selectedStatistic.tackles ?? 0) : "—",
+          valClass: "val-tackles",
+        },
+        {
+          label: "INTERCEPTIONS",
+          value: selectedStatistic ? (selectedStatistic.interceptions ?? 0) : "—",
+          valClass: "val-interceptions",
+        },
+      ];
+    }
+
+    // MID, ATT, and Safe Fallback (Goals & Assists)
+    return [
+      {
+        label: "GOALS",
+        value: selectedStatistic ? selectedStatistic.goals : "—",
+        valClass: "val-goals",
+      },
+      {
+        label: "ASSISTS",
+        value: selectedStatistic ? selectedStatistic.assists : "—",
+        valClass: "val-assists",
+      },
+    ];
+  }, [positionCategory, selectedStatistic]);
+
+  // Position-aware Radar Chart metrics
+  const radarMetrics = useMemo(() => {
+    return getRadarMetrics(positionCategory, selectedStatistic);
+  }, [positionCategory, selectedStatistic]);
+
+  // Helper: Determine Match Outcome & Opponent Info
   const getMatchContext = (item: PlayerMatchStatisticItem) => {
     const { match, team } = item;
     const isHome = team ? team.id === match.homeTeam.id : true;
     const opponent = isHome ? match.awayTeam : match.homeTeam;
-    const venuePrefix = isHome ? 'vs' : '@';
+    const venuePrefix = isHome ? "vs" : "@";
 
-    let result: 'WIN' | 'DRAW' | 'LOSS' | null = null;
-    let scoreText = '—';
+    let result: "WIN" | "DRAW" | "LOSS" | null = null;
+    let scoreText = "—";
 
-    if (match.homeScore !== null && match.awayScore !== null && !isNaN(match.homeScore) && !isNaN(match.awayScore)) {
+    if (
+      match.homeScore !== null &&
+      match.awayScore !== null &&
+      !isNaN(match.homeScore) &&
+      !isNaN(match.awayScore)
+    ) {
       scoreText = `${match.homeScore} - ${match.awayScore}`;
       if (match.homeScore === match.awayScore) {
-        result = 'DRAW';
+        result = "DRAW";
       } else if (isHome) {
-        result = match.homeScore > match.awayScore ? 'WIN' : 'LOSS';
+        result = match.homeScore > match.awayScore ? "WIN" : "LOSS";
       } else {
-        result = match.awayScore > match.homeScore ? 'WIN' : 'LOSS';
+        result = match.awayScore > match.homeScore ? "WIN" : "LOSS";
       }
     }
 
@@ -310,65 +419,75 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
     };
   };
 
-  const playerName = player ? player.fullName || player.name : '';
+  const playerName = player ? player.fullName || player.name : "";
+  const { firstName, lastName } = formatSportsName(playerName);
   const currentPage = Math.floor(matchOffset / matchLimit) + 1;
   const totalPages = Math.ceil(matchTotal / matchLimit) || 1;
 
   return (
-    <div className="player-detail-page">
-      {/* Top Header & Back Button */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '20px',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
+    <div className="scout-b2b-page-container">
+      {/* Top Header Navigation Bar */}
+      <div className="scout-sports-topbar">
         <button
           type="button"
-          className="scout-btn scout-btn-secondary scout-btn-sm"
+          className="scout-sports-back-btn"
           onClick={onBack}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          ← Back to Player Search
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          <span>Back to Player Search</span>
         </button>
 
         {player && onCompare && (
           <button
             type="button"
-            className="scout-btn scout-btn-sm"
+            className="scout-sports-compare-btn"
             onClick={() => onCompare(player, seasonStatistics)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              width: 'auto',
-              background: '#38bdf8',
-              color: '#090d16',
-              fontWeight: 800,
-              boxShadow: '0 2px 10px rgba(56, 189, 248, 0.3)',
-            }}
           >
-            ⚖️ Compare Player
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M16 3h5v5" />
+              <path d="M4 20L21 3" />
+              <path d="M21 16v5h-5" />
+              <path d="M15 15l6 6" />
+              <path d="M4 4l5 5" />
+            </svg>
+            <span>Compare Player</span>
           </button>
         )}
       </div>
 
-      {/* Error Banner */}
+      {/* Error Alert */}
       {error && (
-        <div style={{ marginBottom: '20px' }}>
-          <div className="alert-banner alert-error" style={{ marginBottom: '12px' }}>
-            ❌ {error}
-          </div>
+        <div className="scout-b2b-alert-error" style={{ marginBottom: "20px" }}>
+          <span>❌</span>
+          <span>{error}</span>
           <button
             type="button"
-            className="scout-btn scout-btn-secondary"
+            className="scout-b2b-btn scout-b2b-btn-secondary"
+            style={{ marginLeft: "auto", height: "32px", padding: "0 12px" }}
             onClick={onBack}
           >
-            Return to Search Page
+            Return to Search
           </button>
         </div>
       )}
@@ -376,652 +495,889 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
       {/* Loading State */}
       {loading && (
         <div
-          className="alert-banner"
+          className="scout-fc-hero-banner"
           style={{
-            background: 'rgba(59, 130, 246, 0.15)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            color: '#93c5fd',
-            padding: '20px',
-            textAlign: 'center',
+            minHeight: "380px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          ⌛ Loading player details...
+          <div style={{ textAlign: "center", color: "#94a3b8" }}>
+            <div className="scout-loading-spinner" />
+            <div
+              style={{
+                marginTop: "12px",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#cbd5e1",
+              }}
+            >
+              Loading professional player profile...
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Player Profile Content */}
+      {/* Main Content View */}
       {!loading && !error && player && (
-        <div className="player-filters-card" style={{ padding: '24px' }}>
-          {/* Main Banner Info */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '24px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-              paddingBottom: '20px',
-              marginBottom: '24px',
-              flexWrap: 'wrap',
-            }}
-          >
-            {/* Avatar Image */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+          {/* =========================================================================
+              1. PLAYER HERO CARD
+             ========================================================================= */}
+          <div className="scout-fc-hero-banner" style={{ overflow: "hidden" }}>
+            {/* Ambient Sports Geometry Glow */}
+            <div className="scout-fc-hero-ambient" />
+            <div className="scout-fc-hero-grid-pattern" />
+
+            <div className="scout-hero-12col-grid">
+              {/* Left Column (The Player Card/Image - 3 cols) */}
+              <div className="scout-hero-col-left">
+                <div className="scout-fc-card-frame">
+                  {player.imageUrl ? (
+                    <img
+                      src={player.imageUrl}
+                      alt={playerName}
+                      className="scout-fc-player-img"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                        if (e.currentTarget.nextElementSibling) {
+                          (
+                            e.currentTarget.nextElementSibling as HTMLElement
+                          ).style.display = "flex";
+                        }
+                      }}
+                    />
+                  ) : null}
+
+                  {/* Facebook-style Default Silhouette Avatar Fallback */}
+                  <div
+                    className="scout-fc-player-card-fallback"
+                    style={{ display: player.imageUrl ? "none" : "flex" }}
+                  >
+                    <svg
+                      viewBox="0 0 200 260"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      preserveAspectRatio="xMidYMid slice"
+                      style={{ width: "100%", height: "100%", borderRadius: "18px" }}
+                    >
+                      <rect width="200" height="260" fill="#eff6ff" />
+                      <circle cx="100" cy="130" r="110" fill="#dbeafe" fillOpacity="0.5" />
+                      <circle cx="100" cy="85" r="36" fill="#94a3b8" />
+                      <path
+                        d="M32 205C32 155 62 130 100 130C138 130 168 155 168 205V260H32V205Z"
+                        fill="#94a3b8"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column (Identity & Stats - 9 cols) */}
+              <div className="scout-hero-col-right">
+                {/* Top line: Club & Nation */}
+                <div className="scout-fc-club-nation">
+                  <span>
+                    {player.currentTeam
+                      ? player.currentTeam.name
+                      : "Free Agent"}
+                  </span>
+                  <span className="scout-fc-dot">•</span>
+                  <span>{player.nationality || "International"}</span>
+                  {player.shirtNumber && (
+                    <>
+                      <span className="scout-fc-dot">•</span>
+                      <span style={{ color: "#fde047" }}>
+                        #{player.shirtNumber}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* 1. Name & Position Row (Top Alignment) */}
+                <div className="scout-hero-name-pos-row">
+                  <h1 className="scout-hero-name-headline">
+                    {firstName && (
+                      <span className="scout-fc-name-first">{firstName} </span>
+                    )}
+                    <span className="scout-fc-name-last">{lastName}</span>
+                  </h1>
+                  <div
+                    className={`scout-hero-pos-badge ${positionRole.cssClass}`}
+                  >
+                    {player.primaryPosition || "CM"}
+                  </div>
+                </div>
+
+                {/* 2. Bio Attributes Sub-Row */}
+                <div className="scout-hero-bio-row">
+                  <span>{calculateAge(player.dateOfBirth)} YRS</span>
+                  <span className="scout-hero-bio-dot">•</span>
+                  <span>{player.heightCm ? `${player.heightCm} CM` : "—"}</span>
+                  <span className="scout-hero-bio-dot">•</span>
+                  <span>
+                    {player.preferredFoot === "LEFT"
+                      ? "LEFT FOOT"
+                      : player.preferredFoot === "RIGHT"
+                        ? "RIGHT FOOT"
+                        : "BOTH FEET"}
+                  </span>
+                </div>
+
+                {/* 5 REAL PERFORMANCE KPIS (5-Column Grid spanning full width) */}
+                <div className="scout-hero-kpi-grid-5">
+                  <div className="scout-hero-kpi-box">
+                    <span className="scout-hero-kpi-val">
+                      {selectedStatistic ? selectedStatistic.appearances : "—"}
+                    </span>
+                    <span className="scout-hero-kpi-lbl">APPS</span>
+                  </div>
+
+                  <div className="scout-hero-kpi-box">
+                    <span className="scout-hero-kpi-val">
+                      {selectedStatistic ? selectedStatistic.starts : "—"}
+                    </span>
+                    <span className="scout-hero-kpi-lbl">STARTS</span>
+                  </div>
+
+                  <div className="scout-hero-kpi-box">
+                    <span className="scout-hero-kpi-val">
+                      {selectedStatistic
+                        ? `${selectedStatistic.minutesPlayed.toLocaleString()}'`
+                        : "—"}
+                    </span>
+                    <span className="scout-hero-kpi-lbl">MINS</span>
+                  </div>
+
+                  <div className="scout-hero-kpi-box">
+                    <span className={`scout-hero-kpi-val ${heroRoleStats[0].valClass}`}>
+                      {heroRoleStats[0].value}
+                    </span>
+                    <span className="scout-hero-kpi-lbl">{heroRoleStats[0].label}</span>
+                  </div>
+
+                  <div className="scout-hero-kpi-box">
+                    <span className={`scout-hero-kpi-val ${heroRoleStats[1].valClass}`}>
+                      {heroRoleStats[1].value}
+                    </span>
+                    <span className="scout-hero-kpi-lbl">{heroRoleStats[1].label}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* =========================================================================
+              2. PHYSICAL & BIO  |  CAREER HISTORY (2 Columns Desktop, Stacked Mobile)
+             ========================================================================= */}
+          <div className="scout-sports-split-grid">
+            {/* Physical & Bio Card */}
+            <div
+              className="scout-b2b-control-card flex flex-col justify-between"
+              style={{ margin: 0 }}
+            >
+              <div>
+                <div className="scout-detail-section-title">Physical & Bio</div>
+
+                <div
+                  className="scout-sports-bio-list"
+                  style={{ marginTop: "16px" }}
+                >
+                  <div className="scout-sports-bio-row">
+                    <span className="scout-sports-bio-key">
+                      Age / Date of Birth
+                    </span>
+                    <strong className="scout-sports-bio-val">
+                      {player.dateOfBirth
+                        ? `${calculateAge(player.dateOfBirth)} yrs (${new Date(player.dateOfBirth).toLocaleDateString()})`
+                        : "—"}
+                    </strong>
+                  </div>
+
+                  <div className="scout-sports-bio-row">
+                    <span className="scout-sports-bio-key">Nationality</span>
+                    <strong className="scout-sports-bio-val">
+                      {player.nationality || "—"}
+                    </strong>
+                  </div>
+
+                  <div className="scout-sports-bio-row">
+                    <span className="scout-sports-bio-key">Height</span>
+                    <strong className="scout-sports-bio-val">
+                      {player.heightCm ? `${player.heightCm} cm` : "—"}
+                    </strong>
+                  </div>
+
+                  <div className="scout-sports-bio-row">
+                    <span className="scout-sports-bio-key">Weight</span>
+                    <strong className="scout-sports-bio-val">
+                      {player.weightKg ? `${player.weightKg} kg` : "—"}
+                    </strong>
+                  </div>
+
+                  <div className="scout-sports-bio-row">
+                    <span className="scout-sports-bio-key">Preferred Foot</span>
+                    <strong className="scout-sports-bio-val">
+                      {player.preferredFoot === "LEFT"
+                        ? "Left"
+                        : player.preferredFoot === "RIGHT"
+                          ? "Right"
+                          : player.preferredFoot === "BOTH"
+                            ? "Both"
+                            : player.preferredFoot || "—"}
+                    </strong>
+                  </div>
+
+                  <div className="scout-sports-bio-row">
+                    <span className="scout-sports-bio-key">Current Club</span>
+                    <strong
+                      className="scout-sports-bio-val"
+                      style={{ color: "#0B4EA2" }}
+                    >
+                      {player.currentTeam
+                        ? player.currentTeam.name
+                        : "Free Agent"}
+                    </strong>
+                  </div>
+
+                  <div
+                    className="scout-sports-bio-row"
+                    style={{ borderBottom: "none" }}
+                  >
+                    <span className="scout-sports-bio-key">Positions</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "6px",
+                        flexWrap: "wrap",
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      {player.positions && player.positions.length > 0 ? (
+                        player.positions.map((pos) => {
+                          const roleInfo = getPositionRoleInfo(pos.positionCode);
+                          return (
+                            <span
+                              key={pos.id}
+                              className={`scout-b2b-pos-badge ${roleInfo.badgeClass}`}
+                              style={{
+                                opacity: pos.isPrimary ? 1 : 0.75,
+                                fontWeight: pos.isPrimary ? 700 : 600,
+                              }}
+                            >
+                              {pos.positionCode}{" "}
+                              {pos.isPrimary ? "(Primary)" : ""}
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <span className={`scout-b2b-pos-badge ${getPositionRoleInfo(player.primaryPosition).badgeClass}`}>
+                          {player.primaryPosition || "—"} (Primary)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Career History Card (Flex Column with Fixed Height & Sleek Custom Scrollbar) */}
+            <div
+              className="scout-b2b-control-card flex flex-col h-[380px]"
+              style={{ margin: 0 }}
+            >
+              <div className="scout-detail-section-title shrink-0">
+                Career History
+              </div>
+
+              {loadingHistory && (
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: "13px",
+                    fontStyle: "italic",
+                    marginTop: "14px",
+                  }}
+                >
+                  Loading career history...
+                </div>
+              )}
+
+              {historyError && (
+                <div
+                  className="scout-b2b-alert-error"
+                  style={{ fontSize: "13px", marginTop: "14px" }}
+                >
+                  ⚠️ {historyError}
+                </div>
+              )}
+
+              {!loadingHistory && !historyError && teamHistory.length === 0 && (
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: "13px",
+                    fontStyle: "italic",
+                    marginTop: "14px",
+                  }}
+                >
+                  No career history recorded for this player.
+                </div>
+              )}
+
+              {!loadingHistory && !historyError && teamHistory.length > 0 && (
+                <div className="flex-1 overflow-y-auto pr-3 mt-2 scout-custom-scrollbar">
+                  <div
+                    className="scout-sports-timeline"
+                    style={{ marginTop: "12px" }}
+                  >
+                    {teamHistory.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`scout-sports-timeline-item ${item.isCurrent ? "current" : ""}`}
+                      >
+                        <div className="scout-sports-timeline-dot" />
+                        <div className="scout-sports-timeline-content">
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              flexWrap: "wrap",
+                              gap: "8px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: 700,
+                                color: "#0f172a",
+                              }}
+                            >
+                              {item.team.name}
+                            </div>
+                            {item.isCurrent && (
+                              <span
+                                className="scout-b2b-badge-count"
+                                style={{ fontSize: "10px", padding: "2px 6px" }}
+                              >
+                                CURRENT
+                              </span>
+                            )}
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              marginTop: "4px",
+                              fontSize: "12px",
+                              color: "#64748b",
+                            }}
+                          >
+                            <span>
+                              {item.joinedAt
+                                ? new Date(item.joinedAt).getFullYear()
+                                : "—"}{" "}
+                              —{" "}
+                              {item.isCurrent
+                                ? "Present"
+                                : item.leftAt
+                                  ? new Date(item.leftAt).getFullYear()
+                                  : "—"}
+                            </span>
+                            {item.shirtNumber && (
+                              <span className="scout-detail-shirt-badge">
+                                #{item.shirtNumber}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* =========================================================================
+              3. PLAYER PERFORMANCE (30/70 Vertical Split: Radar Left + Stats & Summaries Right)
+             ========================================================================= */}
+          <div className="scout-b2b-control-card" style={{ margin: 0 }}>
+            {/* Header with Title + Context Selectors */}
             <div
               style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '50%',
-                background: 'rgba(34, 197, 94, 0.15)',
-                border: '2px solid rgba(34, 197, 94, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '36px',
-                overflow: 'hidden',
-                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "20px",
+                flexWrap: "wrap",
+                gap: "12px",
               }}
             >
-              {player.imageUrl ? (
-                <img
-                  src={player.imageUrl}
-                  alt={playerName}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLElement).style.display = 'none';
+              <div>
+                <div className="scout-perf-header-title">
+                  PLAYER PERFORMANCE
+                </div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#64748b",
+                    marginTop: "4px",
                   }}
-                />
-              ) : (
-                '⚽'
+                >
+                  Standardized per-90 metrics & tactical output across campaigns
+                </div>
+              </div>
+
+              {/* Season & Competition Selectors */}
+              {seasonStatistics.length > 0 && (
+                <div className="scout-sports-context-selectors">
+                  <select
+                    className="scout-b2b-select scout-sports-select"
+                    value={selectedSeasonCode}
+                    onChange={(e) => setSelectedSeasonCode(e.target.value)}
+                    aria-label="Select Season"
+                  >
+                    {availableSeasons.map((s) => (
+                      <option key={s.seasonCode} value={s.seasonCode}>
+                        Season {s.seasonCode} {s.isCurrent ? "(Current)" : ""}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    className="scout-b2b-select scout-sports-select"
+                    value={selectedCompetitionId}
+                    onChange={(e) => setSelectedCompetitionId(e.target.value)}
+                    aria-label="Select Competition"
+                  >
+                    {availableCompetitions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} {c.country ? `(${c.country})` : ""}
+                      </option>
+                    ))}
+                  </select>
+
+                  {availableTeams.length > 1 && (
+                    <select
+                      className="scout-b2b-select scout-sports-select"
+                      value={selectedTeamId}
+                      onChange={(e) => setSelectedTeamId(e.target.value)}
+                      aria-label="Select Team"
+                    >
+                      {availableTeams.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               )}
             </div>
 
-            {/* Name & Club */}
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-                  {playerName}
-                </h2>
-                {player.shirtNumber && (
-                  <span
-                    className="role-pill"
-                    style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fde047', fontWeight: 700 }}
-                  >
-                    #{player.shirtNumber}
-                  </span>
-                )}
-              </div>
-
-              <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {player.currentTeam ? (
-                  <span className="role-pill" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#93c5fd' }}>
-                    🛡️ {player.currentTeam.name} ({player.currentTeam.shortName || 'N/A'})
-                  </span>
-                ) : (
-                  <span className="role-pill" style={{ background: 'rgba(148, 163, 184, 0.2)', color: '#cbd5e1' }}>
-                    🏷️ Free Agent / No Current Club
-                  </span>
-                )}
-
-                {player.primaryPosition && (
-                  <span className="status-badge status-active">
-                    {player.primaryPosition}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Profile Attributes Grid */}
-          <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>
-            📋 Player Profile & Attributes
-          </h3>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '16px',
-            }}
-          >
-            {/* Age / Date of Birth */}
-            <div
-              style={{
-                background: 'rgba(15, 23, 42, 0.4)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-              }}
-            >
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                📅 AGE / DATE OF BIRTH
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: 600, color: '#f8fafc' }}>
-                {calculateAge(player.dateOfBirth)}
-              </div>
-            </div>
-
-            {/* Nationality */}
-            <div
-              style={{
-                background: 'rgba(15, 23, 42, 0.4)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-              }}
-            >
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                🌐 NATIONALITY
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: 600, color: '#f8fafc' }}>
-                {player.nationality || 'N/A'}
-              </div>
-            </div>
-
-            {/* Height */}
-            <div
-              style={{
-                background: 'rgba(15, 23, 42, 0.4)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-              }}
-            >
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                📏 HEIGHT
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: 600, color: '#f8fafc' }}>
-                {player.heightCm ? `${player.heightCm} cm` : 'N/A'}
-              </div>
-            </div>
-
-            {/* Weight (if available) */}
-            {player.weightKg !== undefined && player.weightKg !== null && (
+            {statsLoading && (
               <div
                 style={{
-                  background: 'rgba(15, 23, 42, 0.4)',
-                  padding: '14px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  color: "#64748b",
+                  fontSize: "13px",
+                  fontStyle: "italic",
+                  padding: "20px 0",
                 }}
               >
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                  ⚖️ WEIGHT
-                </div>
-                <div style={{ fontSize: '15px', fontWeight: 600, color: '#f8fafc' }}>
-                  {player.weightKg} kg
-                </div>
-              </div>
-            )}
-
-            {/* Preferred Foot */}
-            <div
-              style={{
-                background: 'rgba(15, 23, 42, 0.4)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-              }}
-            >
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                🦶 PREFERRED FOOT
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: 600, color: '#f8fafc' }}>
-                {player.preferredFoot || 'N/A'}
-              </div>
-            </div>
-
-            {/* Positions */}
-            <div
-              style={{
-                background: 'rgba(15, 23, 42, 0.4)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-              }}
-            >
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                ⚽ POSITIONS
-              </div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {player.positions && player.positions.length > 0 ? (
-                  player.positions.map((pos) => (
-                    <span
-                      key={pos.id}
-                      className="status-badge"
-                      style={{
-                        background: pos.isPrimary
-                          ? 'rgba(34, 197, 94, 0.2)'
-                          : 'rgba(148, 163, 184, 0.15)',
-                        color: pos.isPrimary ? '#4ade80' : '#cbd5e1',
-                      }}
-                    >
-                      {pos.positionCode} {pos.isPrimary ? '(Primary)' : ''}
-                    </span>
-                  ))
-                ) : (
-                  <span style={{ fontSize: '15px', fontWeight: 600, color: '#f8fafc' }}>
-                    {player.primaryPosition || 'N/A'}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Career History Section */}
-          <div style={{ marginTop: '28px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '20px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>
-              📜 CAREER HISTORY
-            </h3>
-
-            {loadingHistory && (
-              <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic' }}>
-                ⌛ Loading career history...
-              </div>
-            )}
-
-            {historyError && (
-              <div className="alert-banner alert-error" style={{ fontSize: '13px', padding: '10px 14px' }}>
-                ⚠️ {historyError}
-              </div>
-            )}
-
-            {!loadingHistory && !historyError && teamHistory.length === 0 && (
-              <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic' }}>
-                No career history available.
-              </div>
-            )}
-
-            {!loadingHistory && !historyError && teamHistory.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {teamHistory.map((item) => (
-                  <div
-                    key={item.id}
-                    style={{
-                      background: item.isCurrent ? 'rgba(59, 130, 246, 0.1)' : 'rgba(15, 23, 42, 0.4)',
-                      border: item.isCurrent ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)',
-                      borderRadius: '8px',
-                      padding: '14px 18px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      gap: '12px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <div
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '8px',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '18px',
-                        }}
-                      >
-                        🛡️
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {item.team.name}
-                          {item.isCurrent && (
-                            <span className="status-badge status-active" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                              Current Club
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          {item.joinedAt ? new Date(item.joinedAt).getFullYear() : 'N/A'} - {item.isCurrent ? 'Present' : (item.leftAt ? new Date(item.leftAt).getFullYear() : 'N/A')}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      {item.shirtNumber !== undefined && item.shirtNumber !== null && (
-                        <span className="role-pill" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fde047', fontWeight: 600 }}>
-                          #{item.shirtNumber}
-                        </span>
-                      )}
-                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                        {item.team.country || ''}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Season Statistics Section */}
-          <div style={{ marginTop: '28px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '20px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#f8fafc', marginBottom: '16px' }}>
-              📊 SEASON STATISTICS
-            </h3>
-
-            {statsLoading && (
-              <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic' }}>
-                ⌛ Loading season statistics...
+                Loading performance metrics...
               </div>
             )}
 
             {statsError && (
-              <div className="alert-banner alert-error" style={{ fontSize: '13px', padding: '10px 14px' }}>
+              <div
+                className="scout-b2b-alert-error"
+                style={{ fontSize: "13px", margin: "14px 0" }}
+              >
                 ⚠️ {statsError}
               </div>
             )}
 
-            {!statsLoading && !statsError && seasonStatistics.length === 0 && (
-              <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic' }}>
-                No season statistics available.
-              </div>
-            )}
-
-            {!statsLoading && !statsError && seasonStatistics.length > 0 && (
-              <div>
-                {/* Selectors Bar with Fixed Widths to Prevent Layout Shift */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    marginBottom: '20px',
-                    flexWrap: 'wrap',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    padding: '16px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  {/* Season Dropdown (Fixed Width) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '220px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                      🗓️ SEASON
-                    </label>
-                    <select
-                      className="scout-select"
-                      value={selectedSeasonCode}
-                      onChange={(e) => setSelectedSeasonCode(e.target.value)}
-                      style={{ width: '100%' }}
-                    >
-                      {availableSeasons.map((s) => (
-                        <option key={s.seasonCode} value={s.seasonCode}>
-                          {s.seasonCode} {s.isCurrent ? '(Current)' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Competition Dropdown (Fixed Width) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '260px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                      🏆 COMPETITION
-                    </label>
-                    <select
-                      className="scout-select"
-                      value={selectedCompetitionId}
-                      onChange={(e) => setSelectedCompetitionId(e.target.value)}
-                      style={{ width: '100%' }}
-                    >
-                      {availableCompetitions.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Team Dropdown (Fixed Width - Conditional if multiple teams exist) */}
-                  {availableTeams.length > 1 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '220px' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                        🛡️ TEAM
-                      </label>
-                      <select
-                        className="scout-select"
-                        value={selectedTeamId}
-                        onChange={(e) => setSelectedTeamId(e.target.value)}
-                        style={{ width: '100%' }}
-                      >
-                        {availableTeams.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
+            {!statsLoading && selectedStatistic && (
+              <div className="scout-fc-perf-grid-30-70">
+                {/* Left Column - Radar Chart (30% - lg:col-span-4) */}
+                <div className="scout-fc-radar-panel">
+                  <PlayerRadarChart
+                    metrics={radarMetrics}
+                    positionLabel={player.primaryPosition || "Player"}
+                    roleHexColor={positionRole.hexColor}
+                  />
                 </div>
 
-                {/* Selected Statistics Card View */}
-                {selectedStatistic && (
-                  <div
-                    style={{
-                      background: 'rgba(15, 23, 42, 0.5)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '10px',
-                      padding: '20px',
-                    }}
-                  >
-                    {/* Header Bar */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                        paddingBottom: '12px',
-                        marginBottom: '18px',
-                        flexWrap: 'wrap',
-                        gap: '8px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span
-                          className="role-pill"
-                          style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', fontWeight: 700 }}
-                        >
-                          🗓️ {selectedStatistic.season.seasonCode}
-                        </span>
-                        <span style={{ fontSize: '17px', fontWeight: 700, color: '#f8fafc' }}>
-                          🏆 {selectedStatistic.competition.name}
-                        </span>
-                      </div>
+                {/* Right Column - ScoutBoard Football Game Attribute Cards (70% - lg:col-span-8) */}
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {isGoalkeeper ? (
+                    <>
+                      {/* GOALKEEPING Card */}
+                      <div className="scout-clean-stat-card card-blue">
+                        <div className="scout-clean-card-header">
+                          <div className="scout-clean-card-title title-blue">
+                            <span>🧤</span> GOALKEEPING
+                          </div>
+                        </div>
+                        <div className="scout-clean-grid-4">
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(selectedStatistic.savesPer90)}
+                            </span>
+                            <span className="scout-clean-lbl">SAVES / 90</span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(
+                                selectedStatistic.goalsConcededPer90,
+                              )}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              CONCEDED / 90
+                            </span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {selectedStatistic.savePercentage !== null &&
+                              selectedStatistic.savePercentage !== undefined
+                                ? `${selectedStatistic.savePercentage}%`
+                                : "—"}
+                            </span>
+                            <span className="scout-clean-lbl">SAVE %</span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {selectedStatistic.cleanSheetPercentage !==
+                                null &&
+                              selectedStatistic.cleanSheetPercentage !==
+                                undefined
+                                ? `${selectedStatistic.cleanSheetPercentage}%`
+                                : "—"}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              CLEAN SHEET %
+                            </span>
+                          </div>
+                        </div>
 
-                      {selectedStatistic.team && (
-                        <div style={{ fontSize: '14px', color: '#93c5fd', fontWeight: 600 }}>
-                          🛡️ {selectedStatistic.team.name}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Metric Cards Grid: 5 Categories (Including PER-90 METRICS) */}
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                        gap: '16px',
-                      }}
-                    >
-                      {/* Category 1: Playing */}
-                      <div
-                        style={{
-                          background: 'rgba(30, 41, 59, 0.5)',
-                          padding: '14px',
-                          borderRadius: '8px',
-                        }}
-                      >
-                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase' }}>
-                          🏃 Playing
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Appearances:</span> <strong>{selectedStatistic.appearances}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Starts:</span> <strong>{selectedStatistic.starts}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Minutes:</span> <strong>{selectedStatistic.minutesPlayed}'</strong>
-                        </div>
-                      </div>
-
-                      {/* Category 2: Attacking */}
-                      <div
-                        style={{
-                          background: 'rgba(30, 41, 59, 0.5)',
-                          padding: '14px',
-                          borderRadius: '8px',
-                        }}
-                      >
-                        <div style={{ fontSize: '12px', color: '#f59e0b', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase' }}>
-                          ⚽ Attacking
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Goals:</span> <strong style={{ color: '#4ade80' }}>{selectedStatistic.goals}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Assists:</span> <strong style={{ color: '#60a5fa' }}>{selectedStatistic.assists}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Shots:</span> <strong>{selectedStatistic.shots}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Shots on Target:</span> <strong>{selectedStatistic.shotsOnTarget}</strong>
+                        {/* Inline Footer (Raw Totals) */}
+                        <div className="scout-clean-footer">
+                          <div className="scout-clean-footer-item">
+                            SAVES:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.saves ?? 0}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            CONCEDED:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.goalsConceded ?? 0}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            CLEAN SHEETS:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.cleanSheets ?? 0}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            PENS SAVED:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.penaltiesSaved ?? 0}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Category 3: Passing */}
-                      <div
-                        style={{
-                          background: 'rgba(30, 41, 59, 0.5)',
-                          padding: '14px',
-                          borderRadius: '8px',
-                        }}
-                      >
-                        <div style={{ fontSize: '12px', color: '#3b82f6', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase' }}>
-                          🎯 Passing
+                      {/* DISTRIBUTION Card */}
+                      <div className="scout-clean-stat-card card-emerald">
+                        <div className="scout-clean-card-header">
+                          <div className="scout-clean-card-title title-emerald">
+                            <span>🎯</span> DISTRIBUTION
+                          </div>
                         </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Passes (Cmp / Att):</span> <strong>{selectedStatistic.passesCompleted} / {selectedStatistic.passesAttempted}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Pass Accuracy:</span> <strong>{selectedStatistic.passAccuracy !== null && selectedStatistic.passAccuracy !== undefined ? `${selectedStatistic.passAccuracy}%` : 'N/A'}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Key Passes:</span> <strong>{selectedStatistic.keyPasses}</strong>
-                        </div>
-                      </div>
-
-                      {/* Category 4: Defending */}
-                      <div
-                        style={{
-                          background: 'rgba(30, 41, 59, 0.5)',
-                          padding: '14px',
-                          borderRadius: '8px',
-                        }}
-                      >
-                        <div style={{ fontSize: '12px', color: '#a855f7', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase' }}>
-                          🛡️ Defending
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Tackles:</span> <strong>{selectedStatistic.tackles}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span>Interceptions:</span> <strong>{selectedStatistic.interceptions}</strong>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Duels Won:</span> <strong>{selectedStatistic.duelsWon}</strong>
-                        </div>
-                      </div>
-
-                      {/* Category 5: PER-90 METRICS */}
-                      <div
-                        style={{
-                          background: 'rgba(16, 185, 129, 0.1)',
-                          border: '1px solid rgba(16, 185, 129, 0.3)',
-                          padding: '14px',
-                          borderRadius: '8px',
-                          gridColumn: '1 / -1',
-                        }}
-                      >
-                        <div style={{ fontSize: '13px', color: '#34d399', fontWeight: 800, marginBottom: '12px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          ⚡ PER 90 METRICS (Norm. per 90 mins)
+                        <div className="scout-clean-grid-2">
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {selectedStatistic.passAccuracy !== null &&
+                              selectedStatistic.passAccuracy !== undefined
+                                ? `${selectedStatistic.passAccuracy}%`
+                                : "—"}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              PASS ACCURACY
+                            </span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(selectedStatistic.passesPer90)}
+                            </span>
+                            <span className="scout-clean-lbl">PASSES / 90</span>
+                          </div>
                         </div>
 
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                            gap: '12px',
-                          }}
-                        >
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Goals / 90:</span> <strong style={{ color: '#34d399' }}>{formatPer90(selectedStatistic.goalsPer90)}</strong>
+                        {/* Inline Footer (Raw Totals) */}
+                        <div className="scout-clean-footer">
+                          <div className="scout-clean-footer-item">
+                            PASSES ATTEMPTED:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.passesAttempted}
+                            </span>
                           </div>
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Assists / 90:</span> <strong style={{ color: '#60a5fa' }}>{formatPer90(selectedStatistic.assistsPer90)}</strong>
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Shots / 90:</span> <strong>{formatPer90(selectedStatistic.shotsPer90)}</strong>
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Shots on Target / 90:</span> <strong>{formatPer90(selectedStatistic.shotsOnTargetPer90)}</strong>
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Passes / 90:</span> <strong>{formatPer90(selectedStatistic.passesPer90)}</strong>
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Key Passes / 90:</span> <strong>{formatPer90(selectedStatistic.keyPassesPer90)}</strong>
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Tackles / 90:</span> <strong>{formatPer90(selectedStatistic.tacklesPer90)}</strong>
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Interceptions / 90:</span> <strong>{formatPer90(selectedStatistic.interceptionsPer90)}</strong>
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Duels Won / 90:</span> <strong>{formatPer90(selectedStatistic.duelsWonPer90)}</strong>
+                          <div className="scout-clean-footer-item">
+                            PASSES COMPLETED:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.passesCompleted}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    </>
+                  ) : (
+                    <>
+                      {/* ATTACKING Card (Amber-500 Left Accent) */}
+                      <div className="scout-clean-stat-card card-amber">
+                        <div className="scout-clean-card-header">
+                          <div className="scout-clean-card-title title-amber">
+                            <span>⚽</span> ATTACKING
+                          </div>
+                        </div>
+                        <div className="scout-clean-grid-3">
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(selectedStatistic.goalsPer90)}
+                            </span>
+                            <span className="scout-clean-lbl">GOALS / 90</span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(selectedStatistic.assistsPer90)}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              ASSISTS / 90
+                            </span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(selectedStatistic.shotsPer90)}
+                            </span>
+                            <span className="scout-clean-lbl">SHOTS / 90</span>
+                          </div>
+                        </div>
+
+                        {/* Inline Footer (Raw Totals) */}
+                        <div className="scout-clean-footer">
+                          <div className="scout-clean-footer-item">
+                            GOALS:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.goals}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            ASSISTS:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.assists}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            SHOTS:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.shots}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            ON TARGET:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.shotsOnTarget}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* PASSING Card (Blue-500 Left Accent) */}
+                      <div className="scout-clean-stat-card card-blue">
+                        <div className="scout-clean-card-header">
+                          <div className="scout-clean-card-title title-blue">
+                            <span>🎯</span> PASSING
+                          </div>
+                        </div>
+                        <div className="scout-clean-grid-2">
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {selectedStatistic.passAccuracy !== null &&
+                              selectedStatistic.passAccuracy !== undefined
+                                ? `${selectedStatistic.passAccuracy}%`
+                                : "—"}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              PASS ACCURACY
+                            </span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(selectedStatistic.keyPassesPer90)}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              KEY PASSES / 90
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Inline Footer (Raw Totals) */}
+                        <div className="scout-clean-footer">
+                          <div className="scout-clean-footer-item">
+                            KEY PASSES:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.keyPasses}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            PASSES (CMP / ATT):{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.passesCompleted} /{" "}
+                              {selectedStatistic.passesAttempted}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* DEFENDING Card (Emerald-500 Left Accent) */}
+                      <div className="scout-clean-stat-card card-emerald">
+                        <div className="scout-clean-card-header">
+                          <div className="scout-clean-card-title title-emerald">
+                            <span>🛡️</span> DEFENDING
+                          </div>
+                        </div>
+                        <div className="scout-clean-grid-3">
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(selectedStatistic.tacklesPer90)}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              TACKLES / 90
+                            </span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(
+                                selectedStatistic.interceptionsPer90,
+                              )}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              INTERCEPTIONS / 90
+                            </span>
+                          </div>
+                          <div className="scout-clean-stat-block">
+                            <span className="scout-clean-num">
+                              {formatPer90(selectedStatistic.duelsWonPer90)}
+                            </span>
+                            <span className="scout-clean-lbl">
+                              DUELS WON / 90
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Inline Footer (Raw Totals) */}
+                        <div className="scout-clean-footer">
+                          <div className="scout-clean-footer-item">
+                            TACKLES:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.tackles}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            INTERCEPTIONS:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.interceptions}
+                            </span>
+                          </div>
+                          <div className="scout-clean-footer-item">
+                            DUELS WON:{" "}
+                            <span className="scout-clean-footer-val">
+                              {selectedStatistic.duelsWon}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>
 
-          {/* RECENT MATCH LOG SECTION */}
-          <div style={{ marginTop: '28px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#f8fafc', margin: 0 }}>
-                ⚔️ RECENT MATCH LOG
-              </h3>
+          {/* =========================================================================
+              4. RECENT MATCH LOG TABLE
+             ========================================================================= */}
+          <div className="scout-b2b-control-card" style={{ margin: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "16px",
+                flexWrap: "wrap",
+                gap: "8px",
+              }}
+            >
+              <div>
+                <div className="scout-detail-section-title">
+                  Recent Match Log
+                </div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    color: "#64748b",
+                    marginTop: "2px",
+                  }}
+                >
+                  Individual match performances and official statistical ratings
+                </div>
+              </div>
 
               {/* Match Pagination Bar */}
               {!matchLoading && !matchError && matchTotal > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
                   <button
                     type="button"
-                    className="scout-btn scout-btn-secondary scout-btn-sm"
+                    className="scout-b2b-btn scout-b2b-btn-secondary"
+                    style={{
+                      height: "32px",
+                      padding: "0 10px",
+                      fontSize: "12px",
+                    }}
                     disabled={matchOffset === 0}
-                    onClick={() => setMatchOffset((prev) => Math.max(0, prev - matchLimit))}
-                    style={{ opacity: matchOffset === 0 ? 0.5 : 1, cursor: matchOffset === 0 ? 'not-allowed' : 'pointer' }}
+                    onClick={() =>
+                      setMatchOffset((prev) => Math.max(0, prev - matchLimit))
+                    }
                   >
                     ← Prev
                   </button>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: "#64748b",
+                    }}
+                  >
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
                     type="button"
-                    className="scout-btn scout-btn-secondary scout-btn-sm"
+                    className="scout-b2b-btn scout-b2b-btn-secondary"
+                    style={{
+                      height: "32px",
+                      padding: "0 10px",
+                      fontSize: "12px",
+                    }}
                     disabled={matchOffset + matchLimit >= matchTotal}
                     onClick={() => setMatchOffset((prev) => prev + matchLimit)}
-                    style={{
-                      opacity: matchOffset + matchLimit >= matchTotal ? 0.5 : 1,
-                      cursor: matchOffset + matchLimit >= matchTotal ? 'not-allowed' : 'pointer',
-                    }}
                   >
                     Next →
                   </button>
@@ -1030,166 +1386,311 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId, on
             </div>
 
             {matchLoading && (
-              <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic' }}>
-                ⌛ Loading match statistics...
+              <div
+                style={{
+                  color: "#64748b",
+                  fontSize: "13px",
+                  fontStyle: "italic",
+                }}
+              >
+                Loading match log...
               </div>
             )}
 
             {matchError && (
-              <div className="alert-banner alert-error" style={{ fontSize: '13px', padding: '10px 14px' }}>
+              <div
+                className="scout-b2b-alert-error"
+                style={{ fontSize: "13px" }}
+              >
                 ⚠️ {matchError}
               </div>
             )}
 
             {!matchLoading && !matchError && matchStatistics.length === 0 && (
-              <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic' }}>
-                No match statistics available for this selection.
+              <div
+                style={{
+                  color: "#64748b",
+                  fontSize: "13px",
+                  fontStyle: "italic",
+                }}
+              >
+                No match statistics available for this season and competition.
               </div>
             )}
 
             {!matchLoading && !matchError && matchStatistics.length > 0 && (
-              <div className="admin-table-wrapper">
-                <table className="admin-table">
+              <div
+                className="scout-b2b-table-wrapper"
+                style={{
+                  borderRadius: "8px",
+                  border: "1px solid #e2e8f0",
+                  overflow: "hidden",
+                }}
+              >
+                <table className="scout-b2b-table">
                   <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Match / Opponent</th>
-                      <th>Score</th>
-                      <th>Result</th>
-                      <th>Role</th>
-                      <th>Mins</th>
-                      <th>Rating</th>
-                      <th>G</th>
-                      <th>A</th>
-                      <th>Shots</th>
-                      <th>Pass (Cmp/Att)</th>
-                      <th>KP</th>
-                      <th>Tk</th>
-                    </tr>
+                    {isGoalkeeper ? (
+                      <tr>
+                        <th>Date</th>
+                        <th>Match / Opponent</th>
+                        <th>Score</th>
+                        <th>Result</th>
+                        <th>Role</th>
+                        <th>Mins</th>
+                        <th>Rating</th>
+                        <th>Saves</th>
+                        <th>Conceded</th>
+                        <th>Clean Sheet</th>
+                        <th>Pens Saved</th>
+                        <th>Pass (Cmp/Att)</th>
+                      </tr>
+                    ) : (
+                      <tr>
+                        <th>Date</th>
+                        <th>Match / Opponent</th>
+                        <th>Score</th>
+                        <th>Result</th>
+                        <th>Role</th>
+                        <th>Mins</th>
+                        <th>Rating</th>
+                        <th>G</th>
+                        <th>A</th>
+                        <th>Shots</th>
+                        <th>Pass (Cmp/Att)</th>
+                        <th>KP</th>
+                        <th>Tk</th>
+                      </tr>
+                    )}
                   </thead>
                   <tbody>
                     {matchStatistics.map((item) => {
                       const ctx = getMatchContext(item);
                       const kickoffStr = item.match.kickoffAt
                         ? new Date(item.match.kickoffAt).toLocaleDateString()
-                        : 'N/A';
+                        : "—";
 
                       return (
-                        <tr key={item.id}>
+                        <tr key={item.id} className="scout-b2b-table-row">
                           {/* Date */}
-                          <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                          <td style={{ fontSize: "12px", color: "#64748b" }}>
                             {kickoffStr}
                           </td>
 
                           {/* Match / Opponent */}
                           <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                              }}
+                            >
                               <span
                                 style={{
-                                  fontSize: '11px',
+                                  fontSize: "11px",
                                   fontWeight: 700,
-                                  color: ctx.isHome ? '#93c5fd' : '#fde047',
-                                  background: ctx.isHome ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                                  padding: '2px 6px',
-                                  borderRadius: '4px',
+                                  color: ctx.isHome ? "#1d4ed8" : "#b45309",
+                                  background: ctx.isHome
+                                    ? "#eff6ff"
+                                    : "#fef3c7",
+                                  padding: "2px 6px",
+                                  borderRadius: "4px",
+                                  display: "inline-block",
                                 }}
                               >
                                 {ctx.venuePrefix}
                               </span>
-                              <span style={{ fontWeight: 600, color: '#f8fafc' }}>
-                                {ctx.opponent ? (ctx.opponent.shortName || ctx.opponent.name) : 'N/A'}
+                              <span
+                                style={{ fontWeight: 600, color: "#0f172a" }}
+                              >
+                                {ctx.opponent
+                                  ? ctx.opponent.shortName || ctx.opponent.name
+                                  : "—"}
                               </span>
                             </div>
                           </td>
 
                           {/* Score */}
-                          <td style={{ fontWeight: 700, color: '#f8fafc', fontSize: '13px' }}>
+                          <td
+                            style={{
+                              fontWeight: 700,
+                              color: "#0f172a",
+                              fontSize: "13px",
+                            }}
+                          >
                             {ctx.scoreText}
                           </td>
 
                           {/* Result Badge */}
                           <td>
                             <span
-                              className="role-pill"
                               style={{
                                 background:
-                                  ctx.result === 'WIN'
-                                    ? 'rgba(34, 197, 94, 0.2)'
-                                    : ctx.result === 'DRAW'
-                                    ? 'rgba(245, 158, 11, 0.2)'
-                                    : ctx.result === 'LOSS'
-                                    ? 'rgba(239, 68, 68, 0.2)'
-                                    : 'rgba(148, 163, 184, 0.2)',
+                                  ctx.result === "WIN"
+                                    ? "#dcfce7"
+                                    : ctx.result === "DRAW"
+                                      ? "#fef3c7"
+                                      : ctx.result === "LOSS"
+                                        ? "#fee2e2"
+                                        : "#f1f5f9",
                                 color:
-                                  ctx.result === 'WIN'
-                                    ? '#4ade80'
-                                    : ctx.result === 'DRAW'
-                                    ? '#fde047'
-                                    : ctx.result === 'LOSS'
-                                    ? '#f87171'
-                                    : '#cbd5e1',
+                                  ctx.result === "WIN"
+                                    ? "#15803d"
+                                    : ctx.result === "DRAW"
+                                      ? "#b45309"
+                                      : ctx.result === "LOSS"
+                                        ? "#b91c1c"
+                                        : "#64748b",
                                 fontWeight: 800,
-                                fontSize: '12px',
-                                padding: '2px 8px',
+                                fontSize: "11px",
+                                padding: "2px 8px",
+                                borderRadius: "4px",
+                                display: "inline-block",
                               }}
                             >
-                              {ctx.result === 'WIN' ? 'W' : ctx.result === 'DRAW' ? 'D' : ctx.result === 'LOSS' ? 'L' : '—'}
+                              {ctx.result === "WIN"
+                                ? "W"
+                                : ctx.result === "DRAW"
+                                  ? "D"
+                                  : ctx.result === "LOSS"
+                                    ? "L"
+                                    : "—"}
                             </span>
                           </td>
 
                           {/* Role: XI / Sub */}
                           <td>
                             <span
-                              className="status-badge"
+                              className="scout-b2b-badge-count"
                               style={{
-                                background: item.isStarter ? 'rgba(59, 130, 246, 0.15)' : 'rgba(148, 163, 184, 0.15)',
-                                color: item.isStarter ? '#60a5fa' : '#cbd5e1',
-                                fontSize: '11px',
+                                background: item.isStarter
+                                  ? "#eff6ff"
+                                  : "#f1f5f9",
+                                color: item.isStarter ? "#1d4ed8" : "#64748b",
+                                borderColor: item.isStarter
+                                  ? "#bfdbfe"
+                                  : "#e2e8f0",
+                                fontSize: "11px",
                               }}
                             >
-                              {item.isStarter ? 'XI' : 'Sub'}
+                              {item.isStarter ? "XI" : "Sub"}
                             </span>
                           </td>
 
                           {/* Minutes */}
-                          <td style={{ fontWeight: 600, color: '#f8fafc' }}>
+                          <td style={{ fontWeight: 600, color: "#0f172a" }}>
                             {item.minutesPlayed}'
                           </td>
 
                           {/* Rating */}
                           <td>
-                            {item.rating !== null && item.rating !== undefined ? (
-                              <span style={{ color: '#fde047', fontWeight: 700, fontSize: '13px' }}>
+                            {item.rating !== null &&
+                            item.rating !== undefined ? (
+                              <span
+                                style={{
+                                  color: "#d97706",
+                                  fontWeight: 700,
+                                  fontSize: "13px",
+                                }}
+                              >
                                 ⭐ {Number(item.rating).toFixed(1)}
                               </span>
                             ) : (
-                              'N/A'
+                              "—"
                             )}
                           </td>
 
-                          {/* Goals */}
-                          <td style={{ fontWeight: 700, color: item.goals > 0 ? '#4ade80' : 'var(--text-muted)' }}>
-                            {item.goals}
-                          </td>
+                          {isGoalkeeper ? (
+                            <>
+                              {/* Saves */}
+                              <td style={{ fontWeight: 700, color: "#0284c7" }}>
+                                {item.saves !== null && item.saves !== undefined
+                                  ? item.saves
+                                  : "—"}
+                              </td>
 
-                          {/* Assists */}
-                          <td style={{ fontWeight: 700, color: item.assists > 0 ? '#60a5fa' : 'var(--text-muted)' }}>
-                            {item.assists}
-                          </td>
+                              {/* Goals Conceded */}
+                              <td
+                                style={{
+                                  fontWeight: 700,
+                                  color:
+                                    item.goalsConceded !== null &&
+                                    item.goalsConceded !== undefined &&
+                                    item.goalsConceded > 0
+                                      ? "#b91c1c"
+                                      : "#64748b",
+                                }}
+                              >
+                                {item.goalsConceded !== null &&
+                                item.goalsConceded !== undefined
+                                  ? item.goalsConceded
+                                  : "—"}
+                              </td>
 
-                          {/* Shots */}
-                          <td>{item.shots}</td>
+                              {/* Clean Sheet */}
+                              <td>
+                                {item.cleanSheets === 1 ? (
+                                  <span
+                                    style={{
+                                      color: "#16a34a",
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    Yes
+                                  </span>
+                                ) : (
+                                  <span style={{ color: "#94a3b8" }}>No</span>
+                                )}
+                              </td>
 
-                          {/* Pass (Cmp/Att) */}
-                          <td style={{ fontSize: '12px', fontWeight: 600 }}>
-                            {item.passesCompleted}/{item.passesAttempted}
-                          </td>
+                              {/* Penalties Saved */}
+                              <td style={{ fontWeight: 700, color: "#059669" }}>
+                                {item.penaltiesSaved ?? 0}
+                              </td>
 
-                          {/* Key Passes */}
-                          <td>{item.keyPasses}</td>
+                              {/* Pass (Cmp/Att) */}
+                              <td style={{ fontSize: "12px", fontWeight: 600 }}>
+                                {item.passesCompleted}/{item.passesAttempted}
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              {/* Goals */}
+                              <td
+                                style={{
+                                  fontWeight: 700,
+                                  color: item.goals > 0 ? "#16a34a" : "#64748b",
+                                }}
+                              >
+                                {item.goals}
+                              </td>
 
-                          {/* Tackles */}
-                          <td>{item.tackles}</td>
+                              {/* Assists */}
+                              <td
+                                style={{
+                                  fontWeight: 700,
+                                  color:
+                                    item.assists > 0 ? "#2563eb" : "#64748b",
+                                }}
+                              >
+                                {item.assists}
+                              </td>
+
+                              {/* Shots */}
+                              <td>{item.shots}</td>
+
+                              {/* Pass (Cmp/Att) */}
+                              <td style={{ fontSize: "12px", fontWeight: 600 }}>
+                                {item.passesCompleted}/{item.passesAttempted}
+                              </td>
+
+                              {/* Key Passes */}
+                              <td>{item.keyPasses}</td>
+
+                              {/* Tackles */}
+                              <td>{item.tackles}</td>
+                            </>
+                          )}
                         </tr>
                       );
                     })}

@@ -114,6 +114,19 @@ export class PlayerMatchStatisticItemDto {
   @ApiProperty({ description: 'Số thẻ đỏ' })
   redCards: number;
 
+  // Goalkeeper Specific Fields (Nullable for Outfield Players)
+  @ApiProperty({ description: 'Số pha cứu thua', nullable: true })
+  saves: number | null;
+
+  @ApiProperty({ description: 'Số bàn thua', nullable: true })
+  goalsConceded: number | null;
+
+  @ApiProperty({ description: 'Giữ sạch lưới (1: có, 0: không)', nullable: true })
+  cleanSheets: number | null;
+
+  @ApiProperty({ description: 'Số quả phạt đền cản phá thành công', nullable: true })
+  penaltiesSaved: number | null;
+
   @ApiProperty({ description: 'Thống kê JSONB nâng cao', nullable: true })
   statistics: Record<string, any> | null;
 }

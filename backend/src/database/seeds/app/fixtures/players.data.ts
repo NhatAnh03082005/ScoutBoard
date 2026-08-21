@@ -14,6 +14,12 @@ export interface PlayerStatRaw {
   dw: number;
   yc: number;
   rc: number;
+  saves?: number;
+  gc?: number;
+  cs?: number;
+  ps?: number;
+  pf?: number;
+  savePct?: number;
 }
 
 export interface SeedPlayerData {

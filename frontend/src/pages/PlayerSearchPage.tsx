@@ -11,7 +11,7 @@ import type { CompetitionItem, CompetitionTeamItem } from '../types/competition.
 import { searchPlayersApi } from '../services/player.service';
 import { getCompetitionsApi, getCurrentTeamsByCompetitionApi } from '../services/competition.service';
 import { PlayerFilters } from '../components/player/PlayerFilters';
-import { PlayerTable } from '../components/player/PlayerTable';
+import { PlayerCardGrid } from '../components/player/PlayerCardGrid';
 import { PlayerPagination } from '../components/player/PlayerPagination';
 import { PlayerDetailPage } from './PlayerDetailPage';
 import { PlayerComparisonSetupPage } from './PlayerComparisonSetupPage';
@@ -126,7 +126,7 @@ export const PlayerSearchPage: React.FC = () => {
         setPagination(data.pagination);
       })
       .catch((err: any) => {
-        setError(err.message || 'Failed to fetch players');
+        setError(err.message || 'Failed to fetch player records.');
       })
       .finally(() => {
         setLoading(false);
@@ -302,59 +302,31 @@ export const PlayerSearchPage: React.FC = () => {
     );
   }
 
-  // 4. Render Master Search View
+  // 4. Render B2B SaaS Master Search View
   return (
-    <div className="player-search-page">
-      {/* 1. Page Title */}
-      <div className="scout-header" style={{ marginBottom: '16px', textAlign: 'left' }}>
-        <h2 className="scout-title" style={{ fontSize: '26px' }}>
-          Player Search
-        </h2>
-        <p className="scout-subtitle">
-          Find and evaluate football players.
+    <div className="scout-b2b-page-container">
+      {/* 1. Clean Page Header with Brand Blue Title */}
+      <div className="scout-b2b-header">
+        <h1 className="scout-b2b-title">Player Search</h1>
+        <p className="scout-b2b-subtitle">
+          Discover, analyze, and extract professional player data profiles.
         </p>
       </div>
 
-      {/* Error Banner */}
-      {error && <div className="alert-banner alert-error">❌ {error}</div>}
-
-      {/* Loading Indicator */}
-      {loading && (
-        <div
-          className="alert-banner"
-          style={{
-            background: 'rgba(59, 130, 246, 0.15)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            color: '#93c5fd',
-          }}
-        >
-          ⌛ Loading players...
+      {/* Error Alert Banner */}
+      {error && (
+        <div className="scout-b2b-alert-error">
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
 
-      {/* 2. Search Input Form */}
-      <form onSubmit={handleSearchSubmit} className="search-form" style={{ marginBottom: '20px' }}>
-        <div className="input-group" style={{ display: 'flex', gap: '10px' }}>
-          <input
-            type="text"
-            className="scout-input"
-            placeholder="Search by player name... (e.g. Saka, Gabriel)"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="scout-btn"
-            style={{ width: 'auto', padding: '0 24px', margin: 0, whiteSpace: 'nowrap' }}
-            disabled={loading}
-          >
-            🔍 Search
-          </button>
-        </div>
-      </form>
-
-      {/* 3. Filters */}
+      {/* 2. Unified Control Panel (Search Bar + Filters Grid in ONE Card) */}
       <PlayerFilters
+        searchInput={searchInput}
+        onSearchInputChange={setSearchInput}
+        onSearchSubmit={handleSearchSubmit}
+        searchLoading={loading}
         filters={filters}
         competitions={competitions}
         teams={teams}
@@ -365,10 +337,33 @@ export const PlayerSearchPage: React.FC = () => {
         onResetFilters={handleResetFilters}
       />
 
-      {/* 4. Player Table */}
-      <PlayerTable players={players} onPlayerSelect={handlePlayerSelect} />
+      {/* 3. Results Section Header (Count + Page Indicator) */}
+      <div className="scout-b2b-results-header">
+        <div className="scout-b2b-results-title-group">
+          {pagination && (
+            <div className="scout-b2b-results-count">
+              <span className="scout-b2b-count-number">{pagination.total}</span>
+              <span className="scout-b2b-count-label">players found</span>
+            </div>
+          )}
+        </div>
 
-      {/* 5. Pagination */}
+        {pagination && pagination.total > 0 && (
+          <div className="scout-b2b-page-indicator">
+            Page {Math.floor(pagination.offset / pagination.limit) + 1} / {Math.ceil(pagination.total / pagination.limit)}
+          </div>
+        )}
+      </div>
+
+      {/* 4. Player Card Grid */}
+      <PlayerCardGrid
+        players={players}
+        loading={loading}
+        onPlayerSelect={handlePlayerSelect}
+        onResetFilters={handleResetFilters}
+      />
+
+      {/* 5. Pagination Controls */}
       <PlayerPagination
         pagination={pagination}
         onPageChange={handlePageChange}

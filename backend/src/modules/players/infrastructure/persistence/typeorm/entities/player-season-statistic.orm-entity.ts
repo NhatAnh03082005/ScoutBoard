@@ -142,6 +142,52 @@ export class PlayerSeasonStatisticOrmEntity {
   })
   interceptionsPer90: number | null;
 
+  // Goalkeeper Specific Columns (Nullable for Outfield Players)
+  @Column({ type: 'integer', nullable: true, default: null })
+  saves: number | null;
+
+  @Column({ name: 'goals_conceded', type: 'integer', nullable: true, default: null })
+  goalsConceded: number | null;
+
+  @Column({ name: 'clean_sheets', type: 'integer', nullable: true, default: null })
+  cleanSheets: number | null;
+
+  @Column({ name: 'penalties_saved', type: 'integer', nullable: true, default: null })
+  penaltiesSaved: number | null;
+
+  @Column({ name: 'penalties_faced', type: 'integer', nullable: true, default: null })
+  penaltiesFaced: number | null;
+
+  @Column({
+    name: 'saves_per_90',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    default: null,
+  })
+  savesPer90: number | null;
+
+  @Column({
+    name: 'goals_conceded_per_90',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    default: null,
+  })
+  goalsConcededPer90: number | null;
+
+  @Column({
+    name: 'save_percentage',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    default: null,
+  })
+  savePercentage: number | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 

@@ -75,6 +75,19 @@ export class PlayerMatchStatisticOrmEntity {
   @Column({ name: 'red_cards', type: 'integer', default: 0 })
   redCards: number;
 
+  // Goalkeeper Specific Columns (Nullable for Outfield Players)
+  @Column({ type: 'integer', nullable: true, default: null })
+  saves: number | null;
+
+  @Column({ name: 'goals_conceded', type: 'integer', nullable: true, default: null })
+  goalsConceded: number | null;
+
+  @Column({ name: 'clean_sheets', type: 'integer', nullable: true, default: null })
+  cleanSheets: number | null;
+
+  @Column({ name: 'penalties_saved', type: 'integer', nullable: true, default: null })
+  penaltiesSaved: number | null;
+
   @Column({ type: 'jsonb', nullable: true, default: null })
   statistics: Record<string, any> | null;
 
