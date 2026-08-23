@@ -1,14 +1,17 @@
 import type { PlayerSeasonStatisticItem } from '../types/player.types';
-import type { PositionCategory } from './position.utils';
+
+export type RadarProfile = 'GK' | 'DEF' | 'CDM' | 'CM' | 'CAM' | 'LM_RM' | 'ATT';
 
 export interface RadarMetric {
   key: string;
-  label: string;
+  label: string; // English all-caps label
   value: number; // 0 to 100 normalized display score
   rawValue: string; // Formatted raw value for tooltip/display
 }
 
-// Normalization helper: Clamps raw value between min and max, converts to 0-100 score
+/**
+ * Normalization helper: Clamps raw value between min and max, converts to 0-100 score
+ */
 export function normalizeMetric(
   val: number | null | undefined,
   min: number,
@@ -27,11 +30,77 @@ export function normalizeMetric(
 }
 
 /**
+ * Map standard position code into 1 of 7 Tactical Radar Profiles
+ */
+export function getRadarProfile(posCode?: string | null): RadarProfile {
+  if (!posCode) return 'CM';
+  const upper = posCode.trim().toUpperCase();
+
+  // 1. Goalkeeper
+  if (upper === 'GK') return 'GK';
+
+  // 2. Defender (CB, LB, RB, LWB, RWB, WB)
+  if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'WB'].includes(upper)) return 'DEF';
+
+  // 3. Defensive Midfielder (CDM, DM)
+  if (['CDM', 'DM'].includes(upper)) return 'CDM';
+
+  // 4. Central Midfielder (CM)
+  if (upper === 'CM') return 'CM';
+
+  // 5. Attacking Midfielder (CAM, AM)
+  if (['CAM', 'AM'].includes(upper)) return 'CAM';
+
+  // 6. Wide Midfielder (LM, RM)
+  if (['LM', 'RM'].includes(upper)) return 'LM_RM';
+
+  // 7. Attacker (LW, RW, CF, ST, FW)
+  if (['LW', 'RW', 'CF', 'ST', 'FW'].includes(upper)) return 'ATT';
+
+  // Fallback for general midfielder
+  return 'CM';
+}
+
+/**
+ * Get display title for the Radar Profile
+ */
+export function getRadarProfileTitle(profile: RadarProfile): string {
+  switch (profile) {
+    case 'GK':
+      return 'GOALKEEPER';
+    case 'DEF':
+      return 'DEFENDER';
+    case 'CDM':
+      return 'DEFENSIVE MIDFIELDER';
+    case 'CM':
+      return 'CENTRAL MIDFIELDER';
+    case 'CAM':
+      return 'ATTACKING MIDFIELDER';
+    case 'LM_RM':
+      return 'WIDE MIDFIELDER';
+    case 'ATT':
+      return 'ATTACKER';
+  }
+}
+
+/**
+ * Unified calculator function: calculateRadarScores(playerStats, radarProfileOrPos)
+ * Shared single source of truth between Player Detail Page and Player Comparison Page.
+ */
+export function calculateRadarScores(
+  stat?: PlayerSeasonStatisticItem | any | null,
+  profileOrPosCode?: RadarProfile | string | null,
+): RadarMetric[] {
+  return getRadarMetrics(profileOrPosCode, stat);
+}
+
+/**
  * Returns 5 position-aware tactical metrics normalized to 0-100 for the Radar Chart
+ * Supports all 7 tactical profiles with English axis labels.
  */
 export function getRadarMetrics(
-  category: PositionCategory,
-  stat?: PlayerSeasonStatisticItem | null,
+  posCodeOrCategory?: string | null,
+  stat?: PlayerSeasonStatisticItem | any | null,
 ): RadarMetric[] {
   if (!stat) {
     return [
@@ -43,18 +112,43 @@ export function getRadarMetrics(
     ];
   }
 
-  switch (category) {
+  // Determine profile from position code
+  const profile = getRadarProfile(posCodeOrCategory);
+
+  // Common Raw & Derived Metrics
+  const minutes = stat.minutesPlayed ?? 0;
+  const passAcc = stat.passAccuracy ?? (stat.passesAttempted > 0 ? (stat.passesCompleted / stat.passesAttempted) * 100 : 0);
+  const passesP90 = stat.passesPer90 ?? (minutes > 0 ? (stat.passesAttempted * 90) / minutes : 0);
+  const keyPassesP90 = stat.keyPassesPer90 ?? (minutes > 0 ? (stat.keyPasses * 90) / minutes : 0);
+  const tacklesP90 = stat.tacklesPer90 ?? (minutes > 0 ? (stat.tackles * 90) / minutes : 0);
+  const intP90 = stat.interceptionsPer90 ?? (minutes > 0 ? (stat.interceptions * 90) / minutes : 0);
+  const duelsP90 = stat.duelsWonPer90 ?? (minutes > 0 ? (stat.duelsWon * 90) / minutes : 0);
+  const goalsP90 = stat.goalsPer90 ?? (minutes > 0 ? (stat.goals * 90) / minutes : 0);
+  const assistsP90 = stat.assistsPer90 ?? (minutes > 0 ? (stat.assists * 90) / minutes : 0);
+  const shotsP90 = stat.shotsPer90 ?? (minutes > 0 ? (stat.shots * 90) / minutes : 0);
+  const shotsOnTargetP90 = stat.shotsOnTargetPer90 ?? (minutes > 0 ? (stat.shotsOnTarget * 90) / minutes : 0);
+
+  // Combined Tactical Metrics
+  const ballRecovery = tacklesP90 + intP90;
+  const goalThreat = goalsP90 + assistsP90;
+
+  switch (profile) {
+    // =========================================================================
+    // 1. GOALKEEPER (GK)
+    // =========================================================================
     case 'GK': {
-      // 1. Shot Stopping (Saves/90: scale 0 to 5.0)
-      const savesP90 = stat.savesPer90 ?? 0;
-      // 2. Clean Sheets (Clean Sheets: scale 0 to 18)
-      const cs = stat.cleanSheets ?? 0;
-      // 3. Distribution (Pass Accuracy: scale 40% to 90%)
-      const passAcc = stat.passAccuracy ?? 0;
-      // 4. Conceded Prevention (Goals Conceded/90: scale 0.5 to 2.5, inverse)
-      const gcP90 = stat.goalsConcededPer90 ?? 1.5;
-      // 5. Penalty Saving (Penalties Saved: scale 0 to 3)
+      const savesP90 = stat.savesPer90 ?? (minutes > 0 && stat.saves !== null && stat.saves !== undefined ? (stat.saves * 90) / minutes : 0);
+      const cleanSheets = stat.cleanSheets ?? 0;
+      const gcP90 = stat.goalsConcededPer90 ?? (minutes > 0 && stat.goalsConceded !== null && stat.goalsConceded !== undefined ? (stat.goalsConceded * 90) / minutes : 1.5);
+      
       const penSaved = stat.penaltiesSaved ?? 0;
+      const penFaced = stat.penaltiesFaced ?? 0;
+      let penSavePct: number | null = null;
+      if (penFaced > 0 && stat.penaltiesSaved !== null && stat.penaltiesSaved !== undefined) {
+        penSavePct = (penSaved / penFaced) * 100;
+      } else if (stat.penaltySavePercentage !== null && stat.penaltySavePercentage !== undefined) {
+        penSavePct = stat.penaltySavePercentage;
+      }
 
       return [
         {
@@ -66,19 +160,19 @@ export function getRadarMetrics(
         {
           key: 'cleanSheets',
           label: 'CLEAN SHEETS',
-          value: normalizeMetric(cs, 0, 16),
-          rawValue: `${cs} clean sheets`,
+          value: normalizeMetric(cleanSheets, 0, 16),
+          rawValue: `${cleanSheets} CS`,
         },
         {
           key: 'distribution',
           label: 'DISTRIBUTION',
           value: normalizeMetric(passAcc, 40, 90),
-          rawValue: `${passAcc.toFixed(1)}% acc`,
+          rawValue: `${passAcc.toFixed(1)}%`,
         },
         {
-          key: 'concededPrevention',
+          key: 'goalPrevention',
           label: 'GOAL PREVENTION',
-          value: normalizeMetric(gcP90, 0.6, 2.4, true),
+          value: normalizeMetric(gcP90, 0.6, 2.4, true), // Lower is better
           rawValue: stat.goalsConcededPer90 !== null && stat.goalsConcededPer90 !== undefined
             ? `${stat.goalsConcededPer90.toFixed(2)} GA/90`
             : `${stat.goalsConceded ?? 0} conceded`,
@@ -86,27 +180,21 @@ export function getRadarMetrics(
         {
           key: 'penaltyStopping',
           label: 'PENALTY STOPPING',
-          value: normalizeMetric(penSaved, 0, 3),
-          rawValue: `${penSaved} saved`,
+          value: penSavePct !== null ? normalizeMetric(penSavePct, 0, 100) : 0,
+          rawValue: penSavePct !== null
+            ? `${penSavePct.toFixed(1)}% (${penSaved}/${penFaced})`
+            : (penSaved > 0 ? `${penSaved} saved` : '0% (0/0)'),
         },
       ];
     }
 
+    // =========================================================================
+    // 2. DEFENDER (CB, LB, RB, LWB, RWB)
+    // =========================================================================
     case 'DEF': {
-      // 1. Tackling (Tackles/90: scale 0 to 3.5)
-      const tacklesP90 = stat.tacklesPer90 ?? 0;
-      // 2. Interceptions (Interceptions/90: scale 0 to 2.5)
-      const intP90 = stat.interceptionsPer90 ?? 0;
-      // 3. Duel Ability (Duels Won/90: scale 0 to 7.0)
-      const duelsP90 = stat.duelsWonPer90 ?? 0;
-      // 4. Pass Accuracy (scale 60% to 95%)
-      const passAcc = stat.passAccuracy ?? 0;
-      // 5. Build-Up Passing (Passes/90: scale 0 to 75)
-      const passesP90 = stat.passesPer90 ?? 0;
-
       return [
         {
-          key: 'tackling',
+          key: 'tackles',
           label: 'TACKLING',
           value: normalizeMetric(tacklesP90, 0, 3.5),
           rawValue: `${tacklesP90.toFixed(2)}/90`,
@@ -118,7 +206,7 @@ export function getRadarMetrics(
           rawValue: `${intP90.toFixed(2)}/90`,
         },
         {
-          key: 'duels',
+          key: 'duelsWon',
           label: 'DUEL ABILITY',
           value: normalizeMetric(duelsP90, 0, 7.0),
           rawValue: `${duelsP90.toFixed(2)}/90`,
@@ -130,76 +218,59 @@ export function getRadarMetrics(
           rawValue: `${passAcc.toFixed(1)}%`,
         },
         {
-          key: 'buildUpPassing',
+          key: 'buildUp',
           label: 'BUILD-UP',
           value: normalizeMetric(passesP90, 0, 75),
-          rawValue: `${passesP90.toFixed(1)} passes/90`,
+          rawValue: `${passesP90.toFixed(1)}/90`,
         },
       ];
     }
 
-    case 'ATT': {
-      // 1. Scoring (Goals/90: scale 0 to 1.0)
-      const goalsP90 = stat.goalsPer90 ?? 0;
-      // 2. Shooting Volume (Shots/90: scale 0 to 4.5)
-      const shotsP90 = stat.shotsPer90 ?? 0;
-      // 3. Shot Accuracy (Shots on Target/90: scale 0 to 2.0)
-      const sotP90 = stat.shotsOnTargetPer90 ?? 0;
-      // 4. Chance Creation (Key Passes/90: scale 0 to 2.8)
-      const kpP90 = stat.keyPassesPer90 ?? 0;
-      // 5. Playmaking (Assists/90: scale 0 to 0.5)
-      const astP90 = stat.assistsPer90 ?? 0;
-
+    // =========================================================================
+    // 3. DEFENSIVE MIDFIELDER (CDM)
+    // =========================================================================
+    case 'CDM': {
       return [
         {
-          key: 'scoring',
-          label: 'SCORING',
-          value: normalizeMetric(goalsP90, 0, 1.0),
-          rawValue: `${goalsP90.toFixed(2)}/90`,
+          key: 'tackles',
+          label: 'TACKLING',
+          value: normalizeMetric(tacklesP90, 0, 4.0),
+          rawValue: `${tacklesP90.toFixed(2)}/90`,
         },
         {
-          key: 'shooting',
-          label: 'SHOOTING',
-          value: normalizeMetric(shotsP90, 0, 4.5),
-          rawValue: `${shotsP90.toFixed(2)} shots/90`,
+          key: 'interceptions',
+          label: 'INTERCEPTIONS',
+          value: normalizeMetric(intP90, 0, 3.0),
+          rawValue: `${intP90.toFixed(2)}/90`,
         },
         {
-          key: 'shotAccuracy',
-          label: 'ON TARGET',
-          value: normalizeMetric(sotP90, 0, 2.0),
-          rawValue: `${sotP90.toFixed(2)} SoT/90`,
+          key: 'ballRecovery',
+          label: 'BALL RECOVERY',
+          value: normalizeMetric(ballRecovery, 0, 6.0),
+          rawValue: `${ballRecovery.toFixed(2)}/90`,
         },
         {
-          key: 'creativity',
-          label: 'CHANCE CREATION',
-          value: normalizeMetric(kpP90, 0, 2.8),
-          rawValue: `${kpP90.toFixed(2)} KP/90`,
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 70, 95),
+          rawValue: `${passAcc.toFixed(1)}%`,
         },
         {
-          key: 'playmaking',
-          label: 'PLAYMAKING',
-          value: normalizeMetric(astP90, 0, 0.5),
-          rawValue: `${astP90.toFixed(2)} ast/90`,
+          key: 'passVolume',
+          label: 'PASS VOLUME',
+          value: normalizeMetric(passesP90, 0, 80),
+          rawValue: `${passesP90.toFixed(1)}/90`,
         },
       ];
     }
 
-    case 'MID':
-    default: {
-      // 1. Passing Volume (Passes/90: scale 0 to 80)
-      const passesP90 = stat.passesPer90 ?? 0;
-      // 2. Pass Accuracy (scale 65% to 95%)
-      const passAcc = stat.passAccuracy ?? 0;
-      // 3. Creativity (Key Passes/90: scale 0 to 3.0)
-      const kpP90 = stat.keyPassesPer90 ?? 0;
-      // 4. Ball Recovery (Tackles + Interceptions/90: scale 0 to 4.5)
-      const defContr = (stat.tacklesPer90 ?? 0) + (stat.interceptionsPer90 ?? 0);
-      // 5. Goal Threat (Goals + Assists/90: scale 0 to 0.8)
-      const goalThreat = (stat.goalsPer90 ?? 0) + (stat.assistsPer90 ?? 0);
-
+    // =========================================================================
+    // 4. CENTRAL MIDFIELDER (CM)
+    // =========================================================================
+    case 'CM': {
       return [
         {
-          key: 'passingVolume',
+          key: 'passVolume',
           label: 'PASS VOLUME',
           value: normalizeMetric(passesP90, 0, 80),
           rawValue: `${passesP90.toFixed(1)}/90`,
@@ -213,20 +284,135 @@ export function getRadarMetrics(
         {
           key: 'creativity',
           label: 'CREATIVITY',
-          value: normalizeMetric(kpP90, 0, 3.0),
-          rawValue: `${kpP90.toFixed(2)} KP/90`,
+          value: normalizeMetric(keyPassesP90, 0, 3.0),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
         },
         {
           key: 'ballRecovery',
-          label: 'RECOVERY',
-          value: normalizeMetric(defContr, 0, 4.5),
-          rawValue: `${defContr.toFixed(2)} act/90`,
+          label: 'BALL RECOVERY',
+          value: normalizeMetric(ballRecovery, 0, 4.5),
+          rawValue: `${ballRecovery.toFixed(2)}/90`,
         },
         {
           key: 'goalThreat',
           label: 'GOAL THREAT',
           value: normalizeMetric(goalThreat, 0, 0.8),
-          rawValue: `${goalThreat.toFixed(2)} G+A/90`,
+          rawValue: `${goalThreat.toFixed(2)}/90`,
+        },
+      ];
+    }
+
+    // =========================================================================
+    // 5. ATTACKING MIDFIELDER (CAM)
+    // =========================================================================
+    case 'CAM': {
+      return [
+        {
+          key: 'creativity',
+          label: 'CREATIVITY',
+          value: normalizeMetric(keyPassesP90, 0, 3.5),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 65, 92),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'assists',
+          label: 'ASSISTS',
+          value: normalizeMetric(assistsP90, 0, 0.6),
+          rawValue: `${assistsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'scoring',
+          label: 'SCORING',
+          value: normalizeMetric(goalsP90, 0, 0.7),
+          rawValue: `${goalsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'goalThreat',
+          label: 'GOAL THREAT',
+          value: normalizeMetric(goalThreat, 0, 1.0),
+          rawValue: `${goalThreat.toFixed(2)}/90`,
+        },
+      ];
+    }
+
+    // =========================================================================
+    // 6. WIDE MIDFIELDER (LM, RM)
+    // =========================================================================
+    case 'LM_RM': {
+      return [
+        {
+          key: 'tackles',
+          label: 'TACKLING',
+          value: normalizeMetric(tacklesP90, 0, 3.0),
+          rawValue: `${tacklesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'interceptions',
+          label: 'INTERCEPTIONS',
+          value: normalizeMetric(intP90, 0, 2.2),
+          rawValue: `${intP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 65, 92),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'creativity',
+          label: 'CREATIVITY',
+          value: normalizeMetric(keyPassesP90, 0, 2.8),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'goalThreat',
+          label: 'GOAL THREAT',
+          value: normalizeMetric(goalThreat, 0, 0.9),
+          rawValue: `${goalThreat.toFixed(2)}/90`,
+        },
+      ];
+    }
+
+    // =========================================================================
+    // 7. ATTACKER (LW, RW, CF, ST)
+    // =========================================================================
+    case 'ATT':
+    default: {
+      return [
+        {
+          key: 'scoring',
+          label: 'SCORING',
+          value: normalizeMetric(goalsP90, 0, 1.0),
+          rawValue: `${goalsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'shooting',
+          label: 'SHOOTING',
+          value: normalizeMetric(shotsP90, 0, 4.5),
+          rawValue: `${shotsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'onTarget',
+          label: 'ON TARGET',
+          value: normalizeMetric(shotsOnTargetP90, 0, 2.0),
+          rawValue: `${shotsOnTargetP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'creativity',
+          label: 'CHANCE CREATION',
+          value: normalizeMetric(keyPassesP90, 0, 2.8),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'assists',
+          label: 'ASSISTS',
+          value: normalizeMetric(assistsP90, 0, 0.5),
+          rawValue: `${assistsP90.toFixed(2)}/90`,
         },
       ];
     }

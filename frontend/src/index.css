@@ -2342,6 +2342,14 @@ body {
   margin-top: 4px;
 }
 
+.scout-clean-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
 /* Inline Footer (Subtle bg-slate-50, Single Horizontal Line) */
 .scout-clean-footer {
   background: #f8fafc;
@@ -3024,3 +3032,35 @@ body {
     background-position: 200% 0;
   }
 }
+
+/* =========================================================================
+   SCOUT COMPARE PLAYER 2-COLUMN ANALYTICS DASHBOARD
+   ========================================================================= */
+.scout-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 1024px) {
+  .scout-comparison-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.scout-comparison-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.scout-comparison-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.scout-b2b-table-row:hover {
+  background-color: rgba(248, 250, 252, 0.9) !important;
+}
+

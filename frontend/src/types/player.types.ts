@@ -102,6 +102,7 @@ export interface PlayerSeasonStatisticItem {
   goalsConcededPer90?: number | null;
   savePercentage?: number | null;
   cleanSheetPercentage?: number | null;
+  penaltySavePercentage?: number | null;
 }
 
 export interface PlayerMatchStatisticItem {

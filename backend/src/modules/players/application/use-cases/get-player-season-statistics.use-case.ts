@@ -74,6 +74,9 @@ export class GetPlayerSeasonStatisticsUseCase {
       const cleanSheetPct = stat.matchesPlayed > 0 && stat.cleanSheets !== null && stat.cleanSheets !== undefined
         ? Number(((stat.cleanSheets / stat.matchesPlayed) * 100).toFixed(2))
         : null;
+      const penaltySavePct = (stat.penaltiesFaced ?? 0) > 0 && stat.penaltiesSaved !== null && stat.penaltiesSaved !== undefined
+        ? Number(((stat.penaltiesSaved / stat.penaltiesFaced!) * 100).toFixed(2))
+        : null;
 
       results.push({
         id: stat.id,
@@ -131,6 +134,7 @@ export class GetPlayerSeasonStatisticsUseCase {
         goalsConcededPer90: goalsConcededP90,
         savePercentage: savePct,
         cleanSheetPercentage: cleanSheetPct,
+        penaltySavePercentage: penaltySavePct,
       });
     }
 

@@ -146,4 +146,7 @@ export class PlayerSeasonStatisticResponseDto {
 
   @ApiProperty({ description: 'Tỷ lệ giữ sạch lưới (%)', nullable: true })
   cleanSheetPercentage: number | null;
+
+  @ApiProperty({ description: 'Tỷ lệ cản phá penalty (%)', nullable: true })
+  penaltySavePercentage: number | null;
 }
