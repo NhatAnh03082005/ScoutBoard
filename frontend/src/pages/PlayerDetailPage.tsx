@@ -14,6 +14,7 @@ import {
 import { getPositionRoleInfo, getPositionCategory } from "../utils/position.utils";
 import { PlayerRadarChart } from "../components/player/PlayerRadarChart";
 import { getRadarMetrics } from "../utils/radar.utils";
+import { AddToShortlistModal } from "../components/shortlist/AddToShortlistModal";
 
 interface PlayerDetailPageProps {
   playerId: string;
@@ -32,6 +33,8 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
   const [player, setPlayer] = useState<PlayerDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isShortlistModalOpen, setIsShortlistModalOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Career History state
   const [teamHistory, setTeamHistory] = useState<PlayerTeamHistoryItem[]>([]);
@@ -449,32 +452,66 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
           <span>Back to Player Search</span>
         </button>
 
-        {player && onCompare && (
-          <button
-            type="button"
-            className="scout-sports-compare-btn"
-            onClick={() => onCompare(player, seasonStatistics)}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {player && (
+            <button
+              type="button"
+              className="scout-sports-compare-btn"
+              style={{ background: '#2563eb', borderColor: '#3b82f6', color: '#ffffff' }}
+              onClick={() => setIsShortlistModalOpen(true)}
             >
-              <path d="M16 3h5v5" />
-              <path d="M4 20L21 3" />
-              <path d="M21 16v5h-5" />
-              <path d="M15 15l6 6" />
-              <path d="M4 4l5 5" />
-            </svg>
-            <span>Compare Player</span>
-          </button>
-        )}
+              <span style={{ fontSize: '15px' }}>+</span>
+              <span>Add to Shortlist</span>
+            </button>
+          )}
+
+          {player && onCompare && (
+            <button
+              type="button"
+              className="scout-sports-compare-btn"
+              onClick={() => onCompare(player, seasonStatistics)}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M16 3h5v5" />
+                <path d="M4 20L21 3" />
+                <path d="M21 16v5h-5" />
+                <path d="M15 15l6 6" />
+                <path d="M4 4l5 5" />
+              </svg>
+              <span>Compare Player</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border border-slate-800 animate-slideUp">
+          <span className="text-emerald-400">✓</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {player && (
+        <AddToShortlistModal
+          isOpen={isShortlistModalOpen}
+          onClose={() => setIsShortlistModalOpen(false)}
+          player={player}
+          onSuccess={(shortlistName) => {
+            setToastMessage(`Added ${player.fullName || player.name} to "${shortlistName}"`);
+            setTimeout(() => setToastMessage(null), 3500);
+          }}
+        />
+      )}
 
       {/* Error Alert */}
       {error && (

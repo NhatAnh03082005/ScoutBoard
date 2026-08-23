@@ -5,9 +5,14 @@ import { getPositionRoleInfo } from "../../utils/position.utils";
 interface PlayerCardProps {
   player: PlayerItem;
   onSelect: (playerId: string) => void;
+  onAddToShortlist?: (player: PlayerItem, e: React.MouseEvent) => void;
 }
 
-export const PlayerCard: React.FC<PlayerCardProps> = ({ player, onSelect }) => {
+export const PlayerCard: React.FC<PlayerCardProps> = ({
+  player,
+  onSelect,
+  onAddToShortlist,
+}) => {
   // Helper to compute age from dateOfBirth
   const calculateAge = (dateOfBirth?: string | null): string => {
     if (!dateOfBirth) return "—";
@@ -123,6 +128,38 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, onSelect }) => {
             </span>
           ) : null}
         </div>
+
+        {onAddToShortlist && (
+          <button
+            type="button"
+            className="scout-fc-card-shortlist-btn"
+            title="Add to Shortlist"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToShortlist(player, e);
+            }}
+            style={{
+              background: 'rgba(15, 23, 42, 0.7)',
+              backdropFilter: 'blur(6px)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '8px',
+              padding: '4px 8px',
+              fontSize: '11px',
+              fontWeight: 800,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              alignSelf: 'flex-start',
+              marginLeft: 'auto',
+            }}
+          >
+            <span>+</span>
+            <span>Shortlist</span>
+          </button>
+        )}
       </div>
 
       {/* 5. Bottom Text Anchor: Strictly Anchored to Bottom */}

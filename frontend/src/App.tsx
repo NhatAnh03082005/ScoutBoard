@@ -15,9 +15,13 @@ import type { UserProfile } from './services/api';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { PlayerSearchPage } from './pages/PlayerSearchPage';
+import { MyShortlistsPage } from './pages/MyShortlistsPage';
+import { ShortlistDetailPage } from './pages/ShortlistDetailPage';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'players' | 'profile' | 'admin' | 'login' | 'register'>('players');
+  const [activeTab, setActiveTab] = useState<'home' | 'players' | 'shortlists' | 'profile' | 'admin' | 'login' | 'register'>('players');
+  const [selectedShortlistId, setSelectedShortlistId] = useState<string | null>(null);
+  const [selectedPlayerIdForSearch, setSelectedPlayerIdForSearch] = useState<string | null>(null);
 
   // Global Session State
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -80,6 +84,16 @@ export default function App() {
     };
 
     void initAuth();
+
+    // Check URL path for direct navigation (e.g. /MyShortlists or /MyShortlists/:id)
+    const rawPath = window.location.pathname;
+    const match = rawPath.match(/\/(?:myshortlists|shortlists)\/([a-zA-Z0-9-]+)/i);
+    if (match && match[1]) {
+      setSelectedShortlistId(match[1]);
+      setActiveTab('shortlists');
+    } else if (rawPath.toLowerCase().includes('shortlist') || rawPath.toLowerCase().includes('myshortlist')) {
+      setActiveTab('shortlists');
+    }
   }, []);
 
   // Fetch admin user list when Admin Tab is active or filters change
@@ -295,6 +309,18 @@ export default function App() {
               Find Players
             </button>
 
+            <button
+              type="button"
+              className={`scout-nav-link ${activeTab === 'shortlists' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('shortlists');
+                setError(null);
+                setSuccess(null);
+              }}
+            >
+              Shortlists
+            </button>
+
             {user && (
               <button
                 type="button"
@@ -385,7 +411,42 @@ export default function App() {
         )}
 
         {/* 2. PLAYERS TAB */}
-        {activeTab === 'players' && <PlayerSearchPage />}
+        {activeTab === 'players' && (
+          <PlayerSearchPage
+            initialPlayerId={selectedPlayerIdForSearch}
+            onClearInitialPlayerId={() => setSelectedPlayerIdForSearch(null)}
+          />
+        )}
+
+        {/* 3. SHORTLISTS TAB */}
+        {activeTab === 'shortlists' && (
+          selectedShortlistId ? (
+            <ShortlistDetailPage
+              shortlistId={selectedShortlistId}
+              onBack={() => {
+                setSelectedShortlistId(null);
+                window.history.pushState({}, '', '/MyShortlists');
+              }}
+              onSelectPlayer={(playerId) => {
+                setSelectedPlayerIdForSearch(playerId);
+                setActiveTab('players');
+              }}
+              onNavigateToSearch={() => setActiveTab('players')}
+              onNavigateToLogin={() => setActiveTab('login')}
+              isAuthenticated={!!user}
+            />
+          ) : (
+            <MyShortlistsPage
+              onOpenShortlist={(id) => {
+                setSelectedShortlistId(id);
+                window.history.pushState({}, '', `/MyShortlists/${id}`);
+              }}
+              onNavigateToLogin={() => setActiveTab('login')}
+              onNavigateToSearch={() => setActiveTab('players')}
+              isAuthenticated={!!user}
+            />
+          )
+        )}
 
         {/* 3. PROFILE TAB */}
         {activeTab === 'profile' && user && (

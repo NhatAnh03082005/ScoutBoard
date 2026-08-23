@@ -26,9 +26,17 @@ const parseNumericParam = (val?: number | string | null): number | undefined => 
   return isNaN(parsed) ? undefined : parsed;
 };
 
-export const PlayerSearchPage: React.FC = () => {
+interface PlayerSearchPageProps {
+  initialPlayerId?: string | null;
+  onClearInitialPlayerId?: () => void;
+}
+
+export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
+  initialPlayerId,
+  onClearInitialPlayerId,
+}) => {
   // Navigation View Mode State
-  const [viewMode, setViewMode] = useState<ViewMode>('SEARCH');
+  const [viewMode, setViewMode] = useState<ViewMode>(initialPlayerId ? 'DETAIL' : 'SEARCH');
 
   // Search Results & Pagination
   const [players, setPlayers] = useState<PlayerItem[]>([]);
@@ -37,7 +45,14 @@ export const PlayerSearchPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Selected Player for Detail View
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(initialPlayerId || null);
+
+  useEffect(() => {
+    if (initialPlayerId) {
+      setSelectedPlayerId(initialPlayerId);
+      setViewMode('DETAIL');
+    }
+  }, [initialPlayerId]);
 
   // Comparison State
   const [comparisonPlayerA, setComparisonPlayerA] = useState<PlayerDetail | null>(null);
@@ -207,6 +222,9 @@ export const PlayerSearchPage: React.FC = () => {
   const handleBackToSearch = () => {
     setSelectedPlayerId(null);
     setViewMode('SEARCH');
+    if (onClearInitialPlayerId) {
+      onClearInitialPlayerId();
+    }
   };
 
   const handleStartComparison = (

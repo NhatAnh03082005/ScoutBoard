@@ -11,6 +11,7 @@ import {
   getRadarProfileTitle,
 } from '../utils/radar.utils';
 import { ComparisonRadarChart } from '../components/player/ComparisonRadarChart';
+import { AddToShortlistModal } from '../components/shortlist/AddToShortlistModal';
 
 interface PlayerComparisonPageProps {
   playerAId: string;
@@ -276,6 +277,8 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
   const [statsB, setStatsB] = useState<PlayerSeasonStatisticItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [shortlistTargetPlayer, setShortlistTargetPlayer] = useState<PlayerDetail | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 2. Comparison Position State
   const [selectedComparisonPosition, setSelectedComparisonPosition] = useState<string>('CM');
@@ -789,6 +792,28 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                     #{playerA.shirtNumber}
                   </span>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setShortlistTargetPlayer(playerA)}
+                  style={{
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                    color: '#93c5fd',
+                    borderRadius: '6px',
+                    padding: '2px 7px',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    textTransform: 'uppercase',
+                  }}
+                  title="Add to Shortlist"
+                >
+                  <span>+</span>
+                  <span>Shortlist</span>
+                </button>
               </div>
 
               {/* Player Bio details (Clean Full Uppercase) */}
@@ -889,6 +914,28 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                   flexWrap: 'wrap',
                 }}
               >
+                <button
+                  type="button"
+                  onClick={() => setShortlistTargetPlayer(playerB)}
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.2)',
+                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                    color: '#fde68a',
+                    borderRadius: '6px',
+                    padding: '2px 7px',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    textTransform: 'uppercase',
+                  }}
+                  title="Add to Shortlist"
+                >
+                  <span>+</span>
+                  <span>Shortlist</span>
+                </button>
                 {playerB.shirtNumber && (
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8' }}>
                     #{playerB.shirtNumber}
@@ -1474,6 +1521,24 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
           </div>
         ))}
       </div>
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border border-slate-800 animate-slideUp">
+          <span className="text-emerald-400">✓</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Shortlist Modal */}
+      <AddToShortlistModal
+        isOpen={!!shortlistTargetPlayer}
+        onClose={() => setShortlistTargetPlayer(null)}
+        player={shortlistTargetPlayer}
+        onSuccess={(shortlistName) => {
+          setToastMessage(`Added ${shortlistTargetPlayer?.fullName || shortlistTargetPlayer?.name} to "${shortlistName}"`);
+          setTimeout(() => setToastMessage(null), 3500);
+        }}
+      />
     </div>
   );
 };
