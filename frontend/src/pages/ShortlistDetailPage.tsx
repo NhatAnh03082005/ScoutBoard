@@ -10,8 +10,6 @@ import {
 interface ShortlistDetailPageProps {
   shortlistId: string;
   onBack: () => void;
-  onSelectPlayer: (playerId: string) => void;
-  onNavigateToSearch?: () => void;
   onNavigateToLogin?: () => void;
   isAuthenticated?: boolean;
 }
@@ -19,8 +17,6 @@ interface ShortlistDetailPageProps {
 export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
   shortlistId,
   onBack,
-  onSelectPlayer,
-  onNavigateToSearch,
   onNavigateToLogin,
   isAuthenticated = true,
 }) => {
@@ -29,25 +25,28 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Note Edit Modal State
+  // Edit Scout Note State
   const [editingPlayerNote, setEditingPlayerNote] = useState<ShortlistPlayerItem | null>(null);
   const [noteInput, setNoteInput] = useState<string>('');
-  const [savingNote, setSavingNote] = useState<boolean>(false);
+  const [submittingNote, setSubmittingNote] = useState<boolean>(false);
   const [noteError, setNoteError] = useState<string | null>(null);
 
   // Remove Player Confirmation State
   const [removingPlayer, setRemovingPlayer] = useState<ShortlistPlayerItem | null>(null);
-  const [removingLoading, setRemovingLoading] = useState<boolean>(false);
+  const [submittingRemove, setSubmittingRemove] = useState<boolean>(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
-  // Toast Notification
+  // Toast Feedback State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
   };
 
-  const fetchShortlistDetails = async () => {
+  const fetchShortlistData = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -60,8 +59,12 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
     } catch (err: any) {
       if (err.message === 'UNAUTHORIZED') {
         setError('UNAUTHORIZED');
+      } else if (err.message?.includes('404') || err.message?.toLowerCase().includes('not found')) {
+        setError('Shortlist not found.');
+      } else if (err.message?.includes('403') || err.message?.toLowerCase().includes('forbidden')) {
+        setError('You do not have permission to view this shortlist.');
       } else {
-        setError(err.message || 'Shortlist not found or you do not have permission to view it.');
+        setError(err.message || 'Unable to load shortlist details.');
       }
     } finally {
       setLoading(false);
@@ -69,10 +72,87 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
   };
 
   useEffect(() => {
-    void fetchShortlistDetails();
+    void fetchShortlistData();
   }, [shortlistId]);
 
-  // Calculate age helper
+  // --- EDIT SCOUT NOTE FLOW ---
+  const handleOpenNoteModal = (item: ShortlistPlayerItem) => {
+    setEditingPlayerNote(item);
+    setNoteInput(item.note || '');
+    setNoteError(null);
+  };
+
+  const handleCloseNoteModal = () => {
+    setEditingPlayerNote(null);
+    setNoteInput('');
+    setNoteError(null);
+  };
+
+  const handleSaveNoteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPlayerNote) return;
+
+    setSubmittingNote(true);
+    setNoteError(null);
+
+    const formattedNote = noteInput.trim() ? noteInput.trim() : null;
+
+    try {
+      const updated = await updateShortlistPlayerNoteApi(
+        shortlistId,
+        editingPlayerNote.playerId,
+        formattedNote,
+      );
+
+      // Update displayed note in state
+      setPlayers((prev) =>
+        prev.map((p) =>
+          p.playerId === editingPlayerNote.playerId
+            ? { ...p, note: updated.note }
+            : p,
+        ),
+      );
+
+      handleCloseNoteModal();
+      showToast('Scout note updated successfully!');
+    } catch (err: any) {
+      setNoteError(err.message || 'Failed to update scout note.');
+    } finally {
+      setSubmittingNote(false);
+    }
+  };
+
+  // --- REMOVE PLAYER FLOW ---
+  const handleOpenRemoveModal = (item: ShortlistPlayerItem) => {
+    setRemovingPlayer(item);
+    setRemoveError(null);
+  };
+
+  const handleCloseRemoveModal = () => {
+    setRemovingPlayer(null);
+    setRemoveError(null);
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!removingPlayer) return;
+
+    setSubmittingRemove(true);
+    setRemoveError(null);
+
+    try {
+      await removePlayerFromShortlistApi(shortlistId, removingPlayer.playerId);
+
+      // Remove relationship from UI without full page reload
+      setPlayers((prev) => prev.filter((p) => p.playerId !== removingPlayer.playerId));
+      showToast(`Removed ${removingPlayer.player?.name || 'Player'} from shortlist.`);
+      handleCloseRemoveModal();
+    } catch (err: any) {
+      setRemoveError(err.message || 'Failed to remove player from shortlist.');
+    } finally {
+      setSubmittingRemove(false);
+    }
+  };
+
   const calculateAge = (dateOfBirth?: string | null): number | null => {
     if (!dateOfBirth) return null;
     const dob = new Date(dateOfBirth);
@@ -82,95 +162,23 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
     return Math.abs(ageDt.getUTCFullYear() - 1970);
   };
 
-  // Format date helper
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return 'Recently';
-    try {
-      const d = new Date(dateStr);
-      return new Intl.DateTimeFormat('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }).format(d);
-    } catch {
-      return dateStr;
-    }
-  };
-
-  // Open Edit Note
-  const handleOpenNoteModal = (item: ShortlistPlayerItem) => {
-    setEditingPlayerNote(item);
-    setNoteInput(item.note || '');
-    setNoteError(null);
-  };
-
-  // Save Note
-  const handleSaveNoteSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPlayerNote) return;
-
-    setSavingNote(true);
-    setNoteError(null);
-    try {
-      const updated = await updateShortlistPlayerNoteApi(
-        shortlistId,
-        editingPlayerNote.playerId,
-        noteInput.trim() || null,
-      );
-
-      setPlayers((prev) =>
-        prev.map((p) =>
-          p.playerId === editingPlayerNote.playerId
-            ? { ...p, note: updated.note }
-            : p,
-        ),
-      );
-      setEditingPlayerNote(null);
-      showToast('Scout note updated successfully!');
-    } catch (err: any) {
-      setNoteError(err.message || 'Failed to update note');
-    } finally {
-      setSavingNote(false);
-    }
-  };
-
-  // Confirm Remove Player
-  const handleConfirmRemove = async () => {
-    if (!removingPlayer) return;
-
-    setRemovingLoading(true);
-    try {
-      await removePlayerFromShortlistApi(shortlistId, removingPlayer.playerId);
-      setPlayers((prev) => prev.filter((p) => p.playerId !== removingPlayer.playerId));
-      showToast(
-        `Removed ${removingPlayer.player?.name || 'Player'} from this shortlist.`,
-      );
-      setRemovingPlayer(null);
-    } catch (err: any) {
-      alert(err.message || 'Failed to remove player');
-    } finally {
-      setRemovingLoading(false);
-    }
-  };
-
-  // TC-05 / TC-08: Unauthorized or Access Denied
+  // Unauthorized State
   if (error === 'UNAUTHORIZED' || !isAuthenticated) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <div className="bg-white border border-slate-200 rounded-3xl p-10 shadow-sm max-w-lg mx-auto">
-          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">
-            🔒
-          </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+      <div style={{ maxWidth: '600px', margin: '60px auto', padding: '0 16px', textAlign: 'center' }}>
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '40px 24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: '42px', marginBottom: '12px' }}>🔒</div>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0' }}>
             Authentication Required
           </h2>
-          <p className="text-sm text-slate-600 mb-6">
+          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
             Please log in to view and manage this shortlist.
           </p>
           <button
             type="button"
             onClick={onNavigateToLogin}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all"
+            className="scout-btn scout-btn-primary"
+            style={{ padding: '10px 28px', fontSize: '14px' }}
           >
             Log In
           </button>
@@ -180,167 +188,148 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
+    <div className="scout-b2b-page-container" style={{ maxWidth: '1360px', margin: '0 auto', padding: '32px 24px' }}>
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-medium border border-slate-800 animate-slideUp">
-          <span className="text-emerald-400 font-bold">✓</span>
+        <div className="scout-toast">
+          <span style={{ color: '#34d399' }}>✓</span>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Back Navigation Button */}
+      {/* 1. Back Navigation Button */}
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm hover:border-slate-300 transition-all mb-6 group"
+        className="scout-btn scout-btn-secondary"
+        style={{ marginBottom: '24px', padding: '8px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
       >
-        <span className="group-hover:-translate-x-1 transition-transform">←</span>
-        <span>Back to Shortlists</span>
+        <span>←</span>
+        <span>My Shortlists</span>
       </button>
 
-      {/* TC-05: Error / Not Found / Access Denied State */}
+      {/* 2. Error State */}
       {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-center max-w-xl mx-auto my-12">
-          <div className="text-4xl mb-3">⛔</div>
-          <h3 className="text-lg font-black text-rose-900 mb-2">
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', maxWidth: '540px', margin: '20px auto' }}>
+          <div style={{ fontSize: '40px', marginBottom: '12px' }}>⛔</div>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#991b1b', margin: '0 0 8px 0' }}>
             Shortlist Unavailable
           </h3>
-          <p className="text-sm text-rose-700 mb-6 leading-relaxed">
+          <p style={{ fontSize: '13.5px', color: '#b91c1c', marginBottom: '20px', lineHeight: 1.5 }}>
             {error}
           </p>
-          <button
-            type="button"
-            onClick={onBack}
-            className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-colors shadow-sm"
-          >
-            Return to My Shortlists
-          </button>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button
+              type="button"
+              onClick={onBack}
+              className="scout-btn scout-btn-secondary"
+              style={{ padding: '8px 18px', fontSize: '13px' }}
+            >
+              Return to Shortlists
+            </button>
+            <button
+              type="button"
+              onClick={fetchShortlistData}
+              className="scout-btn scout-btn-primary"
+              style={{ padding: '8px 18px', fontSize: '13px' }}
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Loading State */}
+      {/* 3. Loading State */}
       {loading && !error && (
-        <div className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm animate-pulse">
-            <div className="h-8 bg-slate-200 rounded-lg w-1/3 mb-4"></div>
-            <div className="h-4 bg-slate-100 rounded w-2/3 mb-2"></div>
-            <div className="h-4 bg-slate-100 rounded w-1/2"></div>
+        <div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '32px', marginBottom: '24px' }}>
+            <div style={{ height: '28px', width: '40%', background: '#e2e8f0', borderRadius: '6px', marginBottom: '12px' }} />
+            <div style={{ height: '16px', width: '65%', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px' }} />
+            <div style={{ height: '14px', width: '20%', background: '#e2e8f0', borderRadius: '4px' }} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="scout-shortlist-grid">
             {[1, 2, 3].map((n) => (
-              <div
-                key={n}
-                className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm animate-pulse h-64"
-              >
-                <div className="flex gap-4 items-center mb-4">
-                  <div className="w-14 h-14 bg-slate-200 rounded-full"></div>
-                  <div className="space-y-2 flex-1">
-                    <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-slate-100 rounded w-1/2"></div>
-                  </div>
-                </div>
-                <div className="h-20 bg-slate-50 rounded-xl mb-4"></div>
-                <div className="h-8 bg-slate-200 rounded-lg"></div>
-              </div>
+              <div key={n} className="scout-shortlist-card" style={{ height: '220px', background: '#f8fafc' }} />
             ))}
           </div>
         </div>
       )}
 
-      {/* Shortlist Details Header */}
+      {/* 4. Shortlist Header & Player List */}
       {!loading && !error && shortlist && (
-        <>
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 lg:p-8 shadow-sm mb-8">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-3 mb-2">
-                  <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">
-                    {shortlist.name}
-                  </h1>
-                  <span
-                    className={`inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full border ${
-                      shortlist.visibility === 'PUBLIC'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-slate-100 text-slate-700 border-slate-200'
-                    }`}
-                  >
-                    <span>{shortlist.visibility === 'PUBLIC' ? '🌐' : '🔒'}</span>
-                    <span>{shortlist.visibility}</span>
-                  </span>
-                  <span className="bg-blue-50 text-blue-700 font-black text-xs px-3 py-1 rounded-full border border-blue-100">
-                    {players.length} {players.length === 1 ? 'Target' : 'Targets'}
-                  </span>
-                </div>
-
-                <p className="text-sm text-slate-600 leading-relaxed max-w-3xl mb-4">
-                  {shortlist.description || (
-                    <span className="italic text-slate-400">No description provided.</span>
-                  )}
-                </p>
-
-                <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
-                  <span>📅 Updated {formatDate(shortlist.updatedAt || shortlist.createdAt)}</span>
-                </div>
-              </div>
-
-              {onNavigateToSearch && (
-                <button
-                  type="button"
-                  onClick={onNavigateToSearch}
-                  className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 py-3 rounded-xl shadow-sm transition-all whitespace-nowrap active:scale-95"
-                >
-                  <span>+ Add More Players</span>
-                </button>
-              )}
+        <div>
+          {/* Header Card */}
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '16px',
+              padding: '32px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+              marginBottom: '28px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '8px' }}>
+              <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+                {shortlist.name}
+              </h1>
+              <span className={shortlist.visibility === 'PUBLIC' ? 'scout-badge-public' : 'scout-badge-private'}>
+                {shortlist.visibility === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}
+              </span>
+              <span className="scout-badge" style={{ background: '#eff6ff', color: '#1d4ed8', fontWeight: 800 }}>
+                {players.length} {players.length === 1 ? 'Target' : 'Targets'}
+              </span>
             </div>
+
+            <p style={{ fontSize: '14px', color: '#64748b', margin: 0, lineHeight: 1.5, maxWidth: '800px' }}>
+              {shortlist.description ? (
+                shortlist.description
+              ) : (
+                <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>No description provided</span>
+              )}
+            </p>
           </div>
 
-          {/* TC-02: Empty Shortlist State */}
+          {/* Empty Shortlist Area */}
           {players.length === 0 && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center max-w-xl mx-auto shadow-sm my-8">
-              <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-5 shadow-inner">
-                ⚽
-              </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2">
-                No Players in this Shortlist
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '64px 24px',
+                textAlign: 'center',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚽</div>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0' }}>
+                No players in this shortlist yet.
               </h3>
-              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                Start adding target players to monitor their performance, statistics, and scouting notes.
+              <p style={{ fontSize: '14px', color: '#64748b', margin: 0, maxWidth: '480px', marginInline: 'auto', lineHeight: 1.5 }}>
+                Add players from Player Search, Player Detail, or Compare Player.
               </p>
-              {onNavigateToSearch && (
-                <button
-                  type="button"
-                  onClick={onNavigateToSearch}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-sm transition-all"
-                >
-                  Browse & Add Players
-                </button>
-              )}
             </div>
           )}
 
-          {/* TC-01 & TC-06: Players Grid */}
+          {/* Player Cards Grid */}
           {players.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="scout-shortlist-grid">
               {players.map((item) => {
                 const player = item.player;
                 const age = calculateAge(player?.dateOfBirth);
 
                 return (
-                  <div
-                    key={item.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between group"
-                  >
+                  <div key={item.id} className="scout-shortlist-card">
                     <div>
                       {/* Player Profile Header */}
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-slate-400 font-black text-xl shadow-inner relative">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                        <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: '#e2e8f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800, color: '#64748b', flexShrink: 0 }}>
                           {player?.imageUrl ? (
                             <img
                               src={player.imageUrl}
                               alt={player.name}
-                              className="w-full h-full object-cover"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                               onError={(e) => {
                                 (e.target as HTMLElement).style.display = 'none';
                               }}
@@ -350,25 +339,21 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                           )}
                         </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3
-                              onClick={() => onSelectPlayer(item.playerId)}
-                              className="text-base font-black text-slate-900 truncate hover:text-blue-600 cursor-pointer transition-colors"
-                              title={player?.name}
-                            >
-                              {player?.name || 'Unknown Player'}
-                            </h3>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 font-medium">
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <h3
+                            style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            title={player?.name}
+                          >
+                            {player?.name || 'Unknown Player'}
+                          </h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
                             {player?.primaryPosition && (
-                              <span className="bg-slate-900 text-white font-black text-[10px] px-2 py-0.5 rounded-md">
+                              <span style={{ background: '#0f172a', color: '#ffffff', fontSize: '10px', fontWeight: 900, padding: '1px 6px', borderRadius: '4px' }}>
                                 {player.primaryPosition}
                               </span>
                             )}
                             {player?.currentTeam && (
-                              <span className="truncate text-slate-700 font-semibold">
+                              <span style={{ fontWeight: 600, color: '#334155' }}>
                                 {player.currentTeam.name}
                               </span>
                             )}
@@ -379,43 +364,32 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                       </div>
 
                       {/* Scout Note Box */}
-                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-4 group/note hover:border-slate-200 transition-colors">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             📝 Scout Note
                           </span>
                           <button
                             type="button"
                             onClick={() => handleOpenNoteModal(item)}
-                            className="text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                            style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', padding: 0 }}
                           >
                             {item.note ? 'Edit Note' : '+ Add Note'}
                           </button>
                         </div>
-                        <p className="text-xs text-slate-700 leading-relaxed italic">
-                          {item.note || (
-                            <span className="text-slate-400 font-normal not-italic">
-                              No scouting notes added for this player yet.
-                            </span>
-                          )}
+                        <p style={{ fontSize: '12.5px', color: '#334155', margin: 0, lineHeight: 1.5, fontStyle: item.note ? 'normal' : 'italic' }}>
+                          {item.note || <span style={{ color: '#94a3b8' }}>No scouting notes recorded yet.</span>}
                         </p>
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                    {/* Action Buttons with [Remove] */}
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                       <button
                         type="button"
-                        onClick={() => onSelectPlayer(item.playerId)}
-                        className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs py-2.5 px-4 rounded-xl transition-colors text-center"
-                      >
-                        View Profile ↗
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRemovingPlayer(item)}
-                        className="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs py-2.5 px-3 rounded-xl transition-colors"
-                        title="Remove from shortlist"
+                        onClick={() => handleOpenRemoveModal(item)}
+                        className="scout-btn scout-btn-sm"
+                        style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', fontWeight: 700, padding: '7px 14px' }}
                       >
                         Remove
                       </button>
@@ -425,73 +399,73 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
               })}
             </div>
           )}
-        </>
+        </div>
       )}
 
-      {/* TC-04: EDIT SCOUT NOTE MODAL */}
+      {/* EDIT SCOUT NOTE MODAL */}
       {editingPlayerNote && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 lg:p-8 border border-slate-100 animate-scaleUp">
-            <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+        <div className="scout-modal-overlay" onClick={handleCloseNoteModal}>
+          <div className="scout-modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="scout-modal-header">
               <div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                  Scout Note for {editingPlayerNote.player?.name || 'Player'}
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Private observations, tactical strengths, and scouting remarks.
-                </p>
+                <h3 className="scout-modal-title">Scout Note</h3>
+                <p className="scout-modal-subtitle">Notes for {editingPlayerNote.player?.name || 'Player'}</p>
               </div>
               <button
                 type="button"
-                onClick={() => setEditingPlayerNote(null)}
-                className="text-slate-400 hover:text-slate-600 text-xl font-bold p-1 leading-none"
+                onClick={handleCloseNoteModal}
+                className="scout-modal-close-btn"
+                title="Close"
               >
                 ✕
               </button>
             </div>
 
             {noteError && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold p-3.5 rounded-xl mb-4">
+              <div className="alert-banner alert-error" style={{ margin: '0 0 14px 0', padding: '10px 14px', fontSize: '12.5px' }}>
                 ⚠️ {noteError}
               </div>
             )}
 
-            <form onSubmit={handleSaveNoteSubmit} className="space-y-4">
+            <form onSubmit={handleSaveNoteSubmit} className="scout-modal-body">
               <div>
                 <textarea
                   rows={4}
                   autoFocus
                   value={noteInput}
                   onChange={(e) => setNoteInput(e.target.value)}
-                  placeholder="e.g. Strong 1v1 defender, high press resistance, contract expires in 2027..."
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none rounded-xl p-4 text-sm text-slate-900 font-medium transition-all resize-none"
+                  placeholder="e.g. Strong 1v1 defender. Good recovery pace."
+                  className="scout-input"
+                  style={{ resize: 'none', height: 'auto', minHeight: '100px', padding: '12px' }}
                 />
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
                 <button
                   type="button"
                   onClick={() => setNoteInput('')}
-                  className="text-xs text-slate-400 hover:text-slate-600 font-semibold"
+                  style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Clear Note
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     type="button"
-                    onClick={() => setEditingPlayerNote(null)}
-                    disabled={savingNote}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors"
+                    onClick={handleCloseNoteModal}
+                    disabled={submittingNote}
+                    className="scout-btn scout-btn-secondary"
+                    style={{ padding: '8px 16px' }}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={savingNote}
-                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition-all disabled:opacity-50"
+                    disabled={submittingNote}
+                    className="scout-btn scout-btn-primary"
+                    style={{ padding: '8px 20px' }}
                   >
-                    {savingNote ? 'Saving...' : 'Save Note'}
+                    {submittingNote ? 'Saving...' : 'Save'}
                   </button>
                 </div>
               </div>
@@ -500,36 +474,42 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
         </div>
       )}
 
-      {/* TC-03: REMOVE PLAYER CONFIRMATION MODAL */}
+      {/* REMOVE PLAYER CONFIRMATION MODAL */}
       {removingPlayer && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 border border-slate-100 text-center animate-scaleUp">
-            <div className="w-14 h-14 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
-              ✕
-            </div>
-            <h3 className="text-lg font-black text-slate-900 mb-2">
-              Remove Player from Shortlist?
+        <div className="scout-modal-overlay" onClick={handleCloseRemoveModal}>
+          <div className="scout-modal-dialog" style={{ maxWidth: '420px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>✕</div>
+            <h3 className="scout-modal-title" style={{ marginBottom: '8px' }}>
+              Remove Player?
             </h3>
-            <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-              Remove <strong className="text-slate-900">"{removingPlayer.player?.name || 'this player'}"</strong> from this shortlist? The player record itself will not be deleted.
+            <p style={{ fontSize: '13.5px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
+              Remove <strong style={{ color: '#0f172a' }}>"{removingPlayer.player?.name || 'Player'}"</strong> from <strong style={{ color: '#0f172a' }}>"{shortlist?.name || 'this shortlist'}"</strong>?
             </p>
 
-            <div className="flex items-center justify-center gap-3">
+            {removeError && (
+              <div className="alert-banner alert-error" style={{ margin: '0 0 16px 0', padding: '10px 14px', fontSize: '12.5px' }}>
+                ⚠️ {removeError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <button
                 type="button"
-                onClick={() => setRemovingPlayer(null)}
-                disabled={removingLoading}
-                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors"
+                onClick={handleCloseRemoveModal}
+                disabled={submittingRemove}
+                className="scout-btn scout-btn-secondary"
+                style={{ width: '120px' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmRemove}
-                disabled={removingLoading}
-                className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+                disabled={submittingRemove}
+                className="scout-btn"
+                style={{ width: '140px', background: '#ef4444', color: '#ffffff', border: 'none', fontWeight: 700 }}
               >
-                {removingLoading ? 'Removing...' : 'Yes, Remove'}
+                {submittingRemove ? 'Removing...' : 'Remove'}
               </button>
             </div>
           </div>

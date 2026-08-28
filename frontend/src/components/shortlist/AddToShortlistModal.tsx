@@ -148,35 +148,31 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 lg:p-8 border border-slate-100 animate-scaleUp">
+    <div className="scout-modal-overlay" onClick={onClose}>
+      <div className="scout-modal-dialog" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-100">
+        <div className="scout-modal-header">
           <div>
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">
-              Add to Shortlist
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Save player to your scouting watchlists
-            </p>
+            <h3 className="scout-modal-title">Add to Shortlist</h3>
+            <p className="scout-modal-subtitle">Save player to your scouting watchlists</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-xl font-bold p-1 leading-none"
+            className="scout-modal-close-btn"
+            title="Close"
           >
             ✕
           </button>
         </div>
 
-        {/* Player Mini Badge */}
-        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 mb-5 flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-slate-500 font-bold text-sm shadow-inner">
+        {/* Player Summary Card */}
+        <div className="scout-modal-player-card" style={{ marginBottom: '18px' }}>
+          <div className="scout-modal-player-avatar">
             {player.imageUrl ? (
               <img
                 src={player.imageUrl}
                 alt={playerName}
-                className="w-full h-full object-cover"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
@@ -185,26 +181,30 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
               <span>⚽</span>
             )}
           </div>
-          <div className="min-w-0 flex-1">
-            <h4 className="text-sm font-black text-slate-900 truncate">
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h4 style={{ margin: '0 0 2px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
               {playerName}
             </h4>
-            <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5 font-medium">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b' }}>
               {player.primaryPosition && (
-                <span className="bg-slate-900 text-white text-[10px] font-black px-2 py-0.5 rounded-md">
+                <span style={{ background: '#0f172a', color: '#ffffff', fontSize: '10px', fontWeight: 900, padding: '1px 6px', borderRadius: '4px' }}>
                   {player.primaryPosition}
                 </span>
               )}
-              <span className="truncate text-slate-700">{teamName}</span>
+              <span style={{ fontWeight: 600, color: '#334155' }}>{teamName}</span>
             </div>
           </div>
         </div>
 
         {/* Auth Required State */}
         {error === 'UNAUTHORIZED' ? (
-          <div className="text-center py-6">
-            <p className="text-sm text-slate-600 mb-4">
-              Please log in to add players to your shortlists.
+          <div style={{ textAlign: 'center', padding: '24px 12px' }}>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔒</div>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
+              Authentication Required
+            </h4>
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '18px', lineHeight: 1.5 }}>
+              Please log in to your ScoutBoard account to save players to your private scouting shortlists.
             </p>
             <button
               type="button"
@@ -212,85 +212,91 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                 onClose();
                 if (onNavigateToLogin) onNavigateToLogin();
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-sm transition-all"
+              className="scout-btn scout-btn-primary"
+              style={{ padding: '10px 24px', fontSize: '13px' }}
             >
               Log In Now
             </button>
           </div>
         ) : (
-          <form onSubmit={handleAddSubmit} className="space-y-4">
+          <form onSubmit={handleAddSubmit} className="scout-modal-body">
             {actionError && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold p-3.5 rounded-xl">
+              <div className="alert-banner alert-error" style={{ margin: 0, padding: '10px 14px', fontSize: '12.5px' }}>
                 {actionError}
               </div>
             )}
 
-            {/* Choose Existing vs Create New Toggle */}
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Select Shortlist
+            {/* Toggle Existing vs Create New */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {isCreatingNew ? 'Create New Shortlist' : 'Select Target Shortlist'}
               </label>
               <button
                 type="button"
                 onClick={() => setIsCreatingNew(!isCreatingNew)}
-                className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#2563eb',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 0,
+                  textDecoration: 'underline',
+                }}
               >
                 {isCreatingNew ? '← Choose Existing List' : '+ Create New List'}
               </button>
             </div>
 
-            {/* Mode 1: Choose Existing */}
+            {/* Mode 1: Select Existing */}
             {!isCreatingNew && (
               <div>
                 {loading ? (
-                  <div className="space-y-2">
-                    <div className="h-12 bg-slate-100 rounded-xl animate-pulse"></div>
-                    <div className="h-12 bg-slate-100 rounded-xl animate-pulse"></div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ height: '48px', background: '#f1f5f9', borderRadius: '10px' }}></div>
+                    <div style={{ height: '48px', background: '#f1f5f9', borderRadius: '10px' }}></div>
                   </div>
                 ) : shortlists.length === 0 ? (
-                  <div className="text-center py-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-500">
-                    No shortlists found. Click '+ Create New List' above to start.
+                  <div style={{ textAlign: 'center', padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '13px' }}>
+                    No shortlists found. Click <strong>'+ Create New List'</strong> above to create one.
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  <div style={{ maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
                     {shortlists.map((sl) => (
-                      <label
+                      <div
                         key={sl.id}
                         onClick={() => setSelectedShortlistId(sl.id)}
-                        className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
-                          selectedShortlistId === sl.id
-                            ? 'border-blue-600 bg-blue-50/50 shadow-sm'
-                            : 'border-slate-200 bg-white hover:border-slate-300'
-                        }`}
+                        className={`scout-radio-option ${selectedShortlistId === sl.id ? 'selected' : ''}`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                           <input
                             type="radio"
-                            name="shortlist"
+                            name="shortlistSelection"
                             checked={selectedShortlistId === sl.id}
                             onChange={() => setSelectedShortlistId(sl.id)}
-                            className="text-blue-600 focus:ring-blue-500"
+                            style={{ cursor: 'pointer', accentColor: '#2563eb' }}
                           />
-                          <span className="text-xs font-bold text-slate-900 truncate">
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {sl.name}
                           </span>
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 ml-2">
+                        <span className={sl.visibility === 'PUBLIC' ? 'scout-badge-public' : 'scout-badge-private'}>
                           {sl.visibility === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}
                         </span>
-                      </label>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
 
-            {/* Mode 2: Create New Inline Subform */}
+            {/* Mode 2: Inline Create New Shortlist Subform */}
             {isCreatingNew && (
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 animate-fadeIn">
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                    New Shortlist Name <span className="text-rose-500">*</span>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
+                    Shortlist Name <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -300,47 +306,59 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="e.g., Champions League Targets"
-                    className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:outline-none rounded-xl px-3 py-2 text-xs text-slate-900 font-medium"
+                    className="scout-input"
+                    style={{ background: '#ffffff' }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                    Description <span className="text-slate-400 font-normal">(Optional)</span>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
+                    Description <span style={{ color: '#94a3b8', fontWeight: 400 }}>(Optional)</span>
                   </label>
                   <input
                     type="text"
                     value={newDescription}
                     onChange={(e) => setNewDescription(e.target.value)}
-                    placeholder="Short description..."
-                    className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:outline-none rounded-xl px-3 py-2 text-xs text-slate-900 font-medium"
+                    placeholder="Short summary..."
+                    className="scout-input"
+                    style={{ background: '#ffffff' }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
                     Visibility
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                     <button
                       type="button"
                       onClick={() => setNewVisibility('PRIVATE')}
-                      className={`p-2 rounded-lg border text-center text-xs font-bold transition-all ${
-                        newVisibility === 'PRIVATE'
-                          ? 'border-blue-600 bg-blue-50 text-blue-900'
-                          : 'border-slate-200 bg-white text-slate-600'
-                      }`}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: newVisibility === 'PRIVATE' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: newVisibility === 'PRIVATE' ? '#eff6ff' : '#ffffff',
+                        color: newVisibility === 'PRIVATE' ? '#1e40af' : '#475569',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                      }}
                     >
                       🔒 Private
                     </button>
                     <button
                       type="button"
                       onClick={() => setNewVisibility('PUBLIC')}
-                      className={`p-2 rounded-lg border text-center text-xs font-bold transition-all ${
-                        newVisibility === 'PUBLIC'
-                          ? 'border-blue-600 bg-blue-50 text-blue-900'
-                          : 'border-slate-200 bg-white text-slate-600'
-                      }`}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: newVisibility === 'PUBLIC' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: newVisibility === 'PUBLIC' ? '#eff6ff' : '#ffffff',
+                        color: newVisibility === 'PUBLIC' ? '#1e40af' : '#475569',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                      }}
                     >
                       🌐 Public
                     </button>
@@ -351,32 +369,35 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
 
             {/* Optional Scout Note */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Initial Scout Note <span className="text-slate-400 font-normal">(Optional)</span>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
+                Initial Scout Note <span style={{ color: '#94a3b8', fontWeight: 400 }}>(Optional)</span>
               </label>
               <textarea
                 rows={2}
                 value={scoutNote}
                 onChange={(e) => setScoutNote(e.target.value)}
-                placeholder="Remarks on tactical fit, key strengths, or observation details..."
-                className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium transition-all resize-none"
+                placeholder="Tactical strengths, press resistance, scouting observations..."
+                className="scout-input"
+                style={{ resize: 'none', height: 'auto', minHeight: '60px', padding: '10px' }}
               />
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            {/* Footer Actions */}
+            <div className="scout-modal-footer">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors"
+                className="scout-btn scout-btn-secondary"
+                style={{ padding: '8px 16px', fontSize: '12.5px' }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting || (isCreatingNew && !newName.trim()) || (!isCreatingNew && !selectedShortlistId)}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition-all disabled:opacity-50"
+                className="scout-btn scout-btn-primary"
+                style={{ padding: '8px 20px', fontSize: '12.5px' }}
               >
                 {submitting ? 'Adding...' : 'Add to Shortlist'}
               </button>

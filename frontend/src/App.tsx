@@ -17,10 +17,13 @@ import { LoginPage } from './pages/LoginPage';
 import { PlayerSearchPage } from './pages/PlayerSearchPage';
 import { MyShortlistsPage } from './pages/MyShortlistsPage';
 import { ShortlistDetailPage } from './pages/ShortlistDetailPage';
+import { MySquadsPage } from './pages/MySquadsPage';
+import { SquadDetailPage } from './pages/SquadDetailPage';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'players' | 'shortlists' | 'profile' | 'admin' | 'login' | 'register'>('players');
+  const [activeTab, setActiveTab] = useState<'home' | 'players' | 'shortlists' | 'squads' | 'profile' | 'admin' | 'login' | 'register'>('players');
   const [selectedShortlistId, setSelectedShortlistId] = useState<string | null>(null);
+  const [selectedSquadId, setSelectedSquadId] = useState<string | null>(null);
   const [selectedPlayerIdForSearch, setSelectedPlayerIdForSearch] = useState<string | null>(null);
 
   // Global Session State
@@ -85,14 +88,20 @@ export default function App() {
 
     void initAuth();
 
-    // Check URL path for direct navigation (e.g. /MyShortlists or /MyShortlists/:id)
+    // Check URL path for direct navigation (e.g. /MyShortlists or /MyShortlists/:id or /MySquads or /MySquads/:id)
     const rawPath = window.location.pathname;
     const match = rawPath.match(/\/(?:myshortlists|shortlists)\/([a-zA-Z0-9-]+)/i);
+    const squadMatch = rawPath.match(/\/(?:mysquads|squads)\/([a-zA-Z0-9-]+)/i);
     if (match && match[1]) {
       setSelectedShortlistId(match[1]);
       setActiveTab('shortlists');
+    } else if (squadMatch && squadMatch[1]) {
+      setSelectedSquadId(squadMatch[1]);
+      setActiveTab('squads');
     } else if (rawPath.toLowerCase().includes('shortlist') || rawPath.toLowerCase().includes('myshortlist')) {
       setActiveTab('shortlists');
+    } else if (rawPath.toLowerCase().includes('squad') || rawPath.toLowerCase().includes('mysquad')) {
+      setActiveTab('squads');
     }
   }, []);
 
@@ -302,6 +311,7 @@ export default function App() {
               className={`scout-nav-link ${activeTab === 'players' ? 'active' : ''}`}
               onClick={() => {
                 setActiveTab('players');
+                window.history.pushState({}, '', '/players');
                 setError(null);
                 setSuccess(null);
               }}
@@ -314,11 +324,27 @@ export default function App() {
               className={`scout-nav-link ${activeTab === 'shortlists' ? 'active' : ''}`}
               onClick={() => {
                 setActiveTab('shortlists');
+                setSelectedShortlistId(null);
+                window.history.pushState({}, '', '/MyShortlists');
                 setError(null);
                 setSuccess(null);
               }}
             >
-              Shortlists
+              My Shortlists
+            </button>
+
+            <button
+              type="button"
+              className={`scout-nav-link ${activeTab === 'squads' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('squads');
+                setSelectedSquadId(null);
+                window.history.pushState({}, '', '/MySquads');
+                setError(null);
+                setSuccess(null);
+              }}
+            >
+              My Squads
             </button>
 
             {user && (
@@ -427,13 +453,8 @@ export default function App() {
                 setSelectedShortlistId(null);
                 window.history.pushState({}, '', '/MyShortlists');
               }}
-              onSelectPlayer={(playerId) => {
-                setSelectedPlayerIdForSearch(playerId);
-                setActiveTab('players');
-              }}
-              onNavigateToSearch={() => setActiveTab('players')}
-              onNavigateToLogin={() => setActiveTab('login')}
               isAuthenticated={!!user}
+              onNavigateToLogin={() => setActiveTab('login')}
             />
           ) : (
             <MyShortlistsPage
@@ -441,9 +462,32 @@ export default function App() {
                 setSelectedShortlistId(id);
                 window.history.pushState({}, '', `/MyShortlists/${id}`);
               }}
-              onNavigateToLogin={() => setActiveTab('login')}
-              onNavigateToSearch={() => setActiveTab('players')}
               isAuthenticated={!!user}
+              onNavigateToLogin={() => setActiveTab('login')}
+            />
+          )
+        )}
+
+        {/* 4. SQUADS TAB */}
+        {activeTab === 'squads' && (
+          selectedSquadId ? (
+            <SquadDetailPage
+              squadId={selectedSquadId}
+              onBack={() => {
+                setSelectedSquadId(null);
+                window.history.pushState({}, '', '/MySquads');
+              }}
+              isAuthenticated={!!user}
+              onNavigateToLogin={() => setActiveTab('login')}
+            />
+          ) : (
+            <MySquadsPage
+              onOpenSquad={(id) => {
+                setSelectedSquadId(id);
+                window.history.pushState({}, '', `/MySquads/${id}`);
+              }}
+              isAuthenticated={!!user}
+              onNavigateToLogin={() => setActiveTab('login')}
             />
           )
         )}

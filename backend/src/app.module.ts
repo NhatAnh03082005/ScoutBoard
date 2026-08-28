@@ -10,6 +10,8 @@ import { TeamsModule } from './modules/teams/teams.module';
 import { PlayersModule } from './modules/players/players.module';
 import { MatchesModule } from './modules/matches/matches.module';
 import { ShortlistsModule } from './modules/shortlists/shortlists.module';
+import { SquadsModule } from './modules/squads/squads.module';
+import { ExternalFootballModule } from './modules/external-football/external-football.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { ShortlistsModule } from './modules/shortlists/shortlists.module';
     PlayersModule,
     MatchesModule,
     ShortlistsModule,
+    SquadsModule,
+    ExternalFootballModule,
   ],
 })
 export class AppModule {}
