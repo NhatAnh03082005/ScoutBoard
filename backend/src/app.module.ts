@@ -12,6 +12,7 @@ import { MatchesModule } from './modules/matches/matches.module';
 import { ShortlistsModule } from './modules/shortlists/shortlists.module';
 import { SquadsModule } from './modules/squads/squads.module';
 import { ExternalFootballModule } from './modules/external-football/external-football.module';
+import { DataSyncModule } from './modules/data-sync/data-sync.module';
 
 @Module({
   imports: [
@@ -29,6 +30,8 @@ import { ExternalFootballModule } from './modules/external-football/external-foo
     ShortlistsModule,
     SquadsModule,
     ExternalFootballModule,
+    DataSyncModule,
   ],
 })
 export class AppModule {}
+

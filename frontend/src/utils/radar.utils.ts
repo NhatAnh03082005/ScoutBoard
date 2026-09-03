@@ -30,7 +30,8 @@ export function normalizeMetric(
 }
 
 /**
- * Map standard position code into 1 of 7 Tactical Radar Profiles
+ * Map canonical position code into 1 of 7 Tactical Radar Profiles.
+ * Only the 15 canonical codes are accepted; all others fall back to CM.
  */
 export function getRadarProfile(posCode?: string | null): RadarProfile {
   if (!posCode) return 'CM';
@@ -39,25 +40,25 @@ export function getRadarProfile(posCode?: string | null): RadarProfile {
   // 1. Goalkeeper
   if (upper === 'GK') return 'GK';
 
-  // 2. Defender (CB, LB, RB, LWB, RWB, WB)
-  if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'WB'].includes(upper)) return 'DEF';
+  // 2. Defenders (canonical only)
+  if (['CB', 'LB', 'RB', 'LWB', 'RWB'].includes(upper)) return 'DEF';
 
-  // 3. Defensive Midfielder (CDM, DM)
-  if (['CDM', 'DM'].includes(upper)) return 'CDM';
+  // 3. Defensive Midfielder
+  if (upper === 'CDM') return 'CDM';
 
-  // 4. Central Midfielder (CM)
+  // 4. Central Midfielder
   if (upper === 'CM') return 'CM';
 
-  // 5. Attacking Midfielder (CAM, AM)
-  if (['CAM', 'AM'].includes(upper)) return 'CAM';
+  // 5. Attacking Midfielder
+  if (upper === 'CAM') return 'CAM';
 
-  // 6. Wide Midfielder (LM, RM)
+  // 6. Wide Midfielder
   if (['LM', 'RM'].includes(upper)) return 'LM_RM';
 
-  // 7. Attacker (LW, RW, CF, ST, FW)
-  if (['LW', 'RW', 'CF', 'ST', 'FW'].includes(upper)) return 'ATT';
+  // 7. Attacker
+  if (['LW', 'RW', 'CF', 'ST'].includes(upper)) return 'ATT';
 
-  // Fallback for general midfielder
+  // Fallback for unknown/null
   return 'CM';
 }
 

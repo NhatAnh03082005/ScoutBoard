@@ -5,9 +5,9 @@ import { PersistSeasonUseCase } from '../../../seasons/application/use-cases/per
 import { TransformedCompetition } from '../../../external-football/domain/models/transformed-competition.model';
 import { CompetitionOrmEntity } from '../../infrastructure/persistence/typeorm/entities/competition.orm-entity';
 import { SeasonOrmEntity } from '../../../seasons/infrastructure/persistence/typeorm/entities/season.orm-entity';
-import { FootballDataCompetitionMapper } from '../../../external-football/infrastructure/mappers/football-data-competition.mapper';
 
 describe('PersistCompetitionWithSeasonsUseCase', () => {
+
   let useCase: PersistCompetitionWithSeasonsUseCase;
   let mockPersistCompetitionUseCase: jest.Mocked<PersistCompetitionUseCase>;
   let mockPersistSeasonUseCase: jest.Mocked<PersistSeasonUseCase>;
@@ -241,31 +241,41 @@ describe('PersistCompetitionWithSeasonsUseCase', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
-  // TC-11 & TC-12: Mapper Output Compatibility & isCurrent Preservation
-  it('TC-11 & TC-12: should seamlessly accept real output from FootballDataCompetitionMapper and preserve isCurrent flag', async () => {
-    const mapped = FootballDataCompetitionMapper.toTransformedCompetition({
-      id: 2021,
+  // TC-11 & TC-12: Transformed Competition Compatibility & isCurrent Preservation
+  it('TC-11 & TC-12: should seamlessly accept valid TransformedCompetition and preserve isCurrent flag', async () => {
+    const mapped: TransformedCompetition = {
+      externalProvider: 'API_FOOTBALL',
+      externalId: '39',
       name: 'Premier League',
       code: 'PL',
+      country: 'England',
       type: 'LEAGUE',
-      currentSeason: {
-        id: 2502,
-        startDate: '2026-08-21',
-        endDate: '2027-05-30',
-      },
+      logoUrl: null,
+      dataUpdatedAt: null,
+      currentSeason: null,
       seasons: [
         {
-          id: 2502,
+          externalProvider: 'API_FOOTBALL',
+          externalId: '2026',
+          seasonCode: '2026',
+          name: '2026 Season',
           startDate: '2026-08-21',
           endDate: '2027-05-30',
+          isCurrent: true,
+          dataUpdatedAt: null,
         },
         {
-          id: 2403,
+          externalProvider: 'API_FOOTBALL',
+          externalId: '2025',
+          seasonCode: '2025',
+          name: '2025 Season',
           startDate: '2025-08-15',
           endDate: '2026-05-24',
+          isCurrent: false,
+          dataUpdatedAt: null,
         },
       ],
-    });
+    };
 
     const result = await useCase.execute(mapped);
 
@@ -277,4 +287,5 @@ describe('PersistCompetitionWithSeasonsUseCase', () => {
     expect(mapped.seasons[0].isCurrent).toBe(true);
     expect(mapped.seasons[1].isCurrent).toBe(false);
   });
+
 });

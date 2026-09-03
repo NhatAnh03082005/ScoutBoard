@@ -43,8 +43,9 @@ export class PersistMatchUseCase {
 
   async execute(
     input: TransformedMatch,
-    refs?: MatchResolvedReferences | null,
+    refs?: Partial<MatchResolvedReferences> | null,
   ): Promise<MatchOrmEntity> {
+
     if (!input) {
       throw new BadRequestException('Transformed match input is required');
     }

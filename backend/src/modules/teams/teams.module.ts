@@ -11,14 +11,16 @@ import { ListTeamsUseCase } from './application/use-cases/list-teams.use-case';
 import { GetTeamByIdUseCase } from './application/use-cases/get-team-by-id.use-case';
 import { PersistTeamUseCase } from './application/use-cases/persist-team.use-case';
 import { PersistTeamWithSquadUseCase } from './application/use-cases/persist-team-with-squad.use-case';
-import { TeamSyncService } from './application/services/team-sync.service';
 import { PlayersModule } from '../players/players.module';
+import { SeasonsModule } from '../seasons/seasons.module';
 import { ExternalFootballModule } from '../external-football/external-football.module';
+import { ApiFootballTeamSyncService } from './application/services/api-football-team-sync.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TeamOrmEntity, SeasonTeamOrmEntity]),
     forwardRef(() => PlayersModule),
+    forwardRef(() => SeasonsModule),
     ExternalFootballModule,
   ],
   controllers: [TeamsController],
@@ -35,7 +37,7 @@ import { ExternalFootballModule } from '../external-football/external-football.m
     GetTeamByIdUseCase,
     PersistTeamUseCase,
     PersistTeamWithSquadUseCase,
-    TeamSyncService,
+    ApiFootballTeamSyncService,
   ],
   exports: [
     TEAM_READ_REPOSITORY,
@@ -44,7 +46,7 @@ import { ExternalFootballModule } from '../external-football/external-football.m
     GetTeamByIdUseCase,
     PersistTeamUseCase,
     PersistTeamWithSquadUseCase,
-    TeamSyncService,
+    ApiFootballTeamSyncService,
   ],
 })
 export class TeamsModule {}

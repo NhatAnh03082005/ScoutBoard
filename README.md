@@ -25,14 +25,33 @@ src/modules/<feature>/
 
 ---
 
-### **1.2. Quy tắc Phân định Sở hữu Dữ liệu (Data Ownership)**
+### **1.2. Kiến Trúc Multi-Provider Dữ Liệu Bóng Đá**
 
-Hệ thống được phân định quyền sở hữu dữ liệu tuyệt đối giữa Backend và hệ thống ETL bên ngoài:
+Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên biệt hóa theo từng trách nhiệm:
 
-| Nhóm dữ liệu | Bảng dữ liệu | Đơn vị sở hữu | Quyền hạn của Backend |
-| :--- | :--- | :--- | :--- |
-| **Backend-Owned Data** | `users`, `roles`, `user_roles`, `refresh_tokens` | **Backend App** | Toàn quyền Read/Write, Giao dịch (Transactions), Pessimistic Locking & Khóa tịnh tiến |
-| **ETL-Owned Data** | `competitions`, `seasons`, `teams`, `players`, `matches` | **ETL Pipeline** | **Read-Only Clean Architecture**. Backend KHÔNG ghi dữ liệu, KHÔNG có API Mutation, Sync Job hay Ingest External API |
+```text
+                           SCOUTBOARD
+                                │
+                      Canonical Domain Model
+                                │
+         ┌──────────────────────┼──────────────────────┐
+         │                      │                      │
+         ▼                      ▼                      ▼
+ football-data.org         API-Football           Sportmonks
+ -----------------         ------------           ----------
+ Core Football Data     Player Enrichment      Match Statistics
+ • Competitions/Seasons • Player Photos (CDN)  • Match Events/Ratings
+ • Clubs & Rosters      • Height & Weight      • Player Match Stats
+ • Match Fixtures       • Foot & Jersey Number • Detailed Performance
+ • Scores & Results     • Detailed Positions
+```
+
+| Nhóm dữ liệu | Nguồn Provider | Trách nhiệm |
+| :--- | :--- | :--- |
+| **Core Football Data** | `football-data.org` | Giải đấu, Mùa giải, Câu lạc bộ, Đội hình cơ bản, Lịch thi đấu, Tỷ số trận đấu. |
+| **Player Enrichment** | `API-Football` | Ảnh chân dung (CDN), Chiều cao, Cân nặng, Chân thuận, Số áo, Vị trí chi tiết. |
+| **Match Statistics** | `Sportmonks` | Thống kê chi tiết từng trận, Điểm số đánh giá (Ratings), Sự kiện trận đấu. |
+| **User & App Data** | PostgreSQL (Internal) | Người dùng, Phân quyền RBAC, Shortlists cá nhân, Đội hình tự dựng (Squads). |
 
 ---
 

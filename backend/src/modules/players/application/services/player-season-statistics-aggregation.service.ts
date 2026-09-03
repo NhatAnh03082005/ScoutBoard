@@ -120,15 +120,20 @@ export class PlayerSeasonStatisticsAggregationService {
     const query = this.matchStatRepo
       .createQueryBuilder('pms')
       .innerJoin('pms.match', 'match')
-      .select('DISTINCT pms.playerId', 'playerId')
+      .select('pms.playerId', 'playerId')
       .addSelect('pms.teamId', 'teamId')
       .addSelect('match.seasonId', 'seasonId')
       .addSelect('match.competitionId', 'competitionId')
-      .where('match.seasonId = :seasonId', { seasonId });
+      .where('match.seasonId = :seasonId', { seasonId })
+      .groupBy('pms.playerId')
+      .addGroupBy('pms.teamId')
+      .addGroupBy('match.seasonId')
+      .addGroupBy('match.competitionId');
 
     if (competitionId) {
       query.andWhere('match.competitionId = :competitionId', { competitionId });
     }
+
 
     const rows = await query.getRawMany();
     const results: PlayerSeasonStatisticOrmEntity[] = [];

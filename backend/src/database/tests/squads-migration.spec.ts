@@ -97,15 +97,16 @@ describe('CreateSquadsTable1789200000000 (Migration)', () => {
         testSeasonId = existingSeasons[0].id;
       } else {
         const compRes = await AppDataSource.query(
-          `INSERT INTO "competitions" ("name", "code", "country", "tier") VALUES ($1, $2, $3, $4) RETURNING "id"`,
-          ['Test Competition', `TC_${Date.now()}`, 'England', 1],
+          `INSERT INTO "competitions" ("name", "country", "external_provider", "external_id") VALUES ($1, $2, $3, $4) RETURNING "id"`,
+          ['Test Competition', 'England', 'API_FOOTBALL', `TC_${Date.now()}`],
         );
         const seasonRes = await AppDataSource.query(
-          `INSERT INTO "seasons" ("competition_id", "name", "start_date", "end_date", "is_current") VALUES ($1, $2, $3, $4, $5) RETURNING "id"`,
-          [compRes[0].id, '2025/2026', '2025-08-01', '2026-05-31', true],
+          `INSERT INTO "seasons" ("competition_id", "name", "season_code", "start_date", "end_date", "is_current", "external_provider", "external_id") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "id"`,
+          [compRes[0].id, '2025/2026', '2025-2026', '2025-08-01', '2026-05-31', true, 'API_FOOTBALL', `TS_${Date.now()}`],
         );
         testSeasonId = seasonRes[0].id;
       }
+
     });
 
     afterEach(async () => {

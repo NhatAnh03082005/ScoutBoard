@@ -8,14 +8,14 @@ import { TypeOrmCompetitionWriteRepository } from './infrastructure/persistence/
 import { CompetitionsController } from './presentation/http/controllers/competitions.controller';
 import { SeasonsModule } from '../seasons/seasons.module';
 import { TeamsModule } from '../teams/teams.module';
+import { ExternalFootballModule } from '../external-football/external-football.module';
 import { ListCompetitionsUseCase } from './application/use-cases/list-competitions.use-case';
 import { GetCompetitionByIdUseCase } from './application/use-cases/get-competition-by-id.use-case';
 import { GetSeasonsByCompetitionUseCase } from './application/use-cases/get-seasons-by-competition.use-case';
 import { GetCurrentSeasonTeamsByCompetitionUseCase } from './application/use-cases/get-current-season-teams-by-competition.use-case';
-import { ExternalFootballModule } from '../external-football/external-football.module';
 import { PersistCompetitionUseCase } from './application/use-cases/persist-competition.use-case';
 import { PersistCompetitionWithSeasonsUseCase } from './application/use-cases/persist-competition-with-seasons.use-case';
-import { CompetitionSeasonSyncService } from './application/services/competition-season-sync.service';
+import { ApiFootballCompetitionSyncService } from './application/services/api-football-competition-sync.service';
 
 @Module({
   imports: [
@@ -40,7 +40,7 @@ import { CompetitionSeasonSyncService } from './application/services/competition
     GetCurrentSeasonTeamsByCompetitionUseCase,
     PersistCompetitionUseCase,
     PersistCompetitionWithSeasonsUseCase,
-    CompetitionSeasonSyncService,
+    ApiFootballCompetitionSyncService,
   ],
   exports: [
     COMPETITION_READ_REPOSITORY,
@@ -51,7 +51,7 @@ import { CompetitionSeasonSyncService } from './application/services/competition
     GetCurrentSeasonTeamsByCompetitionUseCase,
     PersistCompetitionUseCase,
     PersistCompetitionWithSeasonsUseCase,
-    CompetitionSeasonSyncService,
+    ApiFootballCompetitionSyncService,
   ],
 })
 export class CompetitionsModule {}

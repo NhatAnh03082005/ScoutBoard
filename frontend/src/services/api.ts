@@ -1,6 +1,71 @@
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api';
 
+// ─── Shared token helpers ────────────────────────────────────────────────────
+const getStoredAccessToken = (): string | null =>
+  localStorage.getItem('scout_access_token') || localStorage.getItem('accessToken');
+
+const getStoredRefreshToken = (): string | null =>
+  localStorage.getItem('scout_refresh_token') || localStorage.getItem('refreshToken');
+
+// ─── Token refresh (declared first — used by authFetch below) ─────────────────
+export async function refreshTokenApi(
+  refreshToken: string,
+): Promise<{ accessToken: string; refreshToken: string; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Làm mới token thất bại');
+  return data;
+}
+
+/**
+ * Authenticated fetch with automatic one-shot token refresh.
+ * Mirrors the same pattern in shortlist.service.ts / squad.service.ts.
+ * Throws Error('UNAUTHORIZED') when refresh also fails → caller should logout.
+ */
+async function authFetch(
+  url: string,
+  options: RequestInit = {},
+  accessToken?: string,
+): Promise<Response> {
+  let token = accessToken || getStoredAccessToken();
+  if (!token) throw new Error('UNAUTHORIZED');
+
+  const buildHeaders = (tok: string): Headers => {
+    const h = new Headers(options.headers || {});
+    h.set('Authorization', `Bearer ${tok}`);
+    if (!h.has('Content-Type') && options.method && options.method !== 'GET') {
+      h.set('Content-Type', 'application/json');
+    }
+    return h;
+  };
+
+  let res = await fetch(url, { ...options, headers: buildHeaders(token) });
+
+  // One-shot refresh on 401
+  if (res.status === 401) {
+    const refresh = getStoredRefreshToken();
+    if (refresh) {
+      try {
+        const refreshData = await refreshTokenApi(refresh);
+        localStorage.setItem('scout_access_token', refreshData.accessToken);
+        localStorage.setItem('scout_refresh_token', refreshData.refreshToken);
+        res = await fetch(url, { ...options, headers: buildHeaders(refreshData.accessToken) });
+      } catch {
+        throw new Error('UNAUTHORIZED');
+      }
+    } else {
+      throw new Error('UNAUTHORIZED');
+    }
+  }
+
+  return res;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -89,21 +154,8 @@ export async function getMeApi(accessToken: string): Promise<UserProfile> {
   return data;
 }
 
-export async function refreshTokenApi(refreshToken: string): Promise<{ accessToken: string; refreshToken: string; message: string }> {
-  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ refreshToken }),
-  });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || 'Làm mới token thất bại');
-  }
-  return data;
-}
+
 
 export async function logoutApi(accessToken: string, refreshToken: string): Promise<{ message: string }> {
   const response = await fetch(`${API_BASE_URL}/auth/logout`, {
@@ -197,7 +249,7 @@ export async function resetPasswordApi(
   return data;
 }
 
-// --- Admin Management APIs ---
+// --- Admin Management APIs (all use authFetch for auto token refresh) ---
 
 export async function getAdminUsersApi(
   accessToken: string,
@@ -212,19 +264,13 @@ export async function getAdminUsersApi(
 
   const url = `${API_BASE_URL}/admin/users${params.toString() ? `?${params.toString()}` : ''}`;
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
+  const response = await authFetch(url, { method: 'GET' }, accessToken);
+  if (response.status === 401 || !response.ok) {
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    const data = await response.json().catch(() => ({}));
     throw new Error(data.message || 'Không thể tải danh sách người dùng');
   }
-  return data;
+  return response.json();
 }
 
 export async function updateUserStatusApi(
@@ -232,39 +278,34 @@ export async function updateUserStatusApi(
   userId: string,
   status: string,
 ): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/status`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ status }),
-  });
-
-  const data = await response.json();
+  const response = await authFetch(
+    `${API_BASE_URL}/admin/users/${userId}/status`,
+    { method: 'PATCH', body: JSON.stringify({ status }) },
+    accessToken,
+  );
   if (!response.ok) {
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    const data = await response.json().catch(() => ({}));
     throw new Error(data.message || 'Không thể cập nhật trạng thái người dùng');
   }
-  return data;
+  return response.json();
 }
 
 export async function unlockUserApi(
   accessToken: string,
   userId: string,
 ): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/unlock`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  const data = await response.json();
+  const response = await authFetch(
+    `${API_BASE_URL}/admin/users/${userId}/unlock`,
+    { method: 'PATCH' },
+    accessToken,
+  );
   if (!response.ok) {
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    const data = await response.json().catch(() => ({}));
     throw new Error(data.message || 'Không thể mở khóa tài khoản người dùng');
   }
-  return data;
+  return response.json();
 }
 
 export async function updateUserRolesApi(
@@ -272,18 +313,15 @@ export async function updateUserRolesApi(
   userId: string,
   roles: string[],
 ): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/roles`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ roles }),
-  });
-
-  const data = await response.json();
+  const response = await authFetch(
+    `${API_BASE_URL}/admin/users/${userId}/roles`,
+    { method: 'PATCH', body: JSON.stringify({ roles }) },
+    accessToken,
+  );
   if (!response.ok) {
+    if (response.status === 401) throw new Error('UNAUTHORIZED');
+    const data = await response.json().catch(() => ({}));
     throw new Error(data.message || 'Không thể cập nhật vai trò người dùng');
   }
-  return data;
+  return response.json();
 }

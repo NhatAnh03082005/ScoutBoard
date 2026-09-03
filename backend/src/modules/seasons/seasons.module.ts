@@ -13,18 +13,15 @@ import { ListSeasonsUseCase } from './application/use-cases/list-seasons.use-cas
 import { GetSeasonByIdUseCase } from './application/use-cases/get-season-by-id.use-case';
 import { PersistSeasonUseCase } from './application/use-cases/persist-season.use-case';
 import { PersistSeasonTeamsUseCase } from './application/use-cases/persist-season-teams.use-case';
-import { SeasonTeamSyncService } from './application/services/season-team-sync.service';
 
 import { CompetitionsModule } from '../competitions/competitions.module';
 import { TeamsModule } from '../teams/teams.module';
-import { ExternalFootballModule } from '../external-football/external-football.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([SeasonOrmEntity, SeasonTeamOrmEntity]),
     forwardRef(() => CompetitionsModule),
     forwardRef(() => TeamsModule),
-    ExternalFootballModule,
   ],
   controllers: [SeasonsController],
   providers: [
@@ -44,7 +41,6 @@ import { ExternalFootballModule } from '../external-football/external-football.m
     GetSeasonByIdUseCase,
     PersistSeasonUseCase,
     PersistSeasonTeamsUseCase,
-    SeasonTeamSyncService,
   ],
   exports: [
     SEASON_READ_REPOSITORY,
@@ -54,7 +50,7 @@ import { ExternalFootballModule } from '../external-football/external-football.m
     GetSeasonByIdUseCase,
     PersistSeasonUseCase,
     PersistSeasonTeamsUseCase,
-    SeasonTeamSyncService,
   ],
 })
 export class SeasonsModule {}
+

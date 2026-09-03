@@ -113,12 +113,12 @@ export class PlayerSeasonStatisticsAggregator {
       }
     }
 
-    // Per-90 Calculation: ONLY when minutes_played > 0
-    let goalsPer90: number | null = null;
-    let assistsPer90: number | null = null;
-    let keyPassesPer90: number | null = null;
-    let tacklesPer90: number | null = null;
-    let interceptionsPer90: number | null = null;
+    // Per-90 Calculation
+    let goalsPer90: number | null = 0;
+    let assistsPer90: number | null = 0;
+    let keyPassesPer90: number | null = 0;
+    let tacklesPer90: number | null = 0;
+    let interceptionsPer90: number | null = 0;
     let savesPer90: number | null = null;
     let goalsConcededPer90: number | null = null;
 
@@ -135,6 +135,7 @@ export class PlayerSeasonStatisticsAggregator {
         goalsConcededPer90 = this.roundToTwoDecimals(goalsConceded * per90Factor);
       }
     }
+
 
     // GK Save Percentage Calculation: only when (saves + goalsConceded) > 0
     let savePercentage: number | null = null;

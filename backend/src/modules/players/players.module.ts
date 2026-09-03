@@ -33,10 +33,11 @@ import { UpdatePlayerPrimaryPositionUseCase } from './application/use-cases/upda
 import { PersistPlayerUseCase } from './application/use-cases/persist-player.use-case';
 import { PersistPlayerPositionsUseCase } from './application/use-cases/persist-player-positions.use-case';
 import { PersistPlayerTeamHistoryUseCase } from './application/use-cases/persist-player-team-history.use-case';
-import { PlayerSyncService } from './application/services/player-sync.service';
-import { PlayerPositionSyncService } from './application/services/player-position-sync.service';
-import { PlayerTeamHistorySyncService } from './application/services/player-team-history-sync.service';
+import { EnrichPlayerProfileUseCase } from './application/use-cases/enrich-player-profile.use-case';
+import { PlayerEnrichmentSyncService } from './application/services/player-enrichment-sync.service';
 import { PlayerSeasonStatisticsAggregationService } from './application/services/player-season-statistics-aggregation.service';
+import { ApiFootballPlayerSyncService } from './application/services/api-football-player-sync.service';
+
 
 @Module({
   imports: [
@@ -85,10 +86,10 @@ import { PlayerSeasonStatisticsAggregationService } from './application/services
     PersistPlayerUseCase,
     PersistPlayerPositionsUseCase,
     PersistPlayerTeamHistoryUseCase,
-    PlayerSyncService,
-    PlayerPositionSyncService,
-    PlayerTeamHistorySyncService,
+    EnrichPlayerProfileUseCase,
+    PlayerEnrichmentSyncService,
     PlayerSeasonStatisticsAggregationService,
+    ApiFootballPlayerSyncService,
   ],
   exports: [
     PLAYER_READ_REPOSITORY,
@@ -106,10 +107,12 @@ import { PlayerSeasonStatisticsAggregationService } from './application/services
     PersistPlayerUseCase,
     PersistPlayerPositionsUseCase,
     PersistPlayerTeamHistoryUseCase,
-    PlayerSyncService,
-    PlayerPositionSyncService,
-    PlayerTeamHistorySyncService,
+    EnrichPlayerProfileUseCase,
+    PlayerEnrichmentSyncService,
     PlayerSeasonStatisticsAggregationService,
+    ApiFootballPlayerSyncService,
   ],
 })
+
 export class PlayersModule {}
+

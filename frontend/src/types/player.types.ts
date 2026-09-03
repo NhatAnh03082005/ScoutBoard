@@ -1,3 +1,23 @@
+export const CANONICAL_PLAYER_POSITIONS = [
+  'GK',
+  'LB',
+  'CB',
+  'RB',
+  'LWB',
+  'RWB',
+  'CM',
+  'CDM',
+  'CAM',
+  'LM',
+  'RM',
+  'LW',
+  'RW',
+  'CF',
+  'ST',
+] as const;
+
+export type PlayerPosition = (typeof CANONICAL_PLAYER_POSITIONS)[number];
+
 export interface PlayerTeam {
   id: string;
   name: string;

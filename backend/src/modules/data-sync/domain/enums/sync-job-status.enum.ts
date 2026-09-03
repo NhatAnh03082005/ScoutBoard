@@ -1,0 +1,7 @@
+export enum SyncJobStatus {
+  PENDING = 'PENDING',
+  RUNNING = 'RUNNING',
+  SUCCESS = 'SUCCESS',
+  PARTIAL_SUCCESS = 'PARTIAL_SUCCESS',
+  FAILED = 'FAILED',
+}

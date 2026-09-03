@@ -19,6 +19,7 @@ import { MyShortlistsPage } from './pages/MyShortlistsPage';
 import { ShortlistDetailPage } from './pages/ShortlistDetailPage';
 import { MySquadsPage } from './pages/MySquadsPage';
 import { SquadDetailPage } from './pages/SquadDetailPage';
+import { AdminDataSyncPage } from './pages/AdminDataSyncPage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'players' | 'shortlists' | 'squads' | 'profile' | 'admin' | 'login' | 'register'>('players');
@@ -41,6 +42,7 @@ export default function App() {
   const [profileOtpLoading, setProfileOtpLoading] = useState(false);
 
   // Admin Management State
+  const [adminSubTab, setAdminSubTab] = useState<'data-sync' | 'users'>('data-sync');
   const [adminUsers, setAdminUsers] = useState<UserProfile[]>([]);
   const [adminSearch, setAdminSearch] = useState('');
   const [adminStatusFilter, setAdminStatusFilter] = useState('');
@@ -574,50 +576,78 @@ export default function App() {
 
         {/* 4. ADMIN TAB */}
         {activeTab === 'admin' && user && isAdmin && (
-          <div className="scout-admin-container" style={{ maxWidth: '1200px', margin: '32px auto', padding: '0 16px' }}>
-            <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
-              <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>User Management Filters</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                <input
-                  type="text"
-                  className="scout-input"
-                  placeholder="Search by email, name..."
-                  value={adminSearch}
-                  onChange={(e) => setAdminSearch(e.target.value)}
-                />
-                <select
-                  className="scout-select"
-                  value={adminStatusFilter}
-                  onChange={(e) => setAdminStatusFilter(e.target.value)}
-                >
-                  <option value="">All Statuses</option>
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                  <option value="LOCKED">LOCKED</option>
-                  <option value="SUSPENDED">SUSPENDED</option>
-                </select>
-                <select
-                  className="scout-select"
-                  value={adminRoleFilter}
-                  onChange={(e) => setAdminRoleFilter(e.target.value)}
-                >
-                  <option value="">All Roles</option>
-                  <option value="ADMIN">ADMIN</option>
-                  <option value="USER">USER</option>
-                </select>
-              </div>
+          <div className="scout-admin-container" style={{ maxWidth: '1240px', margin: '24px auto', padding: '0 16px' }}>
+            {/* Admin Sub-Tabs Navigation */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <button
+                type="button"
+                className={`scout-btn scout-btn-sm ${adminSubTab === 'data-sync' ? 'scout-btn-primary' : 'scout-btn-secondary'}`}
+                onClick={() => setAdminSubTab('data-sync')}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, padding: '8px 16px', fontSize: '13px' }}
+              >
+                <span>⚡</span> Data Synchronization
+              </button>
+              <button
+                type="button"
+                className={`scout-btn scout-btn-sm ${adminSubTab === 'users' ? 'scout-btn-primary' : 'scout-btn-secondary'}`}
+                onClick={() => setAdminSubTab('users')}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, padding: '8px 16px', fontSize: '13px' }}
+              >
+                <span>👥</span> User Management
+              </button>
             </div>
 
-            {/* Admin Table */}
-            <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>User List ({adminUsers.length})</h3>
-                <button
-                  type="button"
-                  onClick={fetchAdminUsers}
-                  className="scout-btn scout-btn-sm scout-btn-secondary"
-                >
-                  🔄 Reload
+            {/* Sub-Tab 1: Data Sync Center */}
+            {adminSubTab === 'data-sync' && accessToken && (
+              <AdminDataSyncPage accessToken={accessToken} />
+            )}
+
+            {/* Sub-Tab 2: User Management */}
+            {adminSubTab === 'users' && (
+              <>
+                <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
+                  <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>User Management Filters</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                    <input
+                      type="text"
+                      className="scout-input"
+                      placeholder="Search by email, name..."
+                      value={adminSearch}
+                      onChange={(e) => setAdminSearch(e.target.value)}
+                    />
+                    <select
+                      className="scout-select"
+                      value={adminStatusFilter}
+                      onChange={(e) => setAdminStatusFilter(e.target.value)}
+                    >
+                      <option value="">All Statuses</option>
+                      <option value="ACTIVE">ACTIVE</option>
+                      <option value="INACTIVE">INACTIVE</option>
+                      <option value="LOCKED">LOCKED</option>
+                      <option value="SUSPENDED">SUSPENDED</option>
+                    </select>
+                    <select
+                      className="scout-select"
+                      value={adminRoleFilter}
+                      onChange={(e) => setAdminRoleFilter(e.target.value)}
+                    >
+                      <option value="">All Roles</option>
+                      <option value="ADMIN">ADMIN</option>
+                      <option value="USER">USER</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Admin Table */}
+                <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>User List ({adminUsers.length})</h3>
+                    <button
+                      type="button"
+                      onClick={fetchAdminUsers}
+                      className="scout-btn scout-btn-sm scout-btn-secondary"
+                    >
+                      🔄 Reload
                 </button>
               </div>
 
@@ -712,6 +742,8 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            )}
+              </>
             )}
           </div>
         )}
