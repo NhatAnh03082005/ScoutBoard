@@ -32,9 +32,12 @@ export interface PlayerItem {
   imageUrl?: string | null;
   dateOfBirth?: string | null;
   nationality?: string | null;
+  nationalityFlagUrl?: string | null;
   preferredFoot?: "LEFT" | "RIGHT" | "BOTH" | string | null;
   heightCm?: number | null;
+  rawPosition?: string | null;
   primaryPosition?: string | null;
+  positionGroup?: string | null;
   positions?: PlayerPositionItem[];
   shirtNumber?: number | null;
   currentTeam?: PlayerTeam | null;
@@ -53,10 +56,13 @@ export interface PlayerDetail {
   shortName?: string | null;
   dateOfBirth?: string | null;
   nationality?: string | null;
+  nationalityFlagUrl?: string | null;
   heightCm?: number | null;
   weightKg?: number | null;
   preferredFoot?: string | null;
+  rawPosition?: string | null;
   primaryPosition?: string | null;
+  positionGroup?: string | null;
   shirtNumber?: number | null;
   imageUrl?: string | null;
   status?: string;

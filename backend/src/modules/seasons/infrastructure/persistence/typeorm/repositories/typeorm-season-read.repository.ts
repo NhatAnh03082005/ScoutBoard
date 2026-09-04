@@ -34,9 +34,34 @@ export class TypeOrmSeasonReadRepository implements SeasonReadRepository {
   async findCurrentByCompetitionId(
     competitionId: string,
   ): Promise<SeasonOrmEntity | null> {
-    return this.repository.findOne({
+    const marked = await this.repository.findOne({
       where: { competitionId, isCurrent: true },
       relations: ['competition'],
     });
+
+    if (marked) {
+      const hasTeams = await this.repository.manager
+        .createQueryBuilder()
+        .select('1')
+        .from('season_teams', 'st')
+        .where('st.season_id = :seasonId', { seasonId: marked.id })
+        .limit(1)
+        .getRawOne();
+
+      if (hasTeams) {
+        return marked;
+      }
+    }
+
+    // Fallback: season that actually has season_teams data
+    const fallback = await this.repository
+      .createQueryBuilder('season')
+      .leftJoinAndSelect('season.competition', 'competition')
+      .innerJoin('season_teams', 'st', 'st.season_id = season.id')
+      .where('season.competitionId = :competitionId', { competitionId })
+      .orderBy('season.startDate', 'DESC')
+      .getOne();
+
+    return fallback || marked || null;
   }
 }

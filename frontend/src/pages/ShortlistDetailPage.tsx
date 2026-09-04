@@ -6,6 +6,7 @@ import {
   removePlayerFromShortlistApi,
   updateShortlistPlayerNoteApi,
 } from '../services/shortlist.service';
+import { getNationalityFlagUrl } from '../utils/nationality-flag.util';
 
 interface ShortlistDetailPageProps {
   shortlistId: string;
@@ -353,12 +354,34 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                               </span>
                             )}
                             {player?.currentTeam && (
-                              <span style={{ fontWeight: 600, color: '#334155' }}>
-                                {player.currentTeam.name}
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: '#334155' }}>
+                                {player.currentTeam.logoUrl && (
+                                  <img
+                                    src={player.currentTeam.logoUrl}
+                                    alt=""
+                                    style={{ width: '14px', height: '14px', objectFit: 'contain' }}
+                                  />
+                                )}
+                                <span>{player.currentTeam.name}</span>
                               </span>
                             )}
                             {age && <span>• {age} yrs</span>}
-                            {player?.nationality && <span>• {player.nationality}</span>}
+                            {player?.nationality && (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <span>•</span>
+                                {(() => {
+                                  const flag = getNationalityFlagUrl(player.nationality);
+                                  return flag ? (
+                                    <img
+                                      src={flag}
+                                      alt=""
+                                      style={{ width: '14px', height: '10px', objectFit: 'cover', borderRadius: '1px' }}
+                                    />
+                                  ) : null;
+                                })()}
+                                <span>{player.nationality}</span>
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -15,6 +15,7 @@ import { getPositionRoleInfo, getPositionCategory } from "../utils/position.util
 import { PlayerRadarChart } from "../components/player/PlayerRadarChart";
 import { getRadarMetrics } from "../utils/radar.utils";
 import { AddToShortlistModal } from "../components/shortlist/AddToShortlistModal";
+import { getNationalityFlagUrl } from "../utils/nationality-flag.util";
 
 interface PlayerDetailPageProps {
   playerId: string;
@@ -424,6 +425,35 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
 
   const playerName = player ? player.fullName || player.name : "";
   const { firstName, lastName } = formatSportsName(playerName);
+  const flagUrl = player
+    ? getNationalityFlagUrl(player.nationality, player.nationalityFlagUrl)
+    : null;
+
+  const heroBioItems: string[] = [];
+  if (player) {
+    if (player.dateOfBirth) {
+      const age = calculateAge(player.dateOfBirth);
+      if (age && age !== "—") heroBioItems.push(`${age} YRS`);
+    }
+    if (player.heightCm != null) {
+      heroBioItems.push(`${player.heightCm} CM`);
+    }
+    if (player.weightKg != null) {
+      heroBioItems.push(`${player.weightKg} KG`);
+    }
+    if (player.preferredFoot) {
+      const footLabel =
+        player.preferredFoot === "LEFT"
+          ? "LEFT FOOT"
+          : player.preferredFoot === "RIGHT"
+            ? "RIGHT FOOT"
+            : player.preferredFoot === "BOTH"
+              ? "BOTH FEET"
+              : `${player.preferredFoot} FOOT`;
+      heroBioItems.push(footLabel);
+    }
+  }
+
   const currentPage = Math.floor(matchOffset / matchLimit) + 1;
   const totalPages = Math.ceil(matchTotal / matchLimit) || 1;
 
@@ -614,15 +644,35 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
               {/* Right Column (Identity & Stats - 9 cols) */}
               <div className="scout-hero-col-right">
                 {/* Top line: Club & Nation */}
-                <div className="scout-fc-club-nation">
-                  <span>
-                    {player.currentTeam
-                      ? player.currentTeam.name
-                      : "Free Agent"}
-                  </span>
-                  <span className="scout-fc-dot">•</span>
-                  <span>{player.nationality || "International"}</span>
-                  {player.shirtNumber && (
+                <div className="scout-fc-club-nation" style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  {player.currentTeam && (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                      {player.currentTeam.logoUrl && (
+                        <img
+                          src={player.currentTeam.logoUrl}
+                          alt={player.currentTeam.name}
+                          style={{ width: "18px", height: "18px", objectFit: "contain" }}
+                        />
+                      )}
+                      <span>{player.currentTeam.name}</span>
+                    </span>
+                  )}
+                  {player.currentTeam && player.nationality && (
+                    <span className="scout-fc-dot">•</span>
+                  )}
+                  {player.nationality && (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                      {flagUrl && (
+                        <img
+                          src={flagUrl}
+                          alt={player.nationality}
+                          style={{ width: "18px", height: "13px", objectFit: "cover", borderRadius: "2px" }}
+                        />
+                      )}
+                      <span>{player.nationality}</span>
+                    </span>
+                  )}
+                  {player.shirtNumber != null && (
                     <>
                       <span className="scout-fc-dot">•</span>
                       <span style={{ color: "#fde047" }}>
@@ -647,20 +697,17 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                   </div>
                 </div>
 
-                {/* 2. Bio Attributes Sub-Row */}
-                <div className="scout-hero-bio-row">
-                  <span>{calculateAge(player.dateOfBirth)} YRS</span>
-                  <span className="scout-hero-bio-dot">•</span>
-                  <span>{player.heightCm ? `${player.heightCm} CM` : "—"}</span>
-                  <span className="scout-hero-bio-dot">•</span>
-                  <span>
-                    {player.preferredFoot === "LEFT"
-                      ? "LEFT FOOT"
-                      : player.preferredFoot === "RIGHT"
-                        ? "RIGHT FOOT"
-                        : "BOTH FEET"}
-                  </span>
-                </div>
+                {/* 2. Bio Attributes Sub-Row (Null Fields Completely Hidden) */}
+                {heroBioItems.length > 0 && (
+                  <div className="scout-hero-bio-row">
+                    {heroBioItems.map((item, idx) => (
+                      <React.Fragment key={idx}>
+                        {idx > 0 && <span className="scout-hero-bio-dot">•</span>}
+                        <span>{item}</span>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                )}
 
                 {/* 5 REAL PERFORMANCE KPIS (5-Column Grid spanning full width) */}
                 <div className="scout-hero-kpi-grid-5">
@@ -721,62 +768,93 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                   className="scout-sports-bio-list"
                   style={{ marginTop: "16px" }}
                 >
-                  <div className="scout-sports-bio-row">
-                    <span className="scout-sports-bio-key">
-                      Age / Date of Birth
-                    </span>
-                    <strong className="scout-sports-bio-val">
-                      {player.dateOfBirth
-                        ? `${calculateAge(player.dateOfBirth)} yrs (${new Date(player.dateOfBirth).toLocaleDateString()})`
-                        : "—"}
-                    </strong>
-                  </div>
+                  {player.dateOfBirth && (
+                    <div className="scout-sports-bio-row">
+                      <span className="scout-sports-bio-key">
+                        Age / Date of Birth
+                      </span>
+                      <strong className="scout-sports-bio-val">
+                        {calculateAge(player.dateOfBirth)} yrs ({new Date(player.dateOfBirth).toLocaleDateString()})
+                      </strong>
+                    </div>
+                  )}
 
-                  <div className="scout-sports-bio-row">
-                    <span className="scout-sports-bio-key">Nationality</span>
-                    <strong className="scout-sports-bio-val">
-                      {player.nationality || "—"}
-                    </strong>
-                  </div>
+                  {player.nationality && (
+                    <div className="scout-sports-bio-row">
+                      <span className="scout-sports-bio-key">Nationality</span>
+                      <strong className="scout-sports-bio-val" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {flagUrl && (
+                          <img
+                            src={flagUrl}
+                            alt={player.nationality}
+                            style={{ width: "20px", height: "14px", objectFit: "cover", borderRadius: "2px" }}
+                          />
+                        )}
+                        <span>{player.nationality}</span>
+                      </strong>
+                    </div>
+                  )}
 
-                  <div className="scout-sports-bio-row">
-                    <span className="scout-sports-bio-key">Height</span>
-                    <strong className="scout-sports-bio-val">
-                      {player.heightCm ? `${player.heightCm} cm` : "—"}
-                    </strong>
-                  </div>
+                  {player.heightCm != null && (
+                    <div className="scout-sports-bio-row">
+                      <span className="scout-sports-bio-key">Height</span>
+                      <strong className="scout-sports-bio-val">
+                        {player.heightCm} cm
+                      </strong>
+                    </div>
+                  )}
 
-                  <div className="scout-sports-bio-row">
-                    <span className="scout-sports-bio-key">Weight</span>
-                    <strong className="scout-sports-bio-val">
-                      {player.weightKg ? `${player.weightKg} kg` : "—"}
-                    </strong>
-                  </div>
+                  {player.weightKg != null && (
+                    <div className="scout-sports-bio-row">
+                      <span className="scout-sports-bio-key">Weight</span>
+                      <strong className="scout-sports-bio-val">
+                        {player.weightKg} kg
+                      </strong>
+                    </div>
+                  )}
 
-                  <div className="scout-sports-bio-row">
-                    <span className="scout-sports-bio-key">Preferred Foot</span>
-                    <strong className="scout-sports-bio-val">
-                      {player.preferredFoot === "LEFT"
-                        ? "Left"
-                        : player.preferredFoot === "RIGHT"
-                          ? "Right"
-                          : player.preferredFoot === "BOTH"
-                            ? "Both"
-                            : player.preferredFoot || "—"}
-                    </strong>
-                  </div>
+                  {player.preferredFoot && (
+                    <div className="scout-sports-bio-row">
+                      <span className="scout-sports-bio-key">Preferred Foot</span>
+                      <strong className="scout-sports-bio-val">
+                        {player.preferredFoot === "LEFT"
+                          ? "Left"
+                          : player.preferredFoot === "RIGHT"
+                            ? "Right"
+                            : player.preferredFoot === "BOTH"
+                              ? "Both"
+                              : player.preferredFoot}
+                      </strong>
+                    </div>
+                  )}
 
-                  <div className="scout-sports-bio-row">
-                    <span className="scout-sports-bio-key">Current Club</span>
-                    <strong
-                      className="scout-sports-bio-val"
-                      style={{ color: "#0B4EA2" }}
-                    >
-                      {player.currentTeam
-                        ? player.currentTeam.name
-                        : "Free Agent"}
-                    </strong>
-                  </div>
+                  {player.shirtNumber != null && (
+                    <div className="scout-sports-bio-row">
+                      <span className="scout-sports-bio-key">Shirt Number</span>
+                      <strong className="scout-sports-bio-val">
+                        #{player.shirtNumber}
+                      </strong>
+                    </div>
+                  )}
+
+                  {player.currentTeam && (
+                    <div className="scout-sports-bio-row">
+                      <span className="scout-sports-bio-key">Current Club</span>
+                      <strong
+                        className="scout-sports-bio-val"
+                        style={{ display: "flex", alignItems: "center", gap: "8px", color: "#0B4EA2" }}
+                      >
+                        {player.currentTeam.logoUrl && (
+                          <img
+                            src={player.currentTeam.logoUrl}
+                            alt={player.currentTeam.name}
+                            style={{ width: "20px", height: "20px", objectFit: "contain" }}
+                          />
+                        )}
+                        <span>{player.currentTeam.name}</span>
+                      </strong>
+                    </div>
+                  )}
 
                   <div
                     className="scout-sports-bio-row"

@@ -114,7 +114,10 @@ export class ApiFootballPlayerMapper {
         ? firstStat.games.number
         : null;
 
-    const primaryPosition = this.normalizePosition(firstStat?.games?.position);
+    const rawPosition = (firstStat?.games?.position || profile.position || null)
+      ? String(firstStat?.games?.position || profile.position).trim()
+      : null;
+    const primaryPosition = this.normalizePosition(rawPosition);
 
     const resolvedTeamExtId =
       teamExternalId ||
@@ -139,6 +142,7 @@ export class ApiFootballPlayerMapper {
       heightCm,
       weightKg,
       preferredFoot: null,
+      rawPosition,
       primaryPosition,
       shirtNumber,
       imageUrl,
@@ -213,6 +217,7 @@ export class ApiFootballPlayerMapper {
       throw new Error('Invalid squad player: missing id or name');
     }
     const rawName = squadPlayer.name.trim();
+    const rawPosition = squadPlayer.position ? squadPlayer.position.trim() : null;
     return {
       externalProvider: this.PROVIDER,
       externalId: String(squadPlayer.id),
@@ -224,13 +229,39 @@ export class ApiFootballPlayerMapper {
       heightCm: null,
       weightKg: null,
       preferredFoot: null,
-      primaryPosition: this.normalizePosition(squadPlayer.position),
+      rawPosition,
+      primaryPosition: this.normalizePosition(rawPosition),
       shirtNumber:
         typeof squadPlayer.number === 'number' ? squadPlayer.number : null,
       imageUrl: squadPlayer.photo || null,
       status: 'ACTIVE',
       dataUpdatedAt: new Date(),
       currentTeamExternalId: teamExternalId,
+    };
+  }
+
+  /**
+   * Transforms player from /players/profiles?player={id} endpoint
+   */
+  static fromSingleProfile(p: any): EnrichedPlayerProfile {
+    if (!p?.id) {
+      throw new Error('Invalid player profile: missing id');
+    }
+    const rawName = String(p.name || '').trim();
+    return {
+      externalId: String(p.id),
+      name: rawName,
+      normalizedName: this.normalizeName(rawName),
+      firstName: p.firstname ? String(p.firstname).trim() : null,
+      lastName: p.lastname ? String(p.lastname).trim() : null,
+      dateOfBirth: p.birth?.date ? String(p.birth.date).trim() : null,
+      nationality: p.nationality ? String(p.nationality).trim() : null,
+      heightCm: this.parseHeightCm(p.height),
+      weightKg: this.parseWeightKg(p.weight),
+      preferredFoot: null,
+      primaryPosition: this.normalizePosition(p.position),
+      shirtNumber: typeof p.number === 'number' ? p.number : null,
+      imageUrl: p.photo ? String(p.photo).trim() : null,
     };
   }
 }

@@ -14,6 +14,7 @@ import { PlayerComparisonCandidateFilters } from '../components/player/PlayerCom
 import { PlayerCard } from '../components/player/PlayerCard';
 import { PlayerPagination } from '../components/player/PlayerPagination';
 import { getPositionRoleInfo } from '../utils/position.utils';
+import { getNationalityFlagUrl } from '../utils/nationality-flag.util';
 
 interface PlayerComparisonSetupPageProps {
   playerA: PlayerDetail;
@@ -549,15 +550,46 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
                   flexWrap: 'wrap',
                 }}
               >
-                <span>{playerA.currentTeam?.name || 'FREE AGENT'}</span>
-                <span style={{ color: '#ffffff' }}>•</span>
-                <span>{playerA.nationality || '—'}</span>
-                <span style={{ color: '#ffffff' }}>•</span>
-                <span>{calculateAge(playerA.dateOfBirth)}</span>
-                <span style={{ color: '#ffffff' }}>•</span>
-                <span>{playerA.heightCm ? `${playerA.heightCm} CM` : '—'}</span>
-                <span style={{ color: '#ffffff' }}>•</span>
-                <span>{playerA.preferredFoot || '—'} FOOT</span>
+                {(() => {
+                  const flagA = getNationalityFlagUrl(playerA.nationality, playerA.nationalityFlagUrl);
+                  const itemsA: React.ReactNode[] = [];
+                  if (playerA.currentTeam) {
+                    itemsA.push(
+                      <span key="club" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                        {playerA.currentTeam.logoUrl && (
+                          <img src={playerA.currentTeam.logoUrl} alt="" style={{ width: '15px', height: '15px', objectFit: 'contain' }} />
+                        )}
+                        <span>{playerA.currentTeam.name}</span>
+                      </span>
+                    );
+                  }
+                  if (playerA.nationality) {
+                    itemsA.push(
+                      <span key="nat" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        {flagA && (
+                          <img src={flagA} alt="" style={{ width: '14px', height: '10px', objectFit: 'cover', borderRadius: '1px' }} />
+                        )}
+                        <span>{playerA.nationality}</span>
+                      </span>
+                    );
+                  }
+                  if (playerA.dateOfBirth) {
+                    const age = calculateAge(playerA.dateOfBirth);
+                    if (age && age !== '— YRS') itemsA.push(<span key="age">{age}</span>);
+                  }
+                  if (playerA.heightCm != null) {
+                    itemsA.push(<span key="height">{playerA.heightCm} CM</span>);
+                  }
+                  if (playerA.preferredFoot) {
+                    itemsA.push(<span key="foot">{playerA.preferredFoot} FOOT</span>);
+                  }
+                  return itemsA.map((node, idx) => (
+                    <React.Fragment key={idx}>
+                      {idx > 0 && <span style={{ color: '#ffffff' }}>•</span>}
+                      {node}
+                    </React.Fragment>
+                  ));
+                })()}
               </div>
             </div>
           </div>

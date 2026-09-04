@@ -12,6 +12,7 @@ import {
 } from '../utils/radar.utils';
 import { ComparisonRadarChart } from '../components/player/ComparisonRadarChart';
 import { AddToShortlistModal } from '../components/shortlist/AddToShortlistModal';
+import { getNationalityFlagUrl } from '../utils/nationality-flag.util';
 
 interface PlayerComparisonPageProps {
   playerAId: string;
@@ -249,8 +250,8 @@ const calculateAge = (dateOfBirth?: string | null): string => {
   return `${age} YRS`;
 };
 
-const formatPreferredFoot = (foot?: string | null): string => {
-  if (!foot) return '—';
+const formatPreferredFoot = (foot?: string | null): string | null => {
+  if (!foot) return null;
   const upper = foot.trim().toUpperCase();
   if (upper.includes('FOOT')) return upper;
   return `${upper} FOOT`;
@@ -770,8 +771,15 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                   flexWrap: 'wrap',
                 }}
               >
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#e2e8f0', textTransform: 'uppercase' }}>
-                  {playerA.currentTeam?.name || 'FREE AGENT'}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 800, color: '#e2e8f0', textTransform: 'uppercase' }}>
+                  {playerA.currentTeam?.logoUrl && (
+                    <img
+                      src={playerA.currentTeam.logoUrl}
+                      alt=""
+                      style={{ width: '15px', height: '15px', objectFit: 'contain' }}
+                    />
+                  )}
+                  <span>{playerA.currentTeam?.name || 'FREE AGENT'}</span>
                 </span>
                 <span
                   style={{
@@ -816,33 +824,59 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                 </button>
               </div>
 
-              {/* Player Bio details (Clean Full Uppercase) */}
-              <div
-                style={{
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  color: '#cbd5e1',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  marginTop: '5px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span>{playerA.nationality?.toUpperCase() || '—'}</span>
-                <span style={{ color: '#64748b' }}>•</span>
-                <span>{calculateAge(playerA.dateOfBirth)}</span>
-                <span style={{ color: '#64748b' }}>•</span>
-                <span>{formatPreferredFoot(playerA.preferredFoot)}</span>
-                {playerA.heightCm && (
-                  <>
-                    <span style={{ color: '#64748b' }}>•</span>
-                    <span>{playerA.heightCm} CM</span>
-                  </>
-                )}
-              </div>
+              {/* Player Bio details (Null fields completely hidden) */}
+              {(() => {
+                const flagA = getNationalityFlagUrl(playerA.nationality, playerA.nationalityFlagUrl);
+                const footA = formatPreferredFoot(playerA.preferredFoot);
+                const ageA = playerA.dateOfBirth ? calculateAge(playerA.dateOfBirth) : null;
+                const itemsA: React.ReactNode[] = [];
+                if (playerA.nationality) {
+                  itemsA.push(
+                    <span key="nat" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      {flagA && (
+                        <img
+                          src={flagA}
+                          alt=""
+                          style={{ width: '14px', height: '10px', objectFit: 'cover', borderRadius: '1px' }}
+                        />
+                      )}
+                      <span>{playerA.nationality.toUpperCase()}</span>
+                    </span>
+                  );
+                }
+                if (ageA && ageA !== '— YRS') {
+                  itemsA.push(<span key="age">{ageA}</span>);
+                }
+                if (footA) {
+                  itemsA.push(<span key="foot">{footA}</span>);
+                }
+                if (playerA.heightCm != null) {
+                  itemsA.push(<span key="height">{playerA.heightCm} CM</span>);
+                }
+                return itemsA.length > 0 ? (
+                  <div
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      color: '#cbd5e1',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      marginTop: '5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {itemsA.map((node, idx) => (
+                      <React.Fragment key={idx}>
+                        {idx > 0 && <span style={{ color: '#64748b' }}>•</span>}
+                        {node}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </div>
           </div>
 
@@ -955,39 +989,72 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                 >
                   {selectedComparisonPosition}
                 </span>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#e2e8f0', textTransform: 'uppercase' }}>
-                  {playerB.currentTeam?.name || 'FREE AGENT'}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 800, color: '#e2e8f0', textTransform: 'uppercase' }}>
+                  {playerB.currentTeam?.logoUrl && (
+                    <img
+                      src={playerB.currentTeam.logoUrl}
+                      alt=""
+                      style={{ width: '15px', height: '15px', objectFit: 'contain' }}
+                    />
+                  )}
+                  <span>{playerB.currentTeam?.name || 'FREE AGENT'}</span>
                 </span>
               </div>
 
-              {/* Player Bio details (Clean Full Uppercase) */}
-              <div
-                style={{
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  color: '#cbd5e1',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  marginTop: '5px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  gap: '6px',
-                  flexWrap: 'wrap',
-                }}
-              >
-                {playerB.heightCm && (
-                  <>
-                    <span>{playerB.heightCm} CM</span>
-                    <span style={{ color: '#64748b' }}>•</span>
-                  </>
-                )}
-                <span>{formatPreferredFoot(playerB.preferredFoot)}</span>
-                <span style={{ color: '#64748b' }}>•</span>
-                <span>{calculateAge(playerB.dateOfBirth)}</span>
-                <span style={{ color: '#64748b' }}>•</span>
-                <span>{playerB.nationality?.toUpperCase() || '—'}</span>
-              </div>
+              {/* Player Bio details (Null fields completely hidden) */}
+              {(() => {
+                const flagB = getNationalityFlagUrl(playerB.nationality, playerB.nationalityFlagUrl);
+                const footB = formatPreferredFoot(playerB.preferredFoot);
+                const ageB = playerB.dateOfBirth ? calculateAge(playerB.dateOfBirth) : null;
+                const itemsB: React.ReactNode[] = [];
+                if (playerB.heightCm != null) {
+                  itemsB.push(<span key="height">{playerB.heightCm} CM</span>);
+                }
+                if (footB) {
+                  itemsB.push(<span key="foot">{footB}</span>);
+                }
+                if (ageB && ageB !== '— YRS') {
+                  itemsB.push(<span key="age">{ageB}</span>);
+                }
+                if (playerB.nationality) {
+                  itemsB.push(
+                    <span key="nat" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      {flagB && (
+                        <img
+                          src={flagB}
+                          alt=""
+                          style={{ width: '14px', height: '10px', objectFit: 'cover', borderRadius: '1px' }}
+                        />
+                      )}
+                      <span>{playerB.nationality.toUpperCase()}</span>
+                    </span>
+                  );
+                }
+                return itemsB.length > 0 ? (
+                  <div
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      color: '#cbd5e1',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      marginTop: '5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      gap: '6px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {itemsB.map((node, idx) => (
+                      <React.Fragment key={idx}>
+                        {idx > 0 && <span style={{ color: '#64748b' }}>•</span>}
+                        {node}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </div>
 
             <div

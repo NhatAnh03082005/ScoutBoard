@@ -187,9 +187,12 @@ describe('GetComparisonCandidatesUseCase', () => {
       imageUrl: 'https://example.com/palmer.png',
       dateOfBirth: '2002-05-06',
       nationality: 'England',
+      nationalityFlagUrl: 'https://flagcdn.com/w40/gb-eng.png',
       preferredFoot: 'LEFT',
       heightCm: 189,
+      rawPosition: null,
       primaryPosition: 'RW',
+      positionGroup: 'FORWARD',
       positions: [],
       shirtNumber: undefined,
       currentTeam: {

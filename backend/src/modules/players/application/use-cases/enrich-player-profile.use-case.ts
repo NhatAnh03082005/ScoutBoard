@@ -114,21 +114,34 @@ export class EnrichPlayerProfileUseCase {
         },
       );
       if (canonicalPos && canonicalPos !== existing.primaryPosition) {
-        existing.primaryPosition = canonicalPos;
-        modified = true;
-        positionChanged = true;
+        // Do not downgrade an existing detailed tactical position to a generic broad role
+        const broadRoles = ['DEF', 'MID', 'FWD'];
+        const isExistingDetailed =
+          existing.primaryPosition &&
+          !broadRoles.includes(existing.primaryPosition);
+        if (!(isExistingDetailed && broadRoles.includes(canonicalPos))) {
+          existing.primaryPosition = canonicalPos;
+          modified = true;
+          positionChanged = true;
+        }
       }
     }
 
-    // 7. Date of birth (if missing)
-    if (!existing.dateOfBirth && enrichment.dateOfBirth) {
+    // 7. Date of birth
+    if (
+      enrichment.dateOfBirth &&
+      (!existing.dateOfBirth || existing.dateOfBirth !== enrichment.dateOfBirth)
+    ) {
       existing.dateOfBirth = enrichment.dateOfBirth;
       modified = true;
     }
 
-    // 8. Nationality (if missing)
-    if (!existing.nationality && enrichment.nationality) {
-      existing.nationality = enrichment.nationality;
+    // 8. Nationality
+    if (
+      enrichment.nationality &&
+      (!existing.nationality || existing.nationality !== enrichment.nationality)
+    ) {
+      existing.nationality = enrichment.nationality.trim();
       modified = true;
     }
 

@@ -19,6 +19,7 @@ export interface ApiFootballPlayerProfileDto {
   weight?: string | null;
   injured?: boolean | null;
   photo?: string | null;
+  position?: string | null;
 }
 
 export interface ApiFootballPlayerTeamStatisticsDto {

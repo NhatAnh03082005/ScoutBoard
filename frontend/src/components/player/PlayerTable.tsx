@@ -1,6 +1,7 @@
 import React from "react";
 import type { PlayerItem } from "../../types/player.types";
 import { getPositionRoleInfo } from "../../utils/position.utils";
+import { getNationalityFlagUrl } from "../../utils/nationality-flag.util";
 
 interface PlayerTableProps {
   players: PlayerItem[];
@@ -17,18 +18,18 @@ export const PlayerTable: React.FC<PlayerTableProps> = ({
 }) => {
   // Helper to compute initials for avatar fallback (e.g. Bukayo Saka -> BS)
   const getInitials = (name: string): string => {
-    if (!name) return "—";
+    if (!name) return "";
     const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) return "—";
+    if (parts.length === 0) return "";
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  // Helper to compute age from dateOfBirth
+  // Helper to compute age from dateOfBirth (returns empty string if null)
   const calculateAge = (dateOfBirth?: string | null): string => {
-    if (!dateOfBirth) return "—";
+    if (!dateOfBirth) return "";
     const birthDate = new Date(dateOfBirth);
-    if (isNaN(birthDate.getTime())) return "—";
+    if (isNaN(birthDate.getTime())) return "";
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
@@ -147,18 +148,23 @@ export const PlayerTable: React.FC<PlayerTableProps> = ({
                   player.currentTeam?.shortName ||
                   player.currentTeam?.name ||
                   "Free Agent";
-                const position = player.primaryPosition || "—";
+                const position = player.primaryPosition || "";
                 const positionRole = getPositionRoleInfo(
                   player.primaryPosition,
                 );
-                const foot =
-                  player.preferredFoot === "LEFT"
+                const flagUrl = getNationalityFlagUrl(
+                  player.nationality,
+                  player.nationalityFlagUrl,
+                );
+                const foot = player.preferredFoot
+                  ? player.preferredFoot === "LEFT"
                     ? "Left"
                     : player.preferredFoot === "RIGHT"
                       ? "Right"
                       : player.preferredFoot === "BOTH"
                         ? "Both"
-                        : "—";
+                        : player.preferredFoot
+                  : "";
 
                 return (
                   <tr
@@ -207,44 +213,69 @@ export const PlayerTable: React.FC<PlayerTableProps> = ({
 
                     {/* 2. Club */}
                     <td>
-                      <span className="scout-club-cell" title={clubName}>
-                        {clubName}
-                      </span>
+                      <div
+                        className="scout-club-cell"
+                        title={clubName}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                      >
+                        {player.currentTeam?.logoUrl && (
+                          <img
+                            src={player.currentTeam.logoUrl}
+                            alt={clubName}
+                            style={{ width: "16px", height: "16px", objectFit: "contain" }}
+                          />
+                        )}
+                        <span>{clubName}</span>
+                      </div>
                     </td>
 
                     {/* 3. Visual Position Badge */}
                     <td>
-                      <span
-                        className={`scout-b2b-pos-badge ${positionRole.badgeClass}`}
-                      >
-                        {position}
-                      </span>
+                      {position && (
+                        <span
+                          className={`scout-b2b-pos-badge ${positionRole.badgeClass}`}
+                        >
+                          {position}
+                        </span>
+                      )}
                     </td>
 
-                    {/* 4. Foot */}
+                    {/* 4. Foot (Empty if null) */}
                     <td>
                       <span className="scout-b2b-text-secondary">{foot}</span>
                     </td>
 
-                    {/* 5. Age */}
+                    {/* 5. Age (Empty if null) */}
                     <td>
                       <span className="scout-b2b-text-main">
                         {calculateAge(player.dateOfBirth)}
                       </span>
                     </td>
 
-                    {/* 6. Height */}
+                    {/* 6. Height (Empty if null) */}
                     <td>
                       <span className="scout-b2b-text-main">
-                        {player.heightCm ? `${player.heightCm} cm` : "—"}
+                        {player.heightCm != null ? `${player.heightCm} cm` : ""}
                       </span>
                     </td>
 
-                    {/* 7. Nationality */}
+                    {/* 7. Nationality with Flag (Empty if null) */}
                     <td>
-                      <span className="scout-b2b-text-secondary">
-                        {player.nationality || "—"}
-                      </span>
+                      {player.nationality ? (
+                        <span
+                          className="scout-b2b-text-secondary"
+                          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                        >
+                          {flagUrl && (
+                            <img
+                              src={flagUrl}
+                              alt={player.nationality}
+                              style={{ width: "16px", height: "11px", objectFit: "cover", borderRadius: "2px" }}
+                            />
+                          )}
+                          <span>{player.nationality}</span>
+                        </span>
+                      ) : null}
                     </td>
                   </tr>
                 );

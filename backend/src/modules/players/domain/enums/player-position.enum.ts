@@ -1,6 +1,6 @@
 /**
  * Official Canonical Player Positions Contract for ScoutBoard
- * 15 canonical positions only.
+ * Specific canonical positions + broad role fallbacks.
  */
 export const CANONICAL_PLAYER_POSITIONS = [
   'GK',
@@ -9,8 +9,8 @@ export const CANONICAL_PLAYER_POSITIONS = [
   'RB',
   'LWB',
   'RWB',
-  'CM',
   'CDM',
+  'CM',
   'CAM',
   'LM',
   'RM',
@@ -18,6 +18,9 @@ export const CANONICAL_PLAYER_POSITIONS = [
   'RW',
   'CF',
   'ST',
+  'DEF',
+  'MID',
+  'FWD',
 ] as const;
 
 export type PlayerPosition = (typeof CANONICAL_PLAYER_POSITIONS)[number];
@@ -29,18 +32,35 @@ export function isCanonicalPlayerPosition(pos: unknown): pos is PlayerPosition {
   );
 }
 
+export type PositionGroup = 'GOALKEEPER' | 'DEFENDER' | 'MIDFIELDER' | 'FORWARD';
+
+/**
+ * Maps any position code into its corresponding high-level Position Group
+ * Note: Position Group is for filtering, segmentation & radar profiles.
+ * It NEVER overwrites the detailed Player Position.
+ */
+export function getPositionGroup(pos?: string | null): PositionGroup | null {
+  if (!pos) return null;
+  const p = pos.trim().toUpperCase();
+  if (['GK', 'GOALKEEPER', 'G'].includes(p)) return 'GOALKEEPER';
+  if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF', 'DEFENDER', 'D'].includes(p)) return 'DEFENDER';
+  if (['CDM', 'DM', 'CM', 'CAM', 'AM', 'LM', 'RM', 'MID', 'MIDFIELDER', 'M'].includes(p)) return 'MIDFIELDER';
+  if (['LW', 'RW', 'ST', 'CF', 'SS', 'FWD', 'ATT', 'ATTACKER', 'FORWARD', 'F'].includes(p)) return 'FORWARD';
+  return null;
+}
+
 export interface PositionInferenceContext {
   preferredFoot?: string | null;
-  grid?: string | null; // e.g. "1:1" (left), "1:4" (right) in API-Football lineup
+  grid?: string | null; // e.g. "1:1" (GK), "2:1" (LB), "2:4" (RB), "3:1" (DM), "4:2" (CAM)
+  formation?: string | null; // e.g. "4-2-3-1", "4-3-3"
   side?: 'LEFT' | 'RIGHT' | 'CENTER' | null;
 }
 
 /**
- * 3-Tier Position Normalizer & Inference:
+ * Position Normalizer & Inference:
  * Tier 1: Exact provider detailed position -> canonical code
- * Tier 2: Supporting evidence (preferred foot / lineup grid / side)
- * Tier 3: Semantic safe fallback (Defence -> CB, Midfield -> CM, Offence -> ST)
- * Tier 4: null if input is empty or invalid
+ * Tier 2: Supporting evidence (lineup pitch grid, preferred foot, side)
+ * Tier 3: Broad category preservation (DEF, MID, FWD) without forced reduction to CB/CM/ST
  */
 export function normalizeToCanonicalPosition(
   raw?: string | null,
@@ -55,8 +75,12 @@ export function normalizeToCanonicalPosition(
 
   if (!clean || clean === 'UNKNOWN' || clean === 'N/A') return null;
 
-  // If already a canonical code, return directly
-  if (isCanonicalPlayerPosition(clean)) {
+  // Direct canonical code or alias normalization
+  if (clean === 'DM') return 'CDM';
+  if (clean === 'AM') return 'CAM';
+  if (clean === 'SS') return 'CF';
+
+  if (isCanonicalPlayerPosition(clean) && !['DEF', 'MID', 'FWD'].includes(clean)) {
     return clean;
   }
 
@@ -103,7 +127,6 @@ export function normalizeToCanonicalPosition(
     // 6. Defensive Midfielder
     case 'DEFENSIVE MIDFIELD':
     case 'DEFENSIVE MIDFIELDER':
-    case 'DM':
     case 'HOLDING MIDFIELDER':
       return 'CDM';
 
@@ -115,7 +138,6 @@ export function normalizeToCanonicalPosition(
     // 8. Attacking Midfielder
     case 'ATTACKING MIDFIELD':
     case 'ATTACKING MIDFIELDER':
-    case 'AM':
     case 'PLAYMAKER':
       return 'CAM';
 
@@ -146,7 +168,7 @@ export function normalizeToCanonicalPosition(
       return 'ST';
   }
 
-  // Check FWB non-canonical alias
+  // Wing back non-canonical aliases
   if (
     clean === 'FWB' ||
     clean === 'FULL-WING-BACK' ||
@@ -157,66 +179,78 @@ export function normalizeToCanonicalPosition(
     const isLeft =
       context?.side === 'LEFT' ||
       context?.preferredFoot?.toUpperCase() === 'LEFT' ||
-      (context?.grid &&
-        (context.grid.endsWith(':1') || context.grid.endsWith(':2')));
+      (context?.grid && (context.grid.endsWith(':1') || context.grid.endsWith(':2')));
     return isLeft ? 'LWB' : 'RWB';
   }
 
-  // --- TIER 2 & 3: BROAD GROUPINGS WITH EVIDENCE / SAFE FALLBACK ---
+  // --- TIER 2: LINEUP GRID EVIDENCE (row:col in tactical formation) ---
+  if (context?.grid) {
+    const [rowStr, colStr] = context.grid.split(':');
+    const row = parseInt(rowStr, 10);
+    const col = parseInt(colStr, 10);
 
-  // DEFENCE / DEFENDER
-  if (
-    clean === 'DEFENCE' ||
-    clean === 'DEFENDER' ||
-    clean === 'DEF' ||
-    clean === 'D' ||
-    clean === 'DF'
-  ) {
-    if (
-      context?.side === 'LEFT' ||
-      context?.preferredFoot?.toUpperCase() === 'LEFT'
-    ) {
-      return 'LB';
+    if (!isNaN(row) && !isNaN(col)) {
+      if (row === 1) return 'GK';
+
+      // Defensive line (row 2)
+      if (row === 2) {
+        if (col === 1) return 'LB';
+        if (col === 4 || col === 5) return 'RB';
+        return 'CB';
+      }
+
+      // Midfield & Attack lines
+      if (row === 3) {
+        // In 4-2-3-1 or 3-4-2-1
+        if (col === 1) return context.side === 'LEFT' ? 'LM' : 'CDM';
+        if (col === 2) return 'CDM';
+        return 'CM';
+      }
+
+      if (row === 4) {
+        if (col === 1) return 'LW';
+        if (col === 2) return 'CAM';
+        if (col === 3) return 'RW';
+        return 'CAM';
+      }
+
+      if (row >= 5) {
+        if (col === 1) return 'ST';
+        if (col === 2) return 'CF';
+        return 'ST';
+      }
     }
-    if (
-      context?.side === 'RIGHT' ||
-      context?.preferredFoot?.toUpperCase() === 'RIGHT'
-    ) {
-      return 'RB';
-    }
-    // Safe semantic fallback
-    return 'CB';
   }
 
-  // MIDFIELD / MIDFIELDER
-  if (
-    clean === 'MIDFIELD' ||
-    clean === 'MIDFIELDER' ||
-    clean === 'MID' ||
-    clean === 'M' ||
-    clean === 'MF'
-  ) {
-    if (context?.side === 'LEFT') return 'LM';
-    if (context?.side === 'RIGHT') return 'RM';
-    // Safe semantic fallback
-    return 'CM';
+  // Side-based inference
+  if (context?.side === 'LEFT') {
+    if (['DEFENCE', 'DEFENDER', 'DEF', 'D'].includes(clean)) return 'LB';
+    if (['MIDFIELD', 'MIDFIELDER', 'MID', 'M'].includes(clean)) return 'LM';
+    if (['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'F'].includes(clean)) return 'LW';
   }
 
-  // OFFENCE / ATTACKER / FORWARD / ATTACK
-  if (
-    clean === 'OFFENCE' ||
-    clean === 'ATTACK' ||
-    clean === 'ATTACKER' ||
-    clean === 'FORWARD' ||
-    clean === 'FWD' ||
-    clean === 'ATT' ||
-    clean === 'F' ||
-    clean === 'FW'
-  ) {
-    if (context?.side === 'LEFT') return 'LW';
-    if (context?.side === 'RIGHT') return 'RW';
-    // Safe semantic fallback
-    return 'ST';
+  if (context?.side === 'RIGHT') {
+    if (['DEFENCE', 'DEFENDER', 'DEF', 'D'].includes(clean)) return 'RB';
+    if (['MIDFIELD', 'MIDFIELDER', 'MID', 'M'].includes(clean)) return 'RM';
+    if (['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'F'].includes(clean)) return 'RW';
+  }
+
+  // Preferred foot supporting evidence for wide defenders
+  if (['DEFENCE', 'DEFENDER', 'DEF', 'D'].includes(clean)) {
+    if (context?.preferredFoot?.toUpperCase() === 'LEFT') return 'LB';
+    if (context?.preferredFoot?.toUpperCase() === 'RIGHT') return 'RB';
+    // PRESERVE broad category: DO NOT FORCE TO CB
+    return 'DEF';
+  }
+
+  if (['MIDFIELD', 'MIDFIELDER', 'MID', 'M'].includes(clean)) {
+    // PRESERVE broad category: DO NOT FORCE TO CM
+    return 'MID';
+  }
+
+  if (['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'ATT', 'F'].includes(clean)) {
+    // PRESERVE broad category: DO NOT FORCE TO ST
+    return 'FWD';
   }
 
   return null;

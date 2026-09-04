@@ -214,3 +214,24 @@ export async function getComparisonCandidatesApi(
 
   return data;
 }
+
+/**
+ * Gọi API GET /api/players/positions lấy danh sách các vị trí thực tế có trong hệ thống
+ */
+export async function getAvailablePositionsApi(): Promise<string[]> {
+  const url = `${API_BASE_URL}/players/positions`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể tải danh sách vị trí');
+  }
+
+  return data;
+}

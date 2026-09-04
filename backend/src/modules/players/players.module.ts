@@ -30,6 +30,7 @@ import { GetPlayerSeasonStatisticsUseCase } from './application/use-cases/get-pl
 import { GetPlayerMatchStatisticsUseCase } from './application/use-cases/get-player-match-statistics.use-case';
 import { GetComparisonCandidatesUseCase } from './application/use-cases/get-comparison-candidates.use-case';
 import { UpdatePlayerPrimaryPositionUseCase } from './application/use-cases/update-player-primary-position.use-case';
+import { GetAvailablePositionsUseCase } from './application/use-cases/get-available-positions.use-case';
 import { PersistPlayerUseCase } from './application/use-cases/persist-player.use-case';
 import { PersistPlayerPositionsUseCase } from './application/use-cases/persist-player-positions.use-case';
 import { PersistPlayerTeamHistoryUseCase } from './application/use-cases/persist-player-team-history.use-case';
@@ -83,6 +84,7 @@ import { ApiFootballPlayerSyncService } from './application/services/api-footbal
     GetPlayerMatchStatisticsUseCase,
     GetComparisonCandidatesUseCase,
     UpdatePlayerPrimaryPositionUseCase,
+    GetAvailablePositionsUseCase,
     PersistPlayerUseCase,
     PersistPlayerPositionsUseCase,
     PersistPlayerTeamHistoryUseCase,
@@ -104,6 +106,7 @@ import { ApiFootballPlayerSyncService } from './application/services/api-footbal
     GetPlayerMatchStatisticsUseCase,
     GetComparisonCandidatesUseCase,
     UpdatePlayerPrimaryPositionUseCase,
+    GetAvailablePositionsUseCase,
     PersistPlayerUseCase,
     PersistPlayerPositionsUseCase,
     PersistPlayerTeamHistoryUseCase,

@@ -1,5 +1,6 @@
 import React from "react";
 import type { PlayerItem } from "../../types/player.types";
+import { getNationalityFlagUrl } from "../../utils/nationality-flag.util";
 
 interface PlayerComparisonCandidateListProps {
   candidates: PlayerItem[];
@@ -10,9 +11,9 @@ interface PlayerComparisonCandidateListProps {
 }
 
 const calculateAgeNumber = (dateOfBirth?: string | null): number | string => {
-  if (!dateOfBirth) return "—";
+  if (!dateOfBirth) return "";
   const birthDate = new Date(dateOfBirth);
-  if (isNaN(birthDate.getTime())) return "—";
+  if (isNaN(birthDate.getTime())) return "";
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const m = today.getMonth() - birthDate.getMonth();
@@ -365,7 +366,15 @@ export const PlayerComparisonCandidateList: React.FC<
                   <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#334155' }}>
                     {player.currentTeam ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>🛡️</span>
+                        {player.currentTeam.logoUrl ? (
+                          <img
+                            src={player.currentTeam.logoUrl}
+                            alt=""
+                            style={{ width: '16px', height: '16px', objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <span>🛡️</span>
+                        )}
                         <span>{player.currentTeam.name}</span>
                       </div>
                     ) : (
@@ -375,7 +384,21 @@ export const PlayerComparisonCandidateList: React.FC<
 
                   {/* Nationality */}
                   <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#334155' }}>
-                    {player.nationality || '—'}
+                    {player.nationality ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {(() => {
+                          const flag = getNationalityFlagUrl(player.nationality, player.nationalityFlagUrl);
+                          return flag ? (
+                            <img
+                              src={flag}
+                              alt=""
+                              style={{ width: '16px', height: '11px', objectFit: 'cover', borderRadius: '2px' }}
+                            />
+                          ) : null;
+                        })()}
+                        <span>{player.nationality}</span>
+                      </div>
+                    ) : null}
                   </td>
 
                   {/* Age */}
@@ -385,12 +408,12 @@ export const PlayerComparisonCandidateList: React.FC<
 
                   {/* Preferred Foot */}
                   <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#475569' }}>
-                    {player.preferredFoot || '—'}
+                    {player.preferredFoot || ''}
                   </td>
 
                   {/* Height */}
                   <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#475569' }}>
-                    {player.heightCm ? `${player.heightCm} cm` : '—'}
+                    {player.heightCm != null ? `${player.heightCm} cm` : ''}
                   </td>
 
                   {/* Compare Action Button */}

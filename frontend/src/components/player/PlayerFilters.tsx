@@ -10,12 +10,34 @@ interface PlayerFiltersProps {
   filters: PlayerFilterParams;
   competitions: CompetitionItem[];
   teams: CompetitionTeamItem[];
+  availablePositions?: string[];
   loadingTeams: boolean;
   onFilterChange: (field: keyof PlayerFilterParams, value: any) => void;
   onCompetitionChange: (competitionId: string) => void;
   onTeamChange: (teamId: string) => void;
   onResetFilters: () => void;
 }
+
+const POSITION_LABELS: Record<string, string> = {
+  GK: 'Goalkeeper',
+  CB: 'Centre Back',
+  LB: 'Left Back',
+  RB: 'Right Back',
+  LWB: 'Left Wing Back',
+  RWB: 'Right Wing Back',
+  CDM: 'Defensive Midfield',
+  CM: 'Central Midfield',
+  CAM: 'Attacking Midfield',
+  LM: 'Left Midfield',
+  RM: 'Right Midfield',
+  LW: 'Left Wing',
+  RW: 'Right Wing',
+  CF: 'Centre Forward',
+  ST: 'Striker',
+  DEF: 'Defender',
+  MID: 'Midfielder',
+  FWD: 'Forward',
+};
 
 export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
   searchInput,
@@ -25,6 +47,7 @@ export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
   filters,
   competitions,
   teams,
+  availablePositions,
   loadingTeams,
   onFilterChange,
   onCompetitionChange,
@@ -137,21 +160,14 @@ export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
             onChange={(e) => onFilterChange('position', e.target.value)}
           >
             <option value="">All Positions</option>
-            <option value="GK">GK - Goalkeeper</option>
-            <option value="CB">CB - Centre Back</option>
-            <option value="LB">LB - Left Back</option>
-            <option value="RB">RB - Right Back</option>
-            <option value="LWB">LWB - Left Wing Back</option>
-            <option value="RWB">RWB - Right Wing Back</option>
-            <option value="CDM">CDM - Defensive Midfield</option>
-            <option value="CM">CM - Central Midfield</option>
-            <option value="CAM">CAM - Attacking Midfield</option>
-            <option value="LM">LM - Left Midfield</option>
-            <option value="RM">RM - Right Midfield</option>
-            <option value="ST">ST - Striker</option>
-            <option value="CF">CF - Centre Forward</option>
-            <option value="LW">LW - Left Wing</option>
-            <option value="RW">RW - Right Wing</option>
+            {(availablePositions && availablePositions.length > 0
+              ? availablePositions
+              : ['GK', 'LB', 'CB', 'RB', 'LWB', 'RWB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'CF', 'ST']
+            ).map((pos) => (
+              <option key={pos} value={pos}>
+                {pos} {POSITION_LABELS[pos] ? `- ${POSITION_LABELS[pos]}` : ''}
+              </option>
+            ))}
           </select>
         </div>
 

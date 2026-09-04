@@ -9,12 +9,14 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 import { TeamOrmEntity } from 'src/modules/teams/infrastructure/persistence/typeorm/entities/team.orm-entity';
 import { PlayerPositionOrmEntity } from './player-position.orm-entity';
 import { PlayerSeasonStatisticOrmEntity } from './player-season-statistic.orm-entity';
 import type { PlayerTeamHistoryOrmEntity } from './player-team-history.orm-entity';
 import type { PlayerMatchStatisticOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/player-match-statistic.orm-entity';
+import { resolveNationalityFlagUrl } from 'src/modules/players/domain/services/nationality-flag.resolver';
 
 @Entity('players')
 @Unique('UQ_players_provider_external_id', ['externalProvider', 'externalId'])
@@ -97,6 +99,15 @@ export class PlayerOrmEntity {
   preferredFoot: string | null;
 
   @Column({
+    name: 'raw_position',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+    default: null,
+  })
+  rawPosition: string | null;
+
+  @Column({
     name: 'primary_position',
     type: 'varchar',
     length: 50,
@@ -151,4 +162,12 @@ export class PlayerOrmEntity {
 
   @OneToMany(() => PlayerSeasonStatisticOrmEntity, (pss) => pss.player)
   seasonStatistics: PlayerSeasonStatisticOrmEntity[];
+
+  nationalityFlagUrl?: string | null;
+
+  @AfterLoad()
+  populateComputedFields() {
+    this.nationalityFlagUrl = resolveNationalityFlagUrl(this.nationality);
+  }
 }
+

@@ -7,6 +7,7 @@ import { GetPlayerSeasonStatisticsUseCase } from 'src/modules/players/applicatio
 import { GetPlayerMatchStatisticsUseCase } from 'src/modules/players/application/use-cases/get-player-match-statistics.use-case';
 import { GetComparisonCandidatesUseCase } from 'src/modules/players/application/use-cases/get-comparison-candidates.use-case';
 import { UpdatePlayerPrimaryPositionUseCase } from 'src/modules/players/application/use-cases/update-player-primary-position.use-case';
+import { GetAvailablePositionsUseCase } from 'src/modules/players/application/use-cases/get-available-positions.use-case';
 import { SearchPlayersQueryDto } from '../dto/search-players-query.dto';
 import { ComparisonScope } from 'src/modules/players/domain/enums/comparison-scope.enum';
 
@@ -33,6 +34,9 @@ describe('PlayersController', () => {
   let mockUpdatePlayerPrimaryPositionUseCase: {
     execute: jest.Mock;
   };
+  let mockGetAvailablePositionsUseCase: {
+    execute: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockSearchUseCase = {
@@ -54,6 +58,9 @@ describe('PlayersController', () => {
       execute: jest.fn(),
     };
     mockUpdatePlayerPrimaryPositionUseCase = {
+      execute: jest.fn(),
+    };
+    mockGetAvailablePositionsUseCase = {
       execute: jest.fn(),
     };
 
@@ -87,6 +94,10 @@ describe('PlayersController', () => {
         {
           provide: UpdatePlayerPrimaryPositionUseCase,
           useValue: mockUpdatePlayerPrimaryPositionUseCase,
+        },
+        {
+          provide: GetAvailablePositionsUseCase,
+          useValue: mockGetAvailablePositionsUseCase,
         },
       ],
     }).compile();
@@ -245,6 +256,18 @@ describe('PlayersController', () => {
         query,
       );
       expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('getPositions', () => {
+    it('should delegate to GetAvailablePositionsUseCase', async () => {
+      const positions = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
+      mockGetAvailablePositionsUseCase.execute.mockResolvedValue(positions);
+
+      const result = await controller.getPositions();
+
+      expect(mockGetAvailablePositionsUseCase.execute).toHaveBeenCalled();
+      expect(result).toEqual(positions);
     });
   });
 });

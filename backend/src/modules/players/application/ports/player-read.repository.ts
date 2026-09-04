@@ -71,4 +71,5 @@ export interface PlayerReadRepository {
     currentPlayerId: string,
     query: FindComparisonCandidatesQuery,
   ): Promise<{ items: PlayerOrmEntity[]; total: number }>;
+  getDistinctPositions(): Promise<string[]>;
 }

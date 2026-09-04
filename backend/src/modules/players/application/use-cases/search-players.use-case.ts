@@ -21,6 +21,8 @@ import {
   PlayerListResponseDto,
   PlayerItemDto,
 } from '../../presentation/http/dto/player-response.dto';
+import { getPositionGroup } from '../../domain/enums/player-position.enum';
+import { resolveNationalityFlagUrl } from '../../domain/services/nationality-flag.resolver';
 
 @Injectable()
 export class SearchPlayersUseCase {
@@ -86,9 +88,12 @@ export class SearchPlayersUseCase {
       imageUrl: player.imageUrl,
       dateOfBirth: player.dateOfBirth,
       nationality: player.nationality,
+      nationalityFlagUrl: resolveNationalityFlagUrl(player.nationality),
       preferredFoot: player.preferredFoot,
       heightCm: player.heightCm,
+      rawPosition: player.rawPosition || null,
       primaryPosition: player.primaryPosition,
+      positionGroup: getPositionGroup(player.primaryPosition),
       positions: (player.positions || []).map((position) => ({
         id: position.id,
         positionCode: position.positionCode,

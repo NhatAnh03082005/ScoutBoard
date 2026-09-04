@@ -126,8 +126,7 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
   ): Promise<{ items: PlayerOrmEntity[]; total: number }> {
     const qb = this.repository
       .createQueryBuilder('player')
-      .leftJoinAndSelect('player.currentTeam', 'currentTeam')
-      .leftJoinAndSelect('player.positions', 'positions');
+      .leftJoinAndSelect('player.currentTeam', 'currentTeam');
 
     if (query.search && query.search.trim() !== '') {
       const searchTerm = `%${query.search.trim()}%`;
@@ -156,11 +155,31 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
     }
 
     if (query.position && query.position.trim() !== '') {
-      const posCode = query.position.trim();
-      qb.innerJoin('player.positions', 'pos').andWhere(
-        '(player.primaryPosition = :posCode OR pos.positionCode = :posCode)',
-        { posCode },
-      );
+      const posCode = query.position.trim().toUpperCase();
+      qb.innerJoin('player.positions', 'pos');
+
+      if (posCode === 'DEFENDER') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF') OR pos.positionCode IN ('CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF'))",
+        );
+      } else if (posCode === 'MIDFIELDER') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('CDM', 'CM', 'CAM', 'LM', 'RM', 'MID') OR pos.positionCode IN ('CDM', 'CM', 'CAM', 'LM', 'RM', 'MID'))",
+        );
+      } else if (posCode === 'FORWARD' || posCode === 'ATTACKER') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('LW', 'RW', 'ST', 'CF', 'SS', 'FWD') OR pos.positionCode IN ('LW', 'RW', 'ST', 'CF', 'SS', 'FWD'))",
+        );
+      } else if (posCode === 'GOALKEEPER') {
+        qb.andWhere(
+          "(player.primaryPosition = 'GK' OR pos.positionCode = 'GK')",
+        );
+      } else {
+        qb.andWhere(
+          '(player.primaryPosition = :posCode OR pos.positionCode = :posCode)',
+          { posCode },
+        );
+      }
     }
 
     if (query.currentSeasonId) {
@@ -312,5 +331,16 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
 
     const [items, total] = await qb.getManyAndCount();
     return { items, total };
+  }
+
+  async getDistinctPositions(): Promise<string[]> {
+    const raw = await this.repository
+      .createQueryBuilder('player')
+      .select('DISTINCT player.primaryPosition', 'position')
+      .where('player.primaryPosition IS NOT NULL')
+      .orderBy('player.primaryPosition', 'ASC')
+      .getRawMany();
+
+    return raw.map((r) => r.position).filter(Boolean);
   }
 }

@@ -49,12 +49,18 @@ describe('ApiFootballPlayerMapper', () => {
 
   it('should normalize position to canonical football codes with 3-tier resolution', () => {
     expect(ApiFootballPlayerMapper.normalizePosition('Goalkeeper')).toBe('GK');
-    expect(ApiFootballPlayerMapper.normalizePosition('Defender')).toBe('CB');
-    expect(ApiFootballPlayerMapper.normalizePosition('Midfielder')).toBe('CM');
-    expect(ApiFootballPlayerMapper.normalizePosition('Attacker')).toBe('ST');
+    expect(ApiFootballPlayerMapper.normalizePosition('Defender')).toBe('DEF');
+    expect(ApiFootballPlayerMapper.normalizePosition('Midfielder')).toBe('MID');
+    expect(ApiFootballPlayerMapper.normalizePosition('Attacker')).toBe('FWD');
     expect(ApiFootballPlayerMapper.normalizePosition('Right-Back')).toBe('RB');
+    expect(ApiFootballPlayerMapper.normalizePosition('Left-Back')).toBe('LB');
     expect(ApiFootballPlayerMapper.normalizePosition('Centre-Back')).toBe('CB');
+    expect(ApiFootballPlayerMapper.normalizePosition('Defensive Midfielder')).toBe('CDM');
+    expect(ApiFootballPlayerMapper.normalizePosition('DM')).toBe('CDM');
+    expect(ApiFootballPlayerMapper.normalizePosition('Attacking Midfielder')).toBe('CAM');
+    expect(ApiFootballPlayerMapper.normalizePosition('AM')).toBe('CAM');
     expect(ApiFootballPlayerMapper.normalizePosition('Left Winger')).toBe('LW');
+    expect(ApiFootballPlayerMapper.normalizePosition('Right Winger')).toBe('RW');
     expect(ApiFootballPlayerMapper.normalizePosition('Striker')).toBe('ST');
   });
 
@@ -76,7 +82,8 @@ describe('ApiFootballPlayerMapper', () => {
     expect(transformed.heightCm).toBe(183);
     expect(transformed.weightKg).toBe(72);
     expect(transformed.shirtNumber).toBe(29);
-    expect(transformed.primaryPosition).toBe('CB');
+    expect(transformed.rawPosition).toBe('Defender');
+    expect(transformed.primaryPosition).toBe('DEF');
     expect(transformed.imageUrl).toBe(
       'https://media.api-sports.io/football/players/18883.png',
     );
@@ -95,6 +102,6 @@ describe('ApiFootballPlayerMapper', () => {
       'https://media.api-sports.io/football/players/18883.png',
     );
     expect(enriched.shirtNumber).toBe(29);
-    expect(enriched.primaryPosition).toBe('CB');
+    expect(enriched.primaryPosition).toBe('DEF');
   });
 });

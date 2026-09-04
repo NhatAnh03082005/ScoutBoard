@@ -44,14 +44,23 @@ export class PlayerItemDto {
   @ApiProperty({ description: 'Quốc tịch', nullable: true })
   nationality: string | null;
 
+  @ApiProperty({ description: 'Quốc kỳ cầu thủ', nullable: true })
+  nationalityFlagUrl?: string | null;
+
   @ApiProperty({ description: 'Chân thuận (LEFT/RIGHT/BOTH)', nullable: true })
   preferredFoot: string | null;
 
   @ApiProperty({ description: 'Chiều cao (cm)', nullable: true })
   heightCm: number | null;
 
+  @ApiProperty({ description: 'Vị trí gốc từ API', nullable: true })
+  rawPosition?: string | null;
+
   @ApiProperty({ description: 'Vị trí sở trường chính', nullable: true })
   primaryPosition: string | null;
+
+  @ApiProperty({ description: 'Nhóm vị trí (GOALKEEPER, DEFENDER, MIDFIELDER, FORWARD)', nullable: true })
+  positionGroup?: string | null;
 
   @ApiProperty({
     description: 'Danh sách các vị trí của cầu thủ',

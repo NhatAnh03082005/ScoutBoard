@@ -5,16 +5,20 @@ import {
   createShortlistApi,
   addPlayerToShortlistApi,
 } from '../../services/shortlist.service';
+import { getNationalityFlagUrl } from '../../utils/nationality-flag.util';
 
 export interface AddToShortlistPlayerInfo {
   id: string;
   name?: string;
   fullName?: string;
   imageUrl?: string | null;
+  nationality?: string | null;
+  nationalityFlagUrl?: string | null;
   primaryPosition?: string | null;
   currentTeam?: {
     name?: string;
     shortName?: string | null;
+    logoUrl?: string | null;
   } | null;
 }
 
@@ -185,13 +189,39 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
             <h4 style={{ margin: '0 0 2px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
               {playerName}
             </h4>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
               {player.primaryPosition && (
                 <span style={{ background: '#0f172a', color: '#ffffff', fontSize: '10px', fontWeight: 900, padding: '1px 6px', borderRadius: '4px' }}>
                   {player.primaryPosition}
                 </span>
               )}
-              <span style={{ fontWeight: 600, color: '#334155' }}>{teamName}</span>
+              {teamName && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: '#334155' }}>
+                  {player.currentTeam?.logoUrl && (
+                    <img
+                      src={player.currentTeam.logoUrl}
+                      alt=""
+                      style={{ width: '14px', height: '14px', objectFit: 'contain' }}
+                    />
+                  )}
+                  <span>{teamName}</span>
+                </span>
+              )}
+              {player.nationality && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  {(() => {
+                    const flag = getNationalityFlagUrl(player.nationality, player.nationalityFlagUrl);
+                    return flag ? (
+                      <img
+                        src={flag}
+                        alt=""
+                        style={{ width: '14px', height: '10px', objectFit: 'cover', borderRadius: '1px' }}
+                      />
+                    ) : null;
+                  })()}
+                  <span>{player.nationality}</span>
+                </span>
+              )}
             </div>
           </div>
         </div>

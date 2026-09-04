@@ -8,7 +8,7 @@ import type {
   ComparisonScopeType,
 } from '../types/player.types';
 import type { CompetitionItem, CompetitionTeamItem } from '../types/competition.types';
-import { searchPlayersApi } from '../services/player.service';
+import { searchPlayersApi, getAvailablePositionsApi } from '../services/player.service';
 import { getCompetitionsApi, getCurrentTeamsByCompetitionApi } from '../services/competition.service';
 import { PlayerFilters } from '../components/player/PlayerFilters';
 import { PlayerCardGrid } from '../components/player/PlayerCardGrid';
@@ -65,6 +65,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   // Competition & Club state
   const [competitions, setCompetitions] = useState<CompetitionItem[]>([]);
   const [teams, setTeams] = useState<CompetitionTeamItem[]>([]);
+  const [availablePositions, setAvailablePositions] = useState<string[]>([]);
   const [loadingTeams, setLoadingTeams] = useState<boolean>(false);
 
   // Controlled input value for typing search keyword
@@ -156,6 +157,14 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
       })
       .catch((err: any) => {
         console.error('Failed to load competitions:', err);
+      });
+
+    getAvailablePositionsApi()
+      .then((positions) => {
+        setAvailablePositions(positions);
+      })
+      .catch((err: any) => {
+        console.error('Failed to load available positions:', err);
       });
 
     fetchPlayersData(1);
@@ -348,6 +357,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
         filters={filters}
         competitions={competitions}
         teams={teams}
+        availablePositions={availablePositions}
         loadingTeams={loadingTeams}
         onFilterChange={handleFilterChange}
         onCompetitionChange={handleCompetitionChange}

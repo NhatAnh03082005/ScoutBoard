@@ -23,6 +23,7 @@ import { PlayerSeasonStatisticResponseDto } from '../dto/player-season-statistic
 import { PlayerMatchStatisticListResponseDto } from '../dto/player-match-statistic-response.dto';
 import { UpdatePlayerPrimaryPositionDto } from '../dto/update-player-primary-position.dto';
 import { UpdatePlayerPrimaryPositionUseCase } from 'src/modules/players/application/use-cases/update-player-primary-position.use-case';
+import { GetAvailablePositionsUseCase } from 'src/modules/players/application/use-cases/get-available-positions.use-case';
 
 @ApiTags('Players')
 @Controller('players')
@@ -35,6 +36,7 @@ export class PlayersController {
     private readonly getPlayerMatchStatisticsUseCase: GetPlayerMatchStatisticsUseCase,
     private readonly getComparisonCandidatesUseCase: GetComparisonCandidatesUseCase,
     private readonly updatePlayerPrimaryPositionUseCase: UpdatePlayerPrimaryPositionUseCase,
+    private readonly getAvailablePositionsUseCase: GetAvailablePositionsUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Tìm kiếm & danh sách cầu thủ cơ bản' })
@@ -48,6 +50,17 @@ export class PlayersController {
     @Query() query: SearchPlayersQueryDto,
   ): Promise<PlayerListResponseDto> {
     return this.searchPlayersUseCase.execute(query);
+  }
+
+  @ApiOperation({ summary: 'Lấy danh sách các vị trí thực tế có trong hệ thống' })
+  @ApiResponse({
+    status: 200,
+    description: 'Danh sách các vị trí có trong dataset',
+    type: [String],
+  })
+  @Get('positions')
+  async getPositions(): Promise<string[]> {
+    return this.getAvailablePositionsUseCase.execute();
   }
 
   @ApiOperation({ summary: 'Chi tiết cầu thủ' })

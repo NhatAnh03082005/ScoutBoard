@@ -1,6 +1,7 @@
 import React from "react";
 import type { PlayerItem } from "../../types/player.types";
 import { getPositionRoleInfo } from "../../utils/position.utils";
+import { getNationalityFlagUrl } from "../../utils/nationality-flag.util";
 
 interface PlayerCardProps {
   player: PlayerItem;
@@ -15,9 +16,9 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
 }) => {
   // Helper to compute age from dateOfBirth
   const calculateAge = (dateOfBirth?: string | null): string => {
-    if (!dateOfBirth) return "—";
+    if (!dateOfBirth) return "";
     const birthDate = new Date(dateOfBirth);
-    if (isNaN(birthDate.getTime())) return "—";
+    if (isNaN(birthDate.getTime())) return "";
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
@@ -36,14 +37,31 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
       (item) => !item.isPrimary && item.positionCode !== player.primaryPosition,
     )
     .slice(0, 2);
-  const foot =
-    player.preferredFoot === "LEFT"
-      ? "Left"
-      : player.preferredFoot === "RIGHT"
-        ? "Right"
-        : player.preferredFoot === "BOTH"
-          ? "Both"
-          : "—";
+
+  const flagUrl = getNationalityFlagUrl(
+    player.nationality,
+    player.nationalityFlagUrl,
+  );
+
+  const cardMetaItems: string[] = [];
+  if (player.dateOfBirth) {
+    const age = calculateAge(player.dateOfBirth);
+    if (age) cardMetaItems.push(age);
+  }
+  if (player.heightCm != null) {
+    cardMetaItems.push(`${player.heightCm} cm`);
+  }
+  if (player.preferredFoot) {
+    const footLabel =
+      player.preferredFoot === "LEFT"
+        ? "Left"
+        : player.preferredFoot === "RIGHT"
+          ? "Right"
+          : player.preferredFoot === "BOTH"
+            ? "Both"
+            : player.preferredFoot;
+    cardMetaItems.push(footLabel);
+  }
 
   return (
     <div
@@ -115,12 +133,43 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
             ))}
           </div>
           {player.nationality && (
-            <span className="scout-fc-card-nation" title={player.nationality}>
-              {player.nationality}
+            <span
+              className="scout-fc-card-nation"
+              title={player.nationality}
+              style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
+            >
+              {flagUrl && (
+                <img
+                  src={flagUrl}
+                  alt={player.nationality}
+                  style={{
+                    width: "14px",
+                    height: "10px",
+                    objectFit: "cover",
+                    borderRadius: "1px",
+                  }}
+                />
+              )}
+              <span>{player.nationality}</span>
             </span>
           )}
-          <span className="scout-fc-card-club" title={clubName}>
-            {clubName}
+          <span
+            className="scout-fc-card-club"
+            title={clubName}
+            style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
+          >
+            {player.currentTeam?.logoUrl && (
+              <img
+                src={player.currentTeam.logoUrl}
+                alt={clubName}
+                style={{
+                  width: "14px",
+                  height: "14px",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            <span>{clubName}</span>
           </span>
           {player.shirtNumber ? (
             <span className="scout-fc-card-jersey-number">
@@ -162,19 +211,22 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         )}
       </div>
 
-      {/* 5. Bottom Text Anchor: Strictly Anchored to Bottom */}
+      {/* 5. Bottom Text Anchor: Strictly Anchored to Bottom (Null fields completely hidden) */}
       <div className="scout-fc-card-bottom-anchor">
         <h3 className="scout-fc-card-name" title={player.fullName}>
           {player.fullName}
         </h3>
 
-        <div className="scout-fc-card-meta-row">
-          <span>{calculateAge(player.dateOfBirth)}</span>
-          <span className="scout-fc-meta-dot">•</span>
-          <span>{player.heightCm ? `${player.heightCm} cm` : "—"}</span>
-          <span className="scout-fc-meta-dot">•</span>
-          <span>{foot}</span>
-        </div>
+        {cardMetaItems.length > 0 && (
+          <div className="scout-fc-card-meta-row">
+            {cardMetaItems.map((item, idx) => (
+              <React.Fragment key={idx}>
+                {idx > 0 && <span className="scout-fc-meta-dot">•</span>}
+                <span>{item}</span>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
