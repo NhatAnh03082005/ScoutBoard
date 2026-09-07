@@ -85,13 +85,7 @@ export class EnrichPlayerProfileUseCase {
       modified = true;
     }
 
-    // 4. Preferred Foot
-    if (enrichment.preferredFoot && enrichment.preferredFoot.trim() !== '') {
-      existing.preferredFoot = enrichment.preferredFoot.trim().toUpperCase();
-      modified = true;
-    }
-
-    // 5. Shirt Number (only update if existing is null or if new is present)
+    // 4. Shirt Number (only update if existing is null or if new is present)
     if (
       typeof enrichment.shirtNumber === 'number' &&
       enrichment.shirtNumber > 0 &&
@@ -101,7 +95,7 @@ export class EnrichPlayerProfileUseCase {
       modified = true;
     }
 
-    // 6. Primary Position (normalize to canonical position)
+    // 5. Primary Position (normalize to canonical position)
     let positionChanged = false;
     if (
       enrichment.primaryPosition &&
@@ -109,9 +103,6 @@ export class EnrichPlayerProfileUseCase {
     ) {
       const canonicalPos = normalizeToCanonicalPosition(
         enrichment.primaryPosition,
-        {
-          preferredFoot: enrichment.preferredFoot || existing.preferredFoot,
-        },
       );
       if (canonicalPos && canonicalPos !== existing.primaryPosition) {
         // Do not downgrade an existing detailed tactical position to a generic broad role

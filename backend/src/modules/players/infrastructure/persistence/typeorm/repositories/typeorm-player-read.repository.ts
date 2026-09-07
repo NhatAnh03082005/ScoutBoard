@@ -136,12 +136,6 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       );
     }
 
-    if (query.preferredFoot) {
-      qb.andWhere('player.preferredFoot = :preferredFoot', {
-        preferredFoot: query.preferredFoot,
-      });
-    }
-
     if (query.nationality && query.nationality.trim() !== '') {
       qb.andWhere('LOWER(player.nationality) = LOWER(:nationality)', {
         nationality: query.nationality.trim(),
@@ -215,6 +209,18 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       });
     }
 
+    if (query.minWeightKg !== undefined) {
+      qb.andWhere('player.weightKg >= :minWeightKg', {
+        minWeightKg: query.minWeightKg,
+      });
+    }
+
+    if (query.maxWeightKg !== undefined) {
+      qb.andWhere('player.weightKg <= :maxWeightKg', {
+        maxWeightKg: query.maxWeightKg,
+      });
+    }
+
     const limit = query.limit ?? 20;
     const offset = query.offset ?? 0;
 
@@ -269,12 +275,6 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       );
     }
 
-    if (query.preferredFoot) {
-      qb.andWhere('player.preferredFoot = :preferredFoot', {
-        preferredFoot: query.preferredFoot,
-      });
-    }
-
     if (query.nationality && query.nationality.trim() !== '') {
       qb.andWhere('LOWER(player.nationality) = LOWER(:nationality)', {
         nationality: query.nationality.trim(),
@@ -318,6 +318,18 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
     if (query.maxHeightCm !== undefined) {
       qb.andWhere('player.heightCm <= :maxHeightCm', {
         maxHeightCm: query.maxHeightCm,
+      });
+    }
+
+    if (query.minWeightKg !== undefined) {
+      qb.andWhere('player.weightKg >= :minWeightKg', {
+        minWeightKg: query.minWeightKg,
+      });
+    }
+
+    if (query.maxWeightKg !== undefined) {
+      qb.andWhere('player.weightKg <= :maxWeightKg', {
+        maxWeightKg: query.maxWeightKg,
       });
     }
 

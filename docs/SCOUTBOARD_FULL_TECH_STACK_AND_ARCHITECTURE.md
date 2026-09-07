@@ -104,7 +104,7 @@ ScoutBoard Backend Layer Structure
 │ VÙNG 2: Football Data & Player Analytics (Hoàn thành 90%)              │
 ├────────────────────────────────────────────────────────────────────────┤
 │ • Task D1 (Player Search & Profile): Tìm kiếm cầu thủ theo tên, lọc   │
-│   vị trí, chân thuận, quốc tịch, độ tuổi, chiều cao, CLB, giải đấu.   │
+│   vị trí, quốc tịch, độ tuổi, chiều cao, cân nặng, CLB, giải đấu.     │
 │ • Task D2 (Career Team History): Lịch sử thi đấu qua các đội bóng.     │
 │ • Task D3 (Season Statistics): Thống kê theo mùa giải & giải đấu.      │
 │ • Task D4 (Selectors & Per 90 Metrics): Chuẩn hóa chỉ số theo 90 phút. │

@@ -25,15 +25,14 @@ describe('EnrichPlayerProfileUseCase', () => {
     ).rejects.toThrow(NotFoundException);
   });
 
-  it('should enrich player photo, height, weight, preferredFoot, and primaryPosition', async () => {
+  it('should enrich player photo, height, weight, and primaryPosition', async () => {
     const existingPlayer: Partial<PlayerOrmEntity> = {
       id: 'player-uuid-1',
       name: 'Aaron Wan-Bissaka',
-      primaryPosition: 'CB', // broad-group fallback — will be refined
+      primaryPosition: 'CB',
       imageUrl: null,
       heightCm: null,
       weightKg: null,
-      preferredFoot: null,
       shirtNumber: null,
     };
 
@@ -45,9 +44,7 @@ describe('EnrichPlayerProfileUseCase', () => {
       normalizedName: 'aaron wan bissaka',
       heightCm: 183,
       weightKg: 72,
-      preferredFoot: 'RIGHT',
-      // 'DEF' + preferredFoot=RIGHT → normalizer resolves to 'RB'
-      primaryPosition: 'DEF',
+      primaryPosition: 'RB',
       shirtNumber: 29,
       imageUrl: 'https://media.api-sports.io/football/players/18883.png',
     };
@@ -62,8 +59,6 @@ describe('EnrichPlayerProfileUseCase', () => {
     );
     expect(result.heightCm).toBe(183);
     expect(result.weightKg).toBe(72);
-    expect(result.preferredFoot).toBe('RIGHT');
-    // 'DEF' with preferredFoot='RIGHT' → canonical 'RB' via tiered inference
     expect(result.primaryPosition).toBe('RB');
     expect(result.shirtNumber).toBe(29);
     expect(mockPlayerRepo.save).toHaveBeenCalled();
@@ -88,7 +83,6 @@ describe('EnrichPlayerProfileUseCase', () => {
         normalizedName: 'aaron wan bissaka',
         heightCm: null,
         weightKg: null,
-        preferredFoot: null,
         primaryPosition: null,
         shirtNumber: null,
         imageUrl: null,

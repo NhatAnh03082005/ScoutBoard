@@ -11,7 +11,6 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { PreferredFoot } from '../../../domain/enums/preferred-foot.enum';
 import { ComparisonScope } from '../../../domain/enums/comparison-scope.enum';
 
 export class FindComparisonCandidatesQueryDto {
@@ -51,16 +50,6 @@ export class FindComparisonCandidatesQueryDto {
     return trimmed === '' ? undefined : trimmed;
   })
   search?: string;
-
-  @ApiPropertyOptional({
-    description: 'Chân thuận của cầu thủ (LEFT, RIGHT, BOTH)',
-    enum: PreferredFoot,
-  })
-  @IsOptional()
-  @IsEnum(PreferredFoot, {
-    message: 'preferredFoot phải là LEFT, RIGHT hoặc BOTH',
-  })
-  preferredFoot?: PreferredFoot;
 
   @ApiPropertyOptional({
     description: 'Quốc tịch của cầu thủ (ví dụ: Brazil, England)',
@@ -123,6 +112,26 @@ export class FindComparisonCandidatesQueryDto {
   @Min(120)
   @Max(230)
   maxHeightCm?: number;
+
+  @ApiPropertyOptional({
+    description: 'Cân nặng tối thiểu tính bằng kg (Min: 40, Max: 150)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(40)
+  @Max(150)
+  minWeightKg?: number;
+
+  @ApiPropertyOptional({
+    description: 'Cân nặng tối đa tính bằng kg (Min: 40, Max: 150)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(40)
+  @Max(150)
+  maxWeightKg?: number;
 
   @ApiPropertyOptional({
     description: 'Số lượng bản ghi tối đa (Default: 20, Min: 1, Max: 100)',

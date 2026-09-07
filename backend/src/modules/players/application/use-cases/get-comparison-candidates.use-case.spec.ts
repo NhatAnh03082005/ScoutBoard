@@ -2,7 +2,6 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { GetComparisonCandidatesUseCase } from './get-comparison-candidates.use-case';
 import { PlayerReadRepository } from '../ports/player-read.repository';
 import { ComparisonScope } from '../../domain/enums/comparison-scope.enum';
-import { PreferredFoot } from '../../domain/enums/preferred-foot.enum';
 import { PlayerOrmEntity } from '../../infrastructure/persistence/typeorm/entities/player.orm-entity';
 
 describe('GetComparisonCandidatesUseCase', () => {
@@ -25,7 +24,6 @@ describe('GetComparisonCandidatesUseCase', () => {
     shortName: 'Palmer',
     dateOfBirth: '2002-05-06',
     nationality: 'England',
-    preferredFoot: PreferredFoot.LEFT,
     heightCm: 189,
     primaryPosition: 'RW',
     imageUrl: 'https://example.com/palmer.png',
@@ -111,6 +109,21 @@ describe('GetComparisonCandidatesUseCase', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('should throw BadRequestException if minWeightKg > maxWeightKg', async () => {
+    mockPlayerRepo.findById.mockResolvedValue(mockCurrentPlayer);
+
+    await expect(
+      useCase.execute('saka-id', {
+        scope: ComparisonScope.ALL,
+        seasonId: 'season-1',
+        minWeightKg: 95,
+        maxWeightKg: 65,
+        limit: 20,
+        offset: 0,
+      }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
   it('should return empty list if current player has no recorded positions', async () => {
     mockPlayerRepo.findById.mockResolvedValue({
       id: 'no-pos-id',
@@ -161,7 +174,6 @@ describe('GetComparisonCandidatesUseCase', () => {
       competitionId: 'comp-1',
       search: 'Palmer',
       position: 'RW',
-      preferredFoot: PreferredFoot.LEFT,
       nationality: 'England',
       minAge: 20,
       maxAge: 25,
@@ -188,8 +200,8 @@ describe('GetComparisonCandidatesUseCase', () => {
       dateOfBirth: '2002-05-06',
       nationality: 'England',
       nationalityFlagUrl: 'https://flagcdn.com/w40/gb-eng.png',
-      preferredFoot: 'LEFT',
       heightCm: 189,
+      weightKg: undefined,
       rawPosition: null,
       primaryPosition: 'RW',
       positionGroup: 'FORWARD',

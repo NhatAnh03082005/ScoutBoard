@@ -93,7 +93,7 @@ export const PlayerComparisonCandidateFilters: React.FC<PlayerComparisonCandidat
             <option value="">All Clubs</option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
-                {team.shortName || team.name}
+                {team.name}
               </option>
             ))}
           </select>
@@ -123,22 +123,7 @@ export const PlayerComparisonCandidateFilters: React.FC<PlayerComparisonCandidat
           </select>
         </div>
 
-        {/* 3. Preferred Foot Dropdown */}
-        <div className="scout-b2b-filter-group">
-          <label className="scout-b2b-label">Preferred Foot</label>
-          <select
-            className="scout-b2b-select"
-            value={filters.preferredFoot || ''}
-            onChange={(e) => onFilterChange('preferredFoot', e.target.value)}
-          >
-            <option value="">Any Foot</option>
-            <option value="LEFT">Left</option>
-            <option value="RIGHT">Right</option>
-            <option value="BOTH">Both</option>
-          </select>
-        </div>
-
-        {/* 4. Nationality Input */}
+        {/* 3. Nationality Input */}
         <div className="scout-b2b-filter-group">
           <label className="scout-b2b-label">Nationality</label>
           <input
@@ -150,7 +135,7 @@ export const PlayerComparisonCandidateFilters: React.FC<PlayerComparisonCandidat
           />
         </div>
 
-        {/* 5. Age Range (Grouped Dual Input) */}
+        {/* 4. Age Range (Grouped Dual Input) */}
         <div className="scout-b2b-filter-group">
           <label className="scout-b2b-label">Age</label>
           <div className="scout-b2b-grouped-input">
@@ -176,7 +161,7 @@ export const PlayerComparisonCandidateFilters: React.FC<PlayerComparisonCandidat
           </div>
         </div>
 
-        {/* 6. Height Range (Grouped Dual Input) */}
+        {/* 5. Height Range (Grouped Dual Input) */}
         <div className="scout-b2b-filter-group">
           <label className="scout-b2b-label">Height (cm)</label>
           <div className="scout-b2b-grouped-input">
@@ -197,6 +182,32 @@ export const PlayerComparisonCandidateFilters: React.FC<PlayerComparisonCandidat
               max={220}
               value={filters.maxHeightCm || ''}
               onChange={(e) => onFilterChange('maxHeightCm', e.target.value)}
+              className="scout-b2b-inner-input"
+            />
+          </div>
+        </div>
+
+        {/* 6. Weight Range (Grouped Dual Input) */}
+        <div className="scout-b2b-filter-group">
+          <label className="scout-b2b-label">Weight (kg)</label>
+          <div className="scout-b2b-grouped-input">
+            <input
+              type="number"
+              placeholder="Min"
+              min={40}
+              max={150}
+              value={filters.minWeightKg || ''}
+              onChange={(e) => onFilterChange('minWeightKg', e.target.value)}
+              className="scout-b2b-inner-input"
+            />
+            <span className="scout-b2b-input-divider">-</span>
+            <input
+              type="number"
+              placeholder="Max"
+              min={40}
+              max={150}
+              value={filters.maxWeightKg || ''}
+              onChange={(e) => onFilterChange('maxWeightKg', e.target.value)}
               className="scout-b2b-inner-input"
             />
           </div>

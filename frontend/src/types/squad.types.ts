@@ -50,7 +50,6 @@ export interface SquadPlayerItem {
     nationality: string | null;
     heightCm: number | null;
     weightKg: number | null;
-    preferredFoot: string | null;
     primaryPosition: string | null;
     shirtNumber: number | null;
     imageUrl: string | null;

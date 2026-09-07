@@ -77,12 +77,13 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
   const [filters, setFilters] = useState<PlayerFilterParams>({
     currentTeamId: '',
     position: '',
-    preferredFoot: '',
     nationality: '',
     minAge: '',
     maxAge: '',
     minHeightCm: '',
     maxHeightCm: '',
+    minWeightKg: '',
+    maxWeightKg: '',
   });
 
   const [candidates, setCandidates] = useState<PlayerItem[]>([]);
@@ -137,6 +138,8 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
     const maxAgeNum = parseNumericParam(currentFilters.maxAge);
     const minHeightNum = parseNumericParam(currentFilters.minHeightCm);
     const maxHeightNum = parseNumericParam(currentFilters.maxHeightCm);
+    const minWeightNum = parseNumericParam(currentFilters.minWeightKg);
+    const maxWeightNum = parseNumericParam(currentFilters.maxWeightKg);
 
     if (minAgeNum !== undefined && maxAgeNum !== undefined && minAgeNum > maxAgeNum) {
       setError('Minimum age cannot be greater than maximum age.');
@@ -145,6 +148,11 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
 
     if (minHeightNum !== undefined && maxHeightNum !== undefined && minHeightNum > maxHeightNum) {
       setError('Minimum height cannot be greater than maximum height.');
+      return;
+    }
+
+    if (minWeightNum !== undefined && maxWeightNum !== undefined && minWeightNum > maxWeightNum) {
+      setError('Minimum weight cannot be greater than maximum weight.');
       return;
     }
 
@@ -162,12 +170,13 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
       currentTeamId: currentFilters.currentTeamId || undefined,
       search: activeSearch ? activeSearch : undefined,
       position: currentFilters.position || undefined,
-      preferredFoot: currentFilters.preferredFoot || undefined,
       nationality: currentFilters.nationality?.trim() || undefined,
       minAge: minAgeNum,
       maxAge: maxAgeNum,
       minHeightCm: minHeightNum,
       maxHeightCm: maxHeightNum,
+      minWeightKg: minWeightNum,
+      maxWeightKg: maxWeightNum,
       limit,
       offset,
     })
@@ -248,12 +257,13 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
     const defaultFilters: PlayerFilterParams = {
       currentTeamId: '',
       position: '',
-      preferredFoot: '',
       nationality: '',
       minAge: '',
       maxAge: '',
       minHeightCm: '',
       maxHeightCm: '',
+      minWeightKg: '',
+      maxWeightKg: '',
     };
     setSearchInput('');
     setAppliedSearch('');
@@ -580,8 +590,8 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
                   if (playerA.heightCm != null) {
                     itemsA.push(<span key="height">{playerA.heightCm} CM</span>);
                   }
-                  if (playerA.preferredFoot) {
-                    itemsA.push(<span key="foot">{playerA.preferredFoot} FOOT</span>);
+                  if (playerA.weightKg != null) {
+                    itemsA.push(<span key="weight">{playerA.weightKg} KG</span>);
                   }
                   return itemsA.map((node, idx) => (
                     <React.Fragment key={idx}>
@@ -902,17 +912,17 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
             <div key={`card-skeleton-${idx}`} className="scout-fc-card scout-fc-card-skeleton">
               <div className="scout-fc-card-bg" />
               <div className="scout-fc-skeleton-shimmer" />
-              <div className="scout-fc-card-top-anchor">
-                <div className="scout-fc-card-header-left">
-                  <div className="skeleton-line" style={{ width: '32px', height: '32px', borderRadius: '6px', marginBottom: '2px' }} />
-                  <div className="skeleton-line" style={{ width: '42px', height: '18px', borderRadius: '4px' }} />
-                  <div className="skeleton-line" style={{ width: '70px', height: '12px' }} />
-                  <div className="skeleton-line" style={{ width: '100px', height: '14px' }} />
-                </div>
+              <div className="scout-fc-card-top-left">
+                <div className="skeleton-line" style={{ width: '38px', height: '25px', borderRadius: '6px' }} />
+                <div className="skeleton-line" style={{ width: '38px', height: '22px', borderRadius: '5px' }} />
+              </div>
+              <div className="scout-fc-card-top-right">
+                <div className="skeleton-line" style={{ width: '34px', height: '34px', borderRadius: '6px' }} />
+                <div className="skeleton-line" style={{ width: '30px', height: '20px', borderRadius: '2px' }} />
               </div>
               <div className="scout-fc-card-bottom-anchor">
-                <div className="skeleton-line" style={{ width: '80%', height: '22px', marginBottom: '8px' }} />
-                <div className="skeleton-line" style={{ width: '60%', height: '14px' }} />
+                <div className="skeleton-line" style={{ width: '80%', height: '20px', marginBottom: '6px' }} />
+                <div className="skeleton-line" style={{ width: '55%', height: '14px' }} />
               </div>
             </div>
           ))}

@@ -90,15 +90,6 @@ export class PlayerOrmEntity {
   weightKg: number | null;
 
   @Column({
-    name: 'preferred_foot',
-    type: 'varchar',
-    length: 10,
-    nullable: true,
-    default: null,
-  })
-  preferredFoot: string | null;
-
-  @Column({
     name: 'raw_position',
     type: 'varchar',
     length: 50,

@@ -92,7 +92,6 @@ async function main() {
         COUNT(nationality) AS has_nationality,
         COUNT(height_cm) AS has_height,
         COUNT(weight_kg) AS has_weight,
-        COUNT(preferred_foot) AS has_preferred_foot,
         COUNT(image_url) AS has_photo,
         COUNT(shirt_number) AS has_shirt_number
       FROM players;
@@ -106,7 +105,6 @@ async function main() {
       'Nationality Populated': `${pre.has_nationality} (Missing: ${total - parseInt(pre.has_nationality, 10)})`,
       'Height Populated': `${pre.has_height} (Missing: ${total - parseInt(pre.has_height, 10)})`,
       'Weight Populated': `${pre.has_weight} (Missing: ${total - parseInt(pre.has_weight, 10)})`,
-      'Preferred Foot Populated': `${pre.has_preferred_foot} (Missing: ${total - parseInt(pre.has_preferred_foot, 10)})`,
       'Photo Populated': `${pre.has_photo} (Missing: ${total - parseInt(pre.has_photo, 10)})`,
       'Shirt Number Populated': `${pre.has_shirt_number} (Missing: ${total - parseInt(pre.has_shirt_number, 10)})`,
     });
@@ -203,7 +201,6 @@ async function main() {
         COUNT(nationality) AS has_nationality,
         COUNT(height_cm) AS has_height,
         COUNT(weight_kg) AS has_weight,
-        COUNT(preferred_foot) AS has_preferred_foot,
         COUNT(image_url) AS has_photo,
         COUNT(shirt_number) AS has_shirt_number
       FROM players;
@@ -217,7 +214,6 @@ async function main() {
       'Nationality Populated': `${post.has_nationality} (Missing: ${postTotal - parseInt(post.has_nationality, 10)})`,
       'Height Populated': `${post.has_height} (Missing: ${postTotal - parseInt(post.has_height, 10)})`,
       'Weight Populated': `${post.has_weight} (Missing: ${postTotal - parseInt(post.has_weight, 10)})`,
-      'Preferred Foot Populated': `${post.has_preferred_foot} (Missing: ${postTotal - parseInt(post.has_preferred_foot, 10)})`,
       'Photo Populated': `${post.has_photo} (Missing: ${postTotal - parseInt(post.has_photo, 10)})`,
       'Shirt Number Populated': `${post.has_shirt_number} (Missing: ${postTotal - parseInt(post.has_shirt_number, 10)})`,
     });

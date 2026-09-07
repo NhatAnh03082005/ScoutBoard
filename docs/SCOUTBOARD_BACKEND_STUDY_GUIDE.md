@@ -135,12 +135,11 @@ flowchart TD
 - **Enum**: Tập hợp các hằng số có tên cố định.
 
 *Ví dụ trong ScoutBoard:*
-File: `src/modules/players/domain/enums/preferred-foot.enum.ts`
+File: `src/modules/players/domain/enums/comparison-scope.enum.ts`
 ```typescript
-export enum PreferredFoot {
-  LEFT = 'LEFT',
-  RIGHT = 'RIGHT',
-  BOTH = 'BOTH',
+export enum ComparisonScope {
+  COMPETITION = 'COMPETITION',
+  ALL = 'ALL',
 }
 ```
 
@@ -297,8 +296,8 @@ export class SearchPlayersQueryDto {
   search?: string;
 
   @IsOptional()
-  @IsEnum(PreferredFoot)
-  preferredFoot?: PreferredFoot;
+  @IsString()
+  position?: string;
 
   @IsOptional()
   @IsUUID()
@@ -717,13 +716,13 @@ Feature vừa hoàn thành cho phép tìm kiếm và lọc danh sách cầu th�
 
 ### Tham số Query hỗ trợ trong Request:
 - `search`: Tìm kiếm theo tên cầu thủ (`name` hoặc `shortName`).
-- `preferredFoot`: Chân thuận (`LEFT`, `RIGHT`, `BOTH`).
 - `nationality`: Quốc tịch cầu thủ.
 - `currentTeamId`: ID Đội bóng hiện tại.
 - `position`: Vị trí thi đấu (`ST`, `LW`, `CB`, v.v.).
 - `competitionId`: ID Giải đấu (Tự động resolve ra mùa giải hiện tại `is_current = true`).
 - `minAge` / `maxAge`: Khoảng tuổi (Tính từ `date_of_birth` qua hàm PostgreSQL).
 - `minHeightCm` / `maxHeightCm`: Khoảng chiều cao (cm).
+- `minWeightKg` / `maxWeightKg`: Khoảng cân nặng (kg).
 - `limit` / `offset`: Tham số phân trang (Mặc định `limit=20`, `offset=0`).
 
 ---
@@ -1019,7 +1018,7 @@ Khi API `GET /api/players` trả về kết quả sai:
 1. **Bài tập 1**: Mở file `src/modules/players/presentation/http/controllers/players.controller.ts`, tự chỉ ra các Decorator, Route Path, DTOs và các Dependencies được tiêm vào Constructor.
 2. **Bài tập 2**: Mở `SearchPlayersQueryDto`, giải thích tác dụng của `@Type(() => Number)` đối với thuộc tính `minAge`.
 3. **Bài tập 3**: Mở file `PlayerOrmEntity`, tìm Primary Key, Foreign Key `currentTeamId` và các quan hệ `@ManyToOne`, `@OneToMany`.
-4. **Bài tập 4**: Tự viết câu lệnh cURL hoặc HTTP Request gọi API tìm kiếm cầu thủ thuận chân trái (`preferredFoot=LEFT`) và có độ tuổi từ 18 đến 22.
+4. **Bài tập 4**: Tự viết câu lệnh cURL hoặc HTTP Request gọi API tìm kiếm cầu thủ đá cánh trái (`position=LW`) và có độ tuổi từ 18 đến 22.
 5. **Bài tập 5**: Tự vẽ sơ đồ luồng chuyển đổi từ `competitionId` sang `currentSeasonId` rồi đến truy vấn danh sách cầu thủ.
 6. **Bài tập 6**: Tự giải thích cơ chế mã hóa mật khẩu Bcrypt và tại sao không thể giải mã (decrypt) lại mật khẩu cũ.
 

@@ -47,11 +47,11 @@ export class PlayerItemDto {
   @ApiProperty({ description: 'Quốc kỳ cầu thủ', nullable: true })
   nationalityFlagUrl?: string | null;
 
-  @ApiProperty({ description: 'Chân thuận (LEFT/RIGHT/BOTH)', nullable: true })
-  preferredFoot: string | null;
-
   @ApiProperty({ description: 'Chiều cao (cm)', nullable: true })
   heightCm: number | null;
+
+  @ApiProperty({ description: 'Cân nặng (kg)', nullable: true })
+  weightKg: number | null;
 
   @ApiProperty({ description: 'Vị trí gốc từ API', nullable: true })
   rawPosition?: string | null;

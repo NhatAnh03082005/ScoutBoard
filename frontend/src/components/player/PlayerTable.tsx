@@ -48,9 +48,9 @@ export const PlayerTable: React.FC<PlayerTableProps> = ({
               <th style={{ minWidth: "220px" }}>PLAYER</th>
               <th style={{ minWidth: "160px" }}>CLUB</th>
               <th style={{ minWidth: "90px" }}>POSITION</th>
-              <th style={{ minWidth: "100px" }}>FOOT</th>
               <th style={{ minWidth: "80px" }}>AGE</th>
               <th style={{ minWidth: "100px" }}>HEIGHT</th>
+              <th style={{ minWidth: "100px" }}>WEIGHT</th>
               <th style={{ minWidth: "120px" }}>NATIONALITY</th>
             </tr>
           </thead>
@@ -156,15 +156,6 @@ export const PlayerTable: React.FC<PlayerTableProps> = ({
                   player.nationality,
                   player.nationalityFlagUrl,
                 );
-                const foot = player.preferredFoot
-                  ? player.preferredFoot === "LEFT"
-                    ? "Left"
-                    : player.preferredFoot === "RIGHT"
-                      ? "Right"
-                      : player.preferredFoot === "BOTH"
-                        ? "Both"
-                        : player.preferredFoot
-                  : "";
 
                 return (
                   <tr
@@ -240,22 +231,24 @@ export const PlayerTable: React.FC<PlayerTableProps> = ({
                       )}
                     </td>
 
-                    {/* 4. Foot (Empty if null) */}
-                    <td>
-                      <span className="scout-b2b-text-secondary">{foot}</span>
-                    </td>
-
-                    {/* 5. Age (Empty if null) */}
+                    {/* 4. Age (Empty if null) */}
                     <td>
                       <span className="scout-b2b-text-main">
                         {calculateAge(player.dateOfBirth)}
                       </span>
                     </td>
 
-                    {/* 6. Height (Empty if null) */}
+                    {/* 5. Height (Empty if null) */}
                     <td>
                       <span className="scout-b2b-text-main">
                         {player.heightCm != null ? `${player.heightCm} cm` : ""}
+                      </span>
+                    </td>
+
+                    {/* 6. Weight (Empty if null) */}
+                    <td>
+                      <span className="scout-b2b-text-main">
+                        {player.weightKg != null ? `${player.weightKg} kg` : ""}
                       </span>
                     </td>
 

@@ -23,7 +23,22 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+**ScoutBoard Backend API Service** — Modular Monolith + Clean Architecture implemented in [NestJS](https://github.com/nestjs/nest) & TypeScript, backed by PostgreSQL 17 and TypeORM 0.3.
+
+### Data Contract & API-Football Audit (Post-Cleanup)
+- **Supported Raw Attributes**: Player profile biometrics (`height_cm`, `weight_kg`), club details, player season/match statistics (shots, passes, tackles, duels, fouls, saves, cards).
+- **Normalized Technical Fields**:
+  - `height_cm`: Converted from raw string `"183 cm"` to integer `183`.
+  - `weight_kg`: Converted from raw string `"72 kg"` to integer `72`.
+  - `primary_position`: Canonical player positions (15 specific positions: `GK`, `CB`, `LB`, `RB`, `LWB`, `RWB`, `CDM`, `CM`, `CAM`, `LM`, `RM`, `LW`, `RW`, `CF`, `ST`, plus 3 broad category fallbacks: `DEF`, `MID`, `FWD` in `CANONICAL_PLAYER_POSITIONS`, total 18 codes).
+- **ScoutBoard-Derived Metrics** (Explicitly calculated by ScoutBoard domain layer, not raw provider fields):
+  - **Per-90 metrics**: `(stat * 90) / minutes_played` (calculated for `goals_per_90`, `assists_per_90`, `shots_per_90`, `passes_per_90`, `tackles_per_90`, `interceptions_per_90`, `duels_won_per_90`, `saves_per_90`, `goals_conceded_per_90` strictly when `minutes_played > 0`).
+  - **passAccuracy**: `(passes_completed / passes_attempted) * 100` (rounded to 2 decimal places; returns `null` when `passes_attempted <= 0`).
+  - **savePercentage**: `(saves / (saves + goals_conceded)) * 100` (rounded to 2 decimal places; returns `null` when total shots faced is 0).
+  - **age**: Exact integer age derived from `date_of_birth` relative to current date (accounting for month and day).
+  - **nationalityFlagUrl**: ISO-3166 & FIFA country code mapping to SVG flag CDN.
+- **ScoutBoard Domain Concepts**: Position Groups (`GOALKEEPER`, `DEFENDER`, `MIDFIELDER`, `FORWARD`), 4-Zone modular architecture, Squad Builder tactics, Candidate Comparison matrix.
+- **Unsupported Attributes Removed**: `preferred_foot` (dropped from DB via migration `1789700000000-DropPreferredFootFromPlayers.ts`), `market_value`, `contract_expiry`, `xG`, `xA`, `PSxG`, `distance_covered`, `top_speed`, `heatmap` coordinates.
 
 ## Project setup
 

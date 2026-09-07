@@ -1,7 +1,6 @@
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { TypeOrmPlayerReadRepository } from './typeorm-player-read.repository';
 import { PlayerOrmEntity } from '../entities/player.orm-entity';
-import { PreferredFoot } from 'src/modules/players/domain/enums/preferred-foot.enum';
 import { ComparisonScope } from 'src/modules/players/domain/enums/comparison-scope.enum';
 
 describe('TypeOrmPlayerReadRepository (Unit)', () => {
@@ -59,19 +58,6 @@ describe('TypeOrmPlayerReadRepository (Unit)', () => {
       { search: '%Martin%' },
     );
     expect(mockQueryBuilder.take).toHaveBeenCalledWith(10);
-  });
-
-  it('should apply preferredFoot filter when provided', async () => {
-    await repository.search({
-      preferredFoot: PreferredFoot.LEFT,
-      limit: 20,
-      offset: 0,
-    });
-
-    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      'player.preferredFoot = :preferredFoot',
-      { preferredFoot: PreferredFoot.LEFT },
-    );
   });
 
   it('should apply currentTeamId filter when provided', async () => {
@@ -141,6 +127,24 @@ describe('TypeOrmPlayerReadRepository (Unit)', () => {
     expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
       'player.heightCm <= :maxHeightCm',
       { maxHeightCm: 190 },
+    );
+  });
+
+  it('should apply weight range filters', async () => {
+    await repository.search({
+      minWeightKg: 70,
+      maxWeightKg: 85,
+      limit: 20,
+      offset: 0,
+    });
+
+    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+      'player.weightKg >= :minWeightKg',
+      { minWeightKg: 70 },
+    );
+    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+      'player.weightKg <= :maxWeightKg',
+      { maxWeightKg: 85 },
     );
   });
 

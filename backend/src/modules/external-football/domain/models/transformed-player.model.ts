@@ -8,7 +8,6 @@ export interface TransformedPlayer {
   nationality: string | null;
   heightCm: number | null;
   weightKg: number | null;
-  preferredFoot: string | null;
   rawPosition?: string | null;
   primaryPosition: string | null;
   shirtNumber: number | null;

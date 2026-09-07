@@ -43,7 +43,7 @@ Dưới đây là sơ đồ luồng dữ liệu khi một HTTP Request đi qua 4
 ┌───────────────────────────────────────────────────────────────┐
 │ 3. DOMAIN LAYER (Entities, Enums & Value Objects)             │
 │    • Chứa các hằng số & khái niệm nghiệp vụ cốt lõi           │
-│    • Ví dụ: PreferredFoot (LEFT, RIGHT, BOTH)                 │
+│    • Ví dụ: ComparisonScope (COMPETITION, ALL), PositionGroup │
 │    • Độc lập hoàn toàn với NestJS hay TypeORM                 │
 └───────────────────────────────┬───────────────────────────────┘
                                 │ (Thực thi triển khai)
@@ -86,7 +86,7 @@ Dưới đây là sơ đồ luồng dữ liệu khi một HTTP Request đi qua 4
 #### 🟡 Tầng 3: Domain Layer (Tầng Khái niệm Nghiệp vụ Cốt lõi)
 - **Các loại File**: `*.enum.ts`, domain entities, domain errors.
 - **Nhiệm vụ & Công dụng**:
-  - Lưu giữ các định nghĩa và quy tắc nghiệp vụ bóng đá bất biến (Ví dụ: Enum `PreferredFoot` với các giá trị `LEFT`, `RIGHT`, `BOTH`).
+  - Lưu giữ các định nghĩa và quy tắc nghiệp vụ bóng đá bất biến (Ví dụ: Enum `ComparisonScope` với các giá trị `COMPETITION`, `ALL` hay `PlayerPosition`).
   - Độc lập tuyệt đối với các thư viện bên ngoài (không phụ thuộc NestJS, TypeORM hay Express).
 
 ---
@@ -107,7 +107,7 @@ Dưới đây là sơ đồ luồng dữ liệu khi một HTTP Request đi qua 4
 2. **Seed Data bóng đá chuẩn quốc tế**: Đảm bảo tính **Idempotency** (chạy lại nhiều lần không bị lặp data):
    - **14** Mùa giải (`seasons`).
    - **44** Đội bóng gắn với mùa giải hiện tại (`season_teams`).
-   - **408** Cầu thủ (`players`) chứa đầy đủ thông tin tên, ngày sinh, chiều cao, quốc tịch, chân thuận và vị trí thi đấu.
+   - **408** Cầu thủ (`players`) chứa đầy đủ thông tin tên, ngày sinh, chiều cao, cân nặng, quốc tịch và vị trí thi đấu.
    - **769** Bản ghi chỉ số thống kê (`player_season_statistics`).
 
 ---
@@ -118,7 +118,7 @@ Toàn bộ các Controller trong hệ thống đã được refactor để **ủ
 
 | Module | Endpoint | Method | Use Case tương ứng | Mô tả chức năng |
 |---|---|:---:|---|---|
-| **Players** | `/api/players` | `GET` | `SearchPlayersUseCase` | Tìm kiếm & lọc đa điều kiện (tên, chân thuận, quốc tịch, CLB, vị trí chính/phụ, giải đấu mùa hiện tại, độ tuổi, chiều cao, phân trang). |
+| **Players** | `/api/players` | `GET` | `SearchPlayersUseCase` | Tìm kiếm & lọc đa điều kiện (tên, quốc tịch, CLB, vị trí chính/phụ, giải đấu mùa hiện tại, độ tuổi, chiều cao, cân nặng, phân trang). |
 | **Players** | `/api/players/:id` | `GET` | `GetPlayerByIdUseCase` | Lấy thông tin chi tiết của 1 Cầu thủ theo UUID. |
 | **Competitions** | `/api/competitions` | `GET` | `ListCompetitionsUseCase` | Lấy danh sách tất cả các Giải đấu. |
 | **Competitions** | `/api/competitions/:id` | `GET` | `GetCompetitionByIdUseCase` | Lấy chi tiết Giải đấu theo UUID. |

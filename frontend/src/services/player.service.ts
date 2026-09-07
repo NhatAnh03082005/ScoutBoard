@@ -23,7 +23,6 @@ export async function searchPlayersApi(
 
   if (params) {
     if (params.search) queryParams.append('search', params.search);
-    if (params.preferredFoot) queryParams.append('preferredFoot', params.preferredFoot);
     if (params.nationality) queryParams.append('nationality', params.nationality);
     if (params.currentTeamId) queryParams.append('currentTeamId', params.currentTeamId);
     if (params.position) queryParams.append('position', params.position);
@@ -39,6 +38,12 @@ export async function searchPlayersApi(
     }
     if (params.maxHeightCm !== undefined && params.maxHeightCm !== null && params.maxHeightCm !== '') {
       queryParams.append('maxHeightCm', String(params.maxHeightCm));
+    }
+    if (params.minWeightKg !== undefined && params.minWeightKg !== null && params.minWeightKg !== '') {
+      queryParams.append('minWeightKg', String(params.minWeightKg));
+    }
+    if (params.maxWeightKg !== undefined && params.maxWeightKg !== null && params.maxWeightKg !== '') {
+      queryParams.append('maxWeightKg', String(params.maxWeightKg));
     }
     if (params.limit !== undefined) queryParams.append('limit', String(params.limit));
     if (params.offset !== undefined) queryParams.append('offset', String(params.offset));
@@ -180,7 +185,6 @@ export async function getComparisonCandidatesApi(
   if (params.currentTeamId) queryParams.append('currentTeamId', params.currentTeamId);
   if (params.search) queryParams.append('search', params.search);
   if (params.position) queryParams.append('position', params.position);
-  if (params.preferredFoot) queryParams.append('preferredFoot', params.preferredFoot);
   if (params.nationality) queryParams.append('nationality', params.nationality);
   if (params.minAge !== undefined && params.minAge !== null && params.minAge !== '') {
     queryParams.append('minAge', String(params.minAge));
@@ -193,6 +197,12 @@ export async function getComparisonCandidatesApi(
   }
   if (params.maxHeightCm !== undefined && params.maxHeightCm !== null && params.maxHeightCm !== '') {
     queryParams.append('maxHeightCm', String(params.maxHeightCm));
+  }
+  if (params.minWeightKg !== undefined && params.minWeightKg !== null && params.minWeightKg !== '') {
+    queryParams.append('minWeightKg', String(params.minWeightKg));
+  }
+  if (params.maxWeightKg !== undefined && params.maxWeightKg !== null && params.maxWeightKg !== '') {
+    queryParams.append('maxWeightKg', String(params.maxWeightKg));
   }
   if (params.limit !== undefined) queryParams.append('limit', String(params.limit));
   if (params.offset !== undefined) queryParams.append('offset', String(params.offset));

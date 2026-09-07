@@ -12,7 +12,6 @@ interface PlayerCardProps {
 export const PlayerCard: React.FC<PlayerCardProps> = ({
   player,
   onSelect,
-  onAddToShortlist,
 }) => {
   // Helper to compute age from dateOfBirth
   const calculateAge = (dateOfBirth?: string | null): string => {
@@ -32,35 +31,37 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
     player.currentTeam?.shortName || player.currentTeam?.name || "Free Agent";
   const position = player.primaryPosition || "—";
   const positionRole = getPositionRoleInfo(player.primaryPosition);
-  const secondaryPositions = (player.positions || [])
-    .filter(
-      (item) => !item.isPrimary && item.positionCode !== player.primaryPosition,
-    )
-    .slice(0, 2);
 
   const flagUrl = getNationalityFlagUrl(
     player.nationality,
     player.nationalityFlagUrl,
   );
 
+  const formatWeight = (val?: number | string | null): string => {
+    if (val === null || val === undefined || val === '') return '';
+    const clean = String(val).replace(/kg/i, '').trim();
+    return clean ? `${clean} kg` : '';
+  };
+
+  const formatHeight = (val?: number | string | null): string => {
+    if (val === null || val === undefined || val === '') return '';
+    const clean = String(val).replace(/cm/i, '').trim();
+    return clean ? `${clean} cm` : '';
+  };
+
+  // 3 meta fields: Tuổi - Chiều cao - Cân nặng (Omit any field that is null/empty)
   const cardMetaItems: string[] = [];
   if (player.dateOfBirth) {
     const age = calculateAge(player.dateOfBirth);
     if (age) cardMetaItems.push(age);
   }
-  if (player.heightCm != null) {
-    cardMetaItems.push(`${player.heightCm} cm`);
+  const heightStr = formatHeight(player.heightCm);
+  if (heightStr) {
+    cardMetaItems.push(heightStr);
   }
-  if (player.preferredFoot) {
-    const footLabel =
-      player.preferredFoot === "LEFT"
-        ? "Left"
-        : player.preferredFoot === "RIGHT"
-          ? "Right"
-          : player.preferredFoot === "BOTH"
-            ? "Both"
-            : player.preferredFoot;
-    cardMetaItems.push(footLabel);
+  const weightStr = formatWeight(player.weightKg);
+  if (weightStr) {
+    cardMetaItems.push(weightStr);
   }
 
   return (
@@ -77,141 +78,77 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         }
       }}
     >
-      {/* 1. Background Layer: Light background with default Facebook silhouette avatar */}
-      <div className="scout-fc-card-bg">
-        <svg
-          viewBox="0 0 300 400"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="xMidYMid slice"
-          style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}
+      {/* 1. Background Layer: Clean pure white background matching cutouts */}
+      <div className="scout-fc-card-bg" />
+
+      {/* 2. Top-Left Column: Vị trí & Số áo */}
+      <div className="scout-fc-card-top-left">
+        {/* 1. Vị trí */}
+        <div
+          className={`scout-fc-card-pos-badge ${positionRole.badgeClass}`}
+          title={`Position: ${position}`}
         >
-          <rect width="300" height="400" fill="#eff6ff" />
-          <circle cx="150" cy="200" r="180" fill="#dbeafe" fillOpacity="0.5" />
-          {/* Default Person Silhouette (Facebook Avatar style) */}
-          <circle cx="150" cy="135" r="50" fill="#94a3b8" />
-          <path
-            d="M50 310C50 242 94 205 150 205C206 205 250 242 250 310V400H50V310Z"
-            fill="#94a3b8"
-          />
-        </svg>
+          {position}
+        </div>
+
+        {/* 2. Số áo */}
+        {player.shirtNumber != null && (
+          <div
+            className="scout-fc-card-shirt-badge"
+            title={`Shirt Number: #${player.shirtNumber}`}
+          >
+            #{player.shirtNumber}
+          </div>
+        )}
       </div>
 
-      {/* 2. Image Zone: Real Player Cutout Image if available */}
-      {player.imageUrl && (
-        <div className="scout-fc-card-image-zone">
+      {/* 3. Top-Right Column: Logo CLB & Quốc kì (Không border, không background khác biệt) */}
+      <div className="scout-fc-card-top-right">
+        {/* Logo Club */}
+        {player.currentTeam?.logoUrl && (
+          <div
+            className="scout-fc-card-club-badge"
+            title={`Club: ${clubName}`}
+          >
+            <img
+              src={player.currentTeam.logoUrl}
+              alt={clubName}
+              className="scout-fc-card-club-img"
+            />
+          </div>
+        )}
+
+        {/* Quốc kì */}
+        {flagUrl && (
+          <div
+            className="scout-fc-card-flag-badge"
+            title={`Nationality: ${player.nationality || ''}`}
+          >
+            <img
+              src={flagUrl}
+              alt={player.nationality || "Flag"}
+              className="scout-fc-card-flag-img"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* 4. Image Zone: Player Cutout Image (Natural flex container directly above name) */}
+      <div className="scout-fc-card-image-zone">
+        {player.imageUrl && (
           <img
             src={player.imageUrl}
             alt={player.fullName}
             className="scout-fc-card-img"
+            loading="lazy"
             onError={(e) => {
               (e.currentTarget as HTMLElement).style.display = "none";
             }}
           />
-        </div>
-      )}
-
-      {/* 3. Subtle Bottom Gradient Overlay for Readability */}
-      <div className="scout-fc-card-overlay" />
-
-      {/* 4. Top Identification Layer (Position, Nationality, Club, Jersey Number) */}
-      <div className="scout-fc-card-top-anchor">
-        <div className="scout-fc-card-header-left">
-          <div className="scout-fc-card-position-row">
-            <span
-              className={`scout-fc-card-pos-badge ${positionRole.badgeClass}`}
-            >
-              {position}
-            </span>
-            {secondaryPositions.map((secondaryPosition) => (
-              <span
-                key={secondaryPosition.id}
-                className="scout-fc-card-secondary-pos-badge"
-              >
-                {secondaryPosition.positionCode}
-              </span>
-            ))}
-          </div>
-          {player.nationality && (
-            <span
-              className="scout-fc-card-nation"
-              title={player.nationality}
-              style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
-            >
-              {flagUrl && (
-                <img
-                  src={flagUrl}
-                  alt={player.nationality}
-                  style={{
-                    width: "14px",
-                    height: "10px",
-                    objectFit: "cover",
-                    borderRadius: "1px",
-                  }}
-                />
-              )}
-              <span>{player.nationality}</span>
-            </span>
-          )}
-          <span
-            className="scout-fc-card-club"
-            title={clubName}
-            style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
-          >
-            {player.currentTeam?.logoUrl && (
-              <img
-                src={player.currentTeam.logoUrl}
-                alt={clubName}
-                style={{
-                  width: "14px",
-                  height: "14px",
-                  objectFit: "contain",
-                }}
-              />
-            )}
-            <span>{clubName}</span>
-          </span>
-          {player.shirtNumber ? (
-            <span className="scout-fc-card-jersey-number">
-              #{player.shirtNumber}
-            </span>
-          ) : null}
-        </div>
-
-        {onAddToShortlist && (
-          <button
-            type="button"
-            className="scout-fc-card-shortlist-btn"
-            title="Add to Shortlist"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToShortlist(player, e);
-            }}
-            style={{
-              background: 'rgba(15, 23, 42, 0.7)',
-              backdropFilter: 'blur(6px)',
-              color: '#ffffff',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '8px',
-              padding: '4px 8px',
-              fontSize: '11px',
-              fontWeight: 800,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              alignSelf: 'flex-start',
-              marginLeft: 'auto',
-            }}
-          >
-            <span>+</span>
-            <span>Shortlist</span>
-          </button>
         )}
       </div>
 
-      {/* 5. Bottom Text Anchor: Strictly Anchored to Bottom (Null fields completely hidden) */}
+      {/* 5. Bottom Info Area: Player Name (prominent, blue, large) + Age - Height - Weight (Centered vertically in bottom space) */}
       <div className="scout-fc-card-bottom-anchor">
         <h3 className="scout-fc-card-name" title={player.fullName}>
           {player.fullName}

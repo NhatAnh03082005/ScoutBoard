@@ -42,14 +42,14 @@ Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên 
  Core Football Data     Player Enrichment      Match Statistics
  • Competitions/Seasons • Player Photos (CDN)  • Match Events/Ratings
  • Clubs & Rosters      • Height & Weight      • Player Match Stats
- • Match Fixtures       • Foot & Jersey Number • Detailed Performance
+ • Match Fixtures       • Jersey Number & Photo• Detailed Performance
  • Scores & Results     • Detailed Positions
 ```
 
 | Nhóm dữ liệu | Nguồn Provider | Trách nhiệm |
 | :--- | :--- | :--- |
 | **Core Football Data** | `football-data.org` | Giải đấu, Mùa giải, Câu lạc bộ, Đội hình cơ bản, Lịch thi đấu, Tỷ số trận đấu. |
-| **Player Enrichment** | `API-Football` | Ảnh chân dung (CDN), Chiều cao, Cân nặng, Chân thuận, Số áo, Vị trí chi tiết. |
+| **Player Enrichment** | `API-Football` | Ảnh chân dung (CDN), Chiều cao, Cân nặng, Số áo, Vị trí chi tiết. (Lưu ý: API-Football không hỗ trợ Chân thuận/preferred_foot). |
 | **Match Statistics** | `Sportmonks` | Thống kê chi tiết từng trận, Điểm số đánh giá (Ratings), Sự kiện trận đấu. |
 | **User & App Data** | PostgreSQL (Internal) | Người dùng, Phân quyền RBAC, Shortlists cá nhân, Đội hình tự dựng (Squads). |
 
@@ -128,7 +128,7 @@ Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên 
 
 ### **Module 3: Player Analytics & Scouting Intelligence (`src/modules/players`)**
 1. **Tìm kiếm & Lọc Cầu thủ Đa chiều (`GET /players`):**
-   - Lọc theo tên, giải đấu, CLB, quốc tịch, chân thuận, độ tuổi, chiều cao.
+   - Lọc theo tên, giải đấu, CLB, quốc tịch, độ tuổi, chiều cao, cân nặng.
    - **Hỗ trợ Any Position Filter:** Khớp cả vị trí chính (`primaryPosition`) và các vị trí phụ liên kết (`player.positions`).
 2. **Đảm bảo tính toàn vẹn vị trí (Position Integrity & Single Primary Rule):**
    - Bảng `player_positions` là source of truth với partial unique constraint `IDX_player_positions_one_primary_per_player`.

@@ -32,17 +32,17 @@ export const PlayerCardGrid: React.FC<PlayerCardGridProps> = ({
           <div key={`card-skeleton-${idx}`} className="scout-fc-card scout-fc-card-skeleton">
             <div className="scout-fc-card-bg" />
             <div className="scout-fc-skeleton-shimmer" />
-            <div className="scout-fc-card-top-anchor">
-              <div className="scout-fc-card-header-left">
-                <div className="skeleton-line" style={{ width: '32px', height: '32px', borderRadius: '6px', marginBottom: '2px' }} />
-                <div className="skeleton-line" style={{ width: '42px', height: '18px', borderRadius: '4px' }} />
-                <div className="skeleton-line" style={{ width: '70px', height: '12px' }} />
-                <div className="skeleton-line" style={{ width: '100px', height: '14px' }} />
-              </div>
+            <div className="scout-fc-card-top-left">
+              <div className="skeleton-line" style={{ width: '38px', height: '25px', borderRadius: '6px' }} />
+              <div className="skeleton-line" style={{ width: '38px', height: '22px', borderRadius: '5px' }} />
+            </div>
+            <div className="scout-fc-card-top-right">
+              <div className="skeleton-line" style={{ width: '34px', height: '34px', borderRadius: '6px' }} />
+              <div className="skeleton-line" style={{ width: '30px', height: '20px', borderRadius: '2px' }} />
             </div>
             <div className="scout-fc-card-bottom-anchor">
-              <div className="skeleton-line" style={{ width: '80%', height: '22px', marginBottom: '8px' }} />
-              <div className="skeleton-line" style={{ width: '60%', height: '14px' }} />
+              <div className="skeleton-line" style={{ width: '80%', height: '20px', marginBottom: '6px' }} />
+              <div className="skeleton-line" style={{ width: '55%', height: '14px' }} />
             </div>
           </div>
         ))}

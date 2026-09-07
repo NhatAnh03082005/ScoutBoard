@@ -19,7 +19,6 @@ export interface EnrichedPlayerProfile {
   nationality?: string | null;
   heightCm: number | null;
   weightKg: number | null;
-  preferredFoot: string | null;
   primaryPosition: string | null;
   shirtNumber: number | null;
   imageUrl: string | null;
@@ -141,7 +140,6 @@ export class ApiFootballPlayerMapper {
       nationality: profile.nationality ? profile.nationality.trim() : null,
       heightCm,
       weightKg,
-      preferredFoot: null,
       rawPosition,
       primaryPosition,
       shirtNumber,
@@ -174,7 +172,6 @@ export class ApiFootballPlayerMapper {
       nationality: profile.nationality || null,
       heightCm: this.parseHeightCm(profile.height),
       weightKg: this.parseWeightKg(profile.weight),
-      preferredFoot: null,
       primaryPosition: this.normalizePosition(firstStat?.games?.position),
       shirtNumber:
         firstStat?.games?.number !== undefined &&
@@ -197,7 +194,6 @@ export class ApiFootballPlayerMapper {
       normalizedName: this.normalizeName(squadPlayer.name),
       heightCm: null,
       weightKg: null,
-      preferredFoot: null,
       primaryPosition: this.normalizePosition(squadPlayer.position),
       shirtNumber:
         typeof squadPlayer.number === 'number' ? squadPlayer.number : null,
@@ -228,7 +224,6 @@ export class ApiFootballPlayerMapper {
       nationality: null,
       heightCm: null,
       weightKg: null,
-      preferredFoot: null,
       rawPosition,
       primaryPosition: this.normalizePosition(rawPosition),
       shirtNumber:
@@ -258,7 +253,6 @@ export class ApiFootballPlayerMapper {
       nationality: p.nationality ? String(p.nationality).trim() : null,
       heightCm: this.parseHeightCm(p.height),
       weightKg: this.parseWeightKg(p.weight),
-      preferredFoot: null,
       primaryPosition: this.normalizePosition(p.position),
       shirtNumber: typeof p.number === 'number' ? p.number : null,
       imageUrl: p.photo ? String(p.photo).trim() : null,

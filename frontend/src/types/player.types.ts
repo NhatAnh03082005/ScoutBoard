@@ -33,8 +33,8 @@ export interface PlayerItem {
   dateOfBirth?: string | null;
   nationality?: string | null;
   nationalityFlagUrl?: string | null;
-  preferredFoot?: "LEFT" | "RIGHT" | "BOTH" | string | null;
   heightCm?: number | null;
+  weightKg?: number | null;
   rawPosition?: string | null;
   primaryPosition?: string | null;
   positionGroup?: string | null;
@@ -59,7 +59,6 @@ export interface PlayerDetail {
   nationalityFlagUrl?: string | null;
   heightCm?: number | null;
   weightKg?: number | null;
-  preferredFoot?: string | null;
   rawPosition?: string | null;
   primaryPosition?: string | null;
   positionGroup?: string | null;
@@ -191,7 +190,6 @@ export interface PlayerMatchStatisticsResponse {
 
 export interface PlayerFilterParams {
   search?: string;
-  preferredFoot?: string;
   nationality?: string;
   currentTeamId?: string;
   position?: string;
@@ -200,6 +198,8 @@ export interface PlayerFilterParams {
   maxAge?: number | string;
   minHeightCm?: number | string;
   maxHeightCm?: number | string;
+  minWeightKg?: number | string;
+  maxWeightKg?: number | string;
   limit?: number;
   offset?: number;
 }
@@ -221,12 +221,13 @@ export interface ComparisonCandidateParams {
   currentTeamId?: string;
   search?: string;
   position?: string;
-  preferredFoot?: string;
   nationality?: string;
   minAge?: number | string;
   maxAge?: number | string;
   minHeightCm?: number | string;
   maxHeightCm?: number | string;
+  minWeightKg?: number | string;
+  maxWeightKg?: number | string;
   limit?: number;
   offset?: number;
 }

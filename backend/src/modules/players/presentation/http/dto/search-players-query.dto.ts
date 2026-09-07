@@ -10,7 +10,6 @@ import {
   IsEnum,
   MaxLength,
 } from 'class-validator';
-import { PreferredFoot } from '../../../domain/enums/preferred-foot.enum';
 
 export class SearchPlayersQueryDto {
   @ApiPropertyOptional({ description: 'Từ khóa tìm kiếm theo tên cầu thủ' })
@@ -22,14 +21,6 @@ export class SearchPlayersQueryDto {
     return trimmed === '' ? undefined : trimmed;
   })
   search?: string;
-
-  @ApiPropertyOptional({
-    description: 'Chân thuận của cầu thủ (LEFT, RIGHT, BOTH)',
-    enum: PreferredFoot,
-  })
-  @IsOptional()
-  @IsEnum(PreferredFoot)
-  preferredFoot?: PreferredFoot;
 
   @ApiPropertyOptional({
     description: 'Quốc tịch của cầu thủ (ví dụ: Brazil, England)',
@@ -102,6 +93,26 @@ export class SearchPlayersQueryDto {
   @Min(120)
   @Max(230)
   maxHeightCm?: number;
+
+  @ApiPropertyOptional({
+    description: 'Cân nặng tối thiểu tính bằng kg (Min: 40, Max: 150)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(40)
+  @Max(150)
+  minWeightKg?: number;
+
+  @ApiPropertyOptional({
+    description: 'Cân nặng tối đa tính bằng kg (Min: 40, Max: 150)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(40)
+  @Max(150)
+  maxWeightKg?: number;
 
   @ApiPropertyOptional({
     description: 'Số lượng bản ghi tối đa (Default: 20, Min: 1, Max: 100)',

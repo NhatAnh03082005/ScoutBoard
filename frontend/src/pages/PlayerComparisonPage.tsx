@@ -250,13 +250,6 @@ const calculateAge = (dateOfBirth?: string | null): string => {
   return `${age} YRS`;
 };
 
-const formatPreferredFoot = (foot?: string | null): string | null => {
-  if (!foot) return null;
-  const upper = foot.trim().toUpperCase();
-  if (upper.includes('FOOT')) return upper;
-  return `${upper} FOOT`;
-};
-
 const formatNumber = (val: number | null | undefined, decimals = 2): string => {
   if (val === null || val === undefined || isNaN(val)) return '—';
   return Number.isInteger(val) ? String(val) : val.toFixed(decimals);
@@ -827,7 +820,6 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
               {/* Player Bio details (Null fields completely hidden) */}
               {(() => {
                 const flagA = getNationalityFlagUrl(playerA.nationality, playerA.nationalityFlagUrl);
-                const footA = formatPreferredFoot(playerA.preferredFoot);
                 const ageA = playerA.dateOfBirth ? calculateAge(playerA.dateOfBirth) : null;
                 const itemsA: React.ReactNode[] = [];
                 if (playerA.nationality) {
@@ -847,11 +839,11 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                 if (ageA && ageA !== '— YRS') {
                   itemsA.push(<span key="age">{ageA}</span>);
                 }
-                if (footA) {
-                  itemsA.push(<span key="foot">{footA}</span>);
-                }
                 if (playerA.heightCm != null) {
                   itemsA.push(<span key="height">{playerA.heightCm} CM</span>);
+                }
+                if (playerA.weightKg != null) {
+                  itemsA.push(<span key="weight">{playerA.weightKg} KG</span>);
                 }
                 return itemsA.length > 0 ? (
                   <div
@@ -1004,14 +996,13 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
               {/* Player Bio details (Null fields completely hidden) */}
               {(() => {
                 const flagB = getNationalityFlagUrl(playerB.nationality, playerB.nationalityFlagUrl);
-                const footB = formatPreferredFoot(playerB.preferredFoot);
                 const ageB = playerB.dateOfBirth ? calculateAge(playerB.dateOfBirth) : null;
                 const itemsB: React.ReactNode[] = [];
                 if (playerB.heightCm != null) {
                   itemsB.push(<span key="height">{playerB.heightCm} CM</span>);
                 }
-                if (footB) {
-                  itemsB.push(<span key="foot">{footB}</span>);
+                if (playerB.weightKg != null) {
+                  itemsB.push(<span key="weight">{playerB.weightKg} KG</span>);
                 }
                 if (ageB && ageB !== '— YRS') {
                   itemsB.push(<span key="age">{ageB}</span>);

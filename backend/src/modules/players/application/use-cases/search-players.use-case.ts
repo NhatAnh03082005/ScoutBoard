@@ -54,6 +54,16 @@ export class SearchPlayersUseCase {
       );
     }
 
+    if (
+      query.minWeightKg !== undefined &&
+      query.maxWeightKg !== undefined &&
+      query.minWeightKg > query.maxWeightKg
+    ) {
+      throw new BadRequestException(
+        'minWeightKg không được lớn hơn maxWeightKg',
+      );
+    }
+
     let currentSeasonId: string | undefined = undefined;
 
     if (query.competitionId) {
@@ -89,8 +99,8 @@ export class SearchPlayersUseCase {
       dateOfBirth: player.dateOfBirth,
       nationality: player.nationality,
       nationalityFlagUrl: resolveNationalityFlagUrl(player.nationality),
-      preferredFoot: player.preferredFoot,
       heightCm: player.heightCm,
+      weightKg: player.weightKg,
       rawPosition: player.rawPosition || null,
       primaryPosition: player.primaryPosition,
       positionGroup: getPositionGroup(player.primaryPosition),

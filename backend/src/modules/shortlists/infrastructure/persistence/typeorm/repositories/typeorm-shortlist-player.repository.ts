@@ -55,7 +55,6 @@ export class TypeOrmShortlistPlayerRepository implements ShortlistPlayerReposito
             nationality: e.player.nationality,
             heightCm: e.player.heightCm,
             weightKg: e.player.weightKg,
-            preferredFoot: e.player.preferredFoot,
             primaryPosition: e.player.primaryPosition,
             shirtNumber: e.player.shirtNumber,
             imageUrl: e.player.imageUrl,

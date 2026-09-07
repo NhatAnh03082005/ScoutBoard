@@ -58,6 +58,16 @@ export class GetComparisonCandidatesUseCase {
       );
     }
 
+    if (
+      query.minWeightKg !== undefined &&
+      query.maxWeightKg !== undefined &&
+      query.minWeightKg > query.maxWeightKg
+    ) {
+      throw new BadRequestException(
+        'minWeightKg không được lớn hơn maxWeightKg',
+      );
+    }
+
     // 1. Extract all unique positions of Player A (Primary + Secondary)
     const playerAPositions = new Set<string>();
     if (currentPlayer.primaryPosition) {
@@ -113,8 +123,8 @@ export class GetComparisonCandidatesUseCase {
       dateOfBirth: player.dateOfBirth,
       nationality: player.nationality,
       nationalityFlagUrl: resolveNationalityFlagUrl(player.nationality),
-      preferredFoot: player.preferredFoot,
       heightCm: player.heightCm,
+      weightKg: player.weightKg,
       rawPosition: player.rawPosition || null,
       primaryPosition: player.primaryPosition,
       positionGroup: getPositionGroup(player.primaryPosition),

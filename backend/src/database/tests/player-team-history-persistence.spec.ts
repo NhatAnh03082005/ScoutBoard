@@ -61,7 +61,6 @@ describe('Player Team History Persistence Integration Test (Live DB)', () => {
       nationality: 'Argentina',
       heightCm: 170,
       weightKg: 72,
-      preferredFoot: 'Left',
       primaryPosition: 'RW',
       shirtNumber: 10,
       imageUrl: null,

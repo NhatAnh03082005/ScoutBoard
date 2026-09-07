@@ -77,12 +77,13 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
     competitionId: '',
     currentTeamId: '',
     position: '',
-    preferredFoot: '',
     nationality: '',
     minAge: '',
     maxAge: '',
     minHeightCm: '',
     maxHeightCm: '',
+    minWeightKg: '',
+    maxWeightKg: '',
   });
 
   // Centralized API Fetch Helper
@@ -101,11 +102,13 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
 
     const activeSearch = searchKeywordOverride !== undefined ? searchKeywordOverride : appliedSearch;
 
-    // Parse numeric age and height parameters
+    // Parse numeric age, height, and weight parameters
     const minAgeNum = parseNumericParam(currentFilters.minAge);
     const maxAgeNum = parseNumericParam(currentFilters.maxAge);
     const minHeightNum = parseNumericParam(currentFilters.minHeightCm);
     const maxHeightNum = parseNumericParam(currentFilters.maxHeightCm);
+    const minWeightNum = parseNumericParam(currentFilters.minWeightKg);
+    const maxWeightNum = parseNumericParam(currentFilters.maxWeightKg);
 
     // Range Validation Checks
     if (minAgeNum !== undefined && maxAgeNum !== undefined && minAgeNum > maxAgeNum) {
@@ -115,6 +118,11 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
 
     if (minHeightNum !== undefined && maxHeightNum !== undefined && minHeightNum > maxHeightNum) {
       setError('Minimum height cannot be greater than maximum height.');
+      return;
+    }
+
+    if (minWeightNum !== undefined && maxWeightNum !== undefined && minWeightNum > maxWeightNum) {
+      setError('Minimum weight cannot be greater than maximum weight.');
       return;
     }
 
@@ -128,12 +136,13 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
       competitionId: currentFilters.competitionId ? currentFilters.competitionId : undefined,
       currentTeamId: currentFilters.currentTeamId ? currentFilters.currentTeamId : undefined,
       position: currentFilters.position ? currentFilters.position : undefined,
-      preferredFoot: currentFilters.preferredFoot ? currentFilters.preferredFoot : undefined,
       nationality: currentFilters.nationality && currentFilters.nationality.trim() !== '' ? currentFilters.nationality.trim() : undefined,
       minAge: minAgeNum,
       maxAge: maxAgeNum,
       minHeightCm: minHeightNum,
       maxHeightCm: maxHeightNum,
+      minWeightKg: minWeightNum,
+      maxWeightKg: maxWeightNum,
     };
 
     searchPlayersApi(queryParams)
@@ -276,12 +285,13 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
       competitionId: '',
       currentTeamId: '',
       position: '',
-      preferredFoot: '',
       nationality: '',
       minAge: '',
       maxAge: '',
       minHeightCm: '',
       maxHeightCm: '',
+      minWeightKg: '',
+      maxWeightKg: '',
     };
 
     setSearchInput('');

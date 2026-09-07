@@ -249,7 +249,6 @@ export async function seedFootballZone2(dataSource: DataSource): Promise<void> {
           nationality: pData.nationality,
           heightCm: pData.heightCm,
           weightKg: pData.weightKg || Math.round(pData.heightCm * 0.42),
-          preferredFoot: pData.foot,
           primaryPosition: pData.primaryPos,
           shirtNumber: pData.shirtNumber,
           currentTeamId: currentTeam.id,

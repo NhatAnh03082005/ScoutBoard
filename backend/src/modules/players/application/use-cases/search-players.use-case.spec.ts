@@ -52,7 +52,6 @@ describe('SearchPlayersUseCase (Unit)', () => {
     nationality: 'England',
     heightCm: 178,
     weightKg: 72,
-    preferredFoot: 'LEFT',
     primaryPosition: 'RW',
     shirtNumber: 7,
     imageUrl: 'saka.png',
@@ -151,6 +150,18 @@ describe('SearchPlayersUseCase (Unit)', () => {
     };
     await expect(useCase.execute(query)).rejects.toThrow(
       new BadRequestException('minHeightCm không được lớn hơn maxHeightCm'),
+    );
+  });
+
+  it('should throw BadRequestException if minWeightKg > maxWeightKg', async () => {
+    const query: SearchPlayersQueryDto = {
+      minWeightKg: 90,
+      maxWeightKg: 70,
+      limit: 20,
+      offset: 0,
+    };
+    await expect(useCase.execute(query)).rejects.toThrow(
+      new BadRequestException('minWeightKg không được lớn hơn maxWeightKg'),
     );
   });
 

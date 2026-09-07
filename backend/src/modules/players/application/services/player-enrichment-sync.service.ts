@@ -355,8 +355,6 @@ export class PlayerEnrichmentSyncService {
                 matchedProfile.heightCm = fullProf.heightCm;
               if (fullProf.weightKg)
                 matchedProfile.weightKg = fullProf.weightKg;
-              if (fullProf.preferredFoot)
-                matchedProfile.preferredFoot = fullProf.preferredFoot;
               if (fullProf.dateOfBirth && !matchedProfile.dateOfBirth) {
                 matchedProfile.dateOfBirth = fullProf.dateOfBirth;
               }

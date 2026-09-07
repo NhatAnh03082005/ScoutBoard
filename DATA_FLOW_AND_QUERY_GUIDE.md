@@ -239,7 +239,6 @@ SELECT
     "player"."nationality" AS "player_nationality",
     "player"."height_cm" AS "player_height_cm",
     "player"."weight_kg" AS "player_weight_kg",
-    "player"."preferred_foot" AS "player_preferred_foot",
     "player"."primary_position" AS "player_primary_position",
     "player"."shirt_number" AS "player_shirt_number",
     "currentTeam"."id" AS "currentTeam_id",

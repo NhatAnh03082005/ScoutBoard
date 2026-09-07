@@ -18,7 +18,7 @@
 
 | Tên use case | Tìm kiếm cầu thủ |
 | :---- | :---- |
-| **Tóm tắt** | UC cho phép GUEST và USER tìm kiếm cầu thủ theo tên và các tiêu chí như độ tuổi, quốc tịch, vị trí thi đấu, chân thuận, đội bóng, giải đấu, mùa giải và chỉ số thống kê. |
+| **Tóm tắt** | UC cho phép GUEST và USER tìm kiếm cầu thủ theo tên và các tiêu chí như độ tuổi, chiều cao, cân nặng, quốc tịch, vị trí thi đấu, đội bóng, giải đấu, mùa giải và chỉ số thống kê. |
 | **Tác nhân** | GUEST, USER |
 | **Sự kiện kích hoạt** | Người dùng truy cập trang **“Tìm kiếm cầu thủ”** hoặc nhập điều kiện tìm kiếm trên trang chủ. |
 | **Use case liên quan** | Xem chi tiết và thống kê cầu thủ, So sánh cầu thủ, Thêm cầu thủ vào shortlist, Thêm cầu thủ vào đội hình / dự bị |

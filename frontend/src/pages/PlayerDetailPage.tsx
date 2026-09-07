@@ -441,17 +441,6 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
     if (player.weightKg != null) {
       heroBioItems.push(`${player.weightKg} KG`);
     }
-    if (player.preferredFoot) {
-      const footLabel =
-        player.preferredFoot === "LEFT"
-          ? "LEFT FOOT"
-          : player.preferredFoot === "RIGHT"
-            ? "RIGHT FOOT"
-            : player.preferredFoot === "BOTH"
-              ? "BOTH FEET"
-              : `${player.preferredFoot} FOOT`;
-      heroBioItems.push(footLabel);
-    }
   }
 
   const currentPage = Math.floor(matchOffset / matchLimit) + 1;
@@ -809,21 +798,6 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                       <span className="scout-sports-bio-key">Weight</span>
                       <strong className="scout-sports-bio-val">
                         {player.weightKg} kg
-                      </strong>
-                    </div>
-                  )}
-
-                  {player.preferredFoot && (
-                    <div className="scout-sports-bio-row">
-                      <span className="scout-sports-bio-key">Preferred Foot</span>
-                      <strong className="scout-sports-bio-val">
-                        {player.preferredFoot === "LEFT"
-                          ? "Left"
-                          : player.preferredFoot === "RIGHT"
-                            ? "Right"
-                            : player.preferredFoot === "BOTH"
-                              ? "Both"
-                              : player.preferredFoot}
                       </strong>
                     </div>
                   )}

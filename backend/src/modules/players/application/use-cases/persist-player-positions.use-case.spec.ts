@@ -22,7 +22,6 @@ describe('PersistPlayerPositionsUseCase', () => {
     nationality: 'Portugal',
     heightCm: 187,
     weightKg: 83,
-    preferredFoot: 'RIGHT',
     primaryPosition: 'ST',
     shirtNumber: 7,
     imageUrl: null,

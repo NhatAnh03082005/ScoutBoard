@@ -226,7 +226,7 @@ export const PlayerComparisonCandidateList: React.FC<
                   width: '10%',
                 }}
               >
-                Chân thuận
+                Cân nặng
               </th>
               <th
                 style={{
@@ -406,9 +406,9 @@ export const PlayerComparisonCandidateList: React.FC<
                     {age}
                   </td>
 
-                  {/* Preferred Foot */}
+                  {/* Weight */}
                   <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#475569' }}>
-                    {player.preferredFoot || ''}
+                    {player.weightKg != null ? `${player.weightKg} kg` : ''}
                   </td>
 
                   {/* Height */}

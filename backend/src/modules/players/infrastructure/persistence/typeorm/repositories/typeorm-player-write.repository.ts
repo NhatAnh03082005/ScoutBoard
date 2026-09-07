@@ -45,7 +45,6 @@ export class TypeOrmPlayerWriteRepository implements PlayerWriteRepository {
         nationality: player.nationality ? player.nationality.trim() : null,
         heightCm: player.heightCm ?? null,
         weightKg: player.weightKg ?? null,
-        preferredFoot: player.preferredFoot ?? null,
         rawPosition: player.rawPosition ? player.rawPosition.trim() : null,
         primaryPosition: player.primaryPosition ? player.primaryPosition.trim() : null,
         shirtNumber: player.shirtNumber ?? null,
@@ -75,9 +74,6 @@ export class TypeOrmPlayerWriteRepository implements PlayerWriteRepository {
     }
     if (player.weightKg !== undefined && player.weightKg !== null) {
       existing.weightKg = player.weightKg;
-    }
-    if (player.preferredFoot !== undefined && player.preferredFoot !== null) {
-      existing.preferredFoot = player.preferredFoot;
     }
     if (player.imageUrl) {
       existing.imageUrl = player.imageUrl.trim();

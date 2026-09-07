@@ -311,7 +311,6 @@ Lưu trữ hồ sơ lý lịch, thông tin thể chất và kỹ thuật của c
 | `nationality` | `VARCHAR(100)` | Có | `NULL` |  | Quốc tịch chính thức của cầu thủ. |
 | `height_cm` | `INTEGER` | Có | `NULL` |  | Chiều cao tính theo đơn vị Centimet (cm). |
 | `weight_kg` | `INTEGER` | Có | `NULL` |  | Cân nặng tính theo đơn vị Kilogram (kg). |
-| `preferred_foot` | `VARCHAR(20)` | Có | `NULL` |  | Chân thuận thi đấu (`LEFT`, `RIGHT`, `BOTH`). |
 | `shirt_number` | `INTEGER` | Có | `NULL` |  | Số áo thi đấu tại câu lạc bộ hiện tại. |
 | `primary_position` | `VARCHAR(30)` | Có | `NULL` |  | Vị trí sở trường chính (`GK`, `CB`, `LB`, `RB`, `CM`, `CAM`, `ST`,...). |
 | `image_url` | `TEXT` | Có | `NULL` |  | Đường dẫn ảnh đại diện cầu thủ. |
@@ -445,7 +444,7 @@ Lưu trữ số liệu thống kê tổng hợp của cầu thủ theo đội b�
 | **`saves_per_90`** | `DECIMAL(5,2)` | Có | `NULL` |  | **[GK]** Cứu thua mỗi 90 phút thi đấu ($\frac{\text{saves} \times 90}{\text{minutes\_played}}$). |
 | **`goals_conceded_per_90`**| `DECIMAL(5,2)`| Có | `NULL`| | **[GK]** Bàn thua mỗi 90 phút thi đấu ($\frac{\text{goals\_conceded} \times 90}{\text{minutes\_played}}$). |
 | **`save_percentage`**| `DECIMAL(5,2)`| Có | `NULL` |  | **[GK]** Tỷ lệ cứu thua thành công $\left(\frac{\text{saves}}{\text{saves} + \text{goals\_conceded}} \times 100\right)\%$. |
-| `advanced_statistics`| `JSONB` | Có | `NULL` |  | Các chỉ số nâng cao mở rộng phụ thuộc provider (xG, xA, PSxG). |
+| `advanced_statistics`| `JSONB` | Có | `NULL` |  | Các chỉ số mở rộng provider (duels, fouls, dribbles, blocks, penalties). Lưu ý: API-Football không cung cấp xG/xA/PSxG. |
 | `created_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm tạo bản ghi thống kê. |
 | `updated_at` | `TIMESTAMPTZ` | Không | `NOW()` |  | Thời điểm cập nhật bản ghi. |
 | `(player_id, team_id, competition_id, season_id)` | Tổ hợp | — | — | UNIQUE | Đảm bảo tính duy nhất của thống kê theo cầu thủ, đội, giải và mùa. |
@@ -692,3 +691,41 @@ VALUES
     (gen_random_uuid(), 'ADMIN', 'Quản trị viên', 'Quản trị hệ thống, quản lý người dùng và chạy job đồng bộ', NOW())
 ON CONFLICT (code) DO NOTHING;
 ```
+
+---
+
+## 🔍 9. ĐẶC TẢ DATA CONTRACT: SUPPORTED VS DERIVED VS UNSUPPORTED ATTRIBUTES
+
+Sau đợt rà soát dữ liệu nhà cung cấp API-Football và thực hiện data contract cleanup toàn diện:
+
+### 9.1. Raw Provider Attributes (Dữ liệu gốc được API-Football hỗ trợ)
+* **Hồ sơ cá nhân**: `id`, `name`, `firstname`, `lastname`, `birth.date`, `nationality`, `height` (chuỗi dạng `"183 cm"`), `weight` (chuỗi dạng `"72 kg"`), `number`, `photo`.
+* **Thống kê trận đấu**: `minutes`, `goals`, `assists`, `shots.total`, `shots.on`, `passes.total`, `passes.key`, `passes.accuracy`, `tackles.total`, `tackles.blocks`, `tackles.interceptions`, `duels.total`, `duels.won`, `dribbles.attempts`, `dribbles.success`, `dribbles.past`, `fouls.drawn`, `fouls.committed`, `cards.yellow`, `cards.red`, `penalty.won`, `penalty.commited`, `penalty.scored`, `penalty.missed`, `penalty.saved`.
+* **Thủ môn**: `goals.conceded`, `goals.saves`.
+
+### 9.2. Normalized Fields (Trường chuẩn hóa kỹ thuật)
+* `height_cm`: Chuyển đổi từ raw `"183 cm"` sang integer `183`.
+* `weight_kg`: Chuyển đổi từ raw `"72 kg"` sang integer `72`.
+* `primary_position`: Chuẩn hóa vị trí danh mục thi đấu sang mã 15 vị trí cụ thể (`GK`, `CB`, `LB`, `RB`, `LWB`, `RWB`, `CDM`, `CM`, `CAM`, `LM`, `RM`, `LW`, `RW`, `CF`, `ST`) cùng 3 mã danh mục mở rộng bảo toàn nhóm (`DEF`, `MID`, `FWD`), tổng cộng 18 mã vị trí chuẩn tắc trong `CANONICAL_PLAYER_POSITIONS`.
+
+### 9.3. ScoutBoard-Derived Metrics (Chỉ số nội suy do ScoutBoard tự tính toán)
+* **Per-90 Metrics**: Tỷ lệ trung bình chuẩn hóa mỗi 90 phút thi đấu (`goals_per_90`, `assists_per_90`, `shots_per_90`, `passes_per_90`, `tackles_per_90`, `interceptions_per_90`, `duels_won_per_90`, `saves_per_90`, `goals_conceded_per_90`). Công thức: $\text{stat\_per\_90} = \frac{\text{stat} \times 90}{\text{minutes\_played}}$ (chỉ tính khi `minutes_played > 0`, trả về `null` nếu `minutes_played = 0`).
+* **passAccuracy**: $\frac{\text{passes\_completed}}{\text{passes\_attempted}} \times 100$ (làm tròn 2 chữ số thập phân, trả về `null` khi `passes_attempted <= 0`).
+* **savePercentage**: $\frac{\text{saves}}{\text{saves} + \text{goals\_conceded}} \times 100$ (làm tròn 2 chữ số thập phân, trả về `null` khi tổng số pha đối mặt $\text{saves} + \text{goals\_conceded} = 0$).
+* **Age (Tuổi cầu thủ)**: Tuổi nguyên dương nội suy từ `date_of_birth` so với ngày hiện tại (tính chính xác theo ngày sinh và tháng sinh trong năm).
+* **Flag CDN mapping**: Tự động ánh xạ `nationality` sang URL cờ quốc gia `nationalityFlagUrl` (ISO-3166 & FIFA country codes).
+
+### 9.4. ScoutBoard Domain Concepts (Khái niệm nghiệp vụ cốt lõi của ScoutBoard)
+* **Position Group**: 4 nhóm vị trí nghiệp vụ (`GOALKEEPER`, `DEFENDER`, `MIDFIELDER`, `FORWARD`) dùng cho bộ lọc nhanh và phân loại ứng viên so sánh.
+* **Zone Architecture**: Phân tách 4 phân vùng độc lập (Zone 1: Auth, Zone 2: Football Data, Zone 3: User Collections/Squads, Zone 4: Sync & Audit).
+* **Squad Builder Tactics**: 11 vị trí thi đấu trên sân, vai trò slot, captaincy, formation grid.
+* **Candidate Comparison Matrix**: Bộ tiêu chí tìm kiếm ứng viên tương đồng dựa trên nhóm vị trí tương thích và giải đấu/mùa giải.
+
+### 9.5. Unsupported Attributes (Thuộc tính không được API-Football hỗ trợ – Đã loại bỏ hoàn toàn)
+* **`preferred_foot`**: API-Football không cung cấp chân thuận trong bất kỳ endpoint nào (`/players`, `/players/profiles`, `/players/squads`). Đã được gỡ bỏ khỏi cơ sở dữ liệu qua migration `1789700000000-DropPreferredFootFromPlayers.ts`, gỡ bỏ khỏi ORM, DTO, Repository, Frontend Types và UI components.
+* **`market_value`**: Không được hỗ trợ bởi API-Football gói cơ bản/chuẩn.
+* **`contract_expiry`**: Không được hỗ trợ bởi API-Football.
+* **`xG`, `xA`, `PSxG`**: Dữ liệu bàn thắng/kiến tạo kỳ vọng nâng cao không được cung cấp trong API-Football thống kê cơ bản.
+* **`distance_covered`, `top_speed`**: Dữ liệu telemetry/tracking vật lý không được API-Football cung cấp.
+* **`heatmap` coordinates**: Tọa độ di chuyển sân đấu không có trong feed dữ liệu.
+

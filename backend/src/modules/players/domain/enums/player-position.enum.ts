@@ -50,7 +50,6 @@ export function getPositionGroup(pos?: string | null): PositionGroup | null {
 }
 
 export interface PositionInferenceContext {
-  preferredFoot?: string | null;
   grid?: string | null; // e.g. "1:1" (GK), "2:1" (LB), "2:4" (RB), "3:1" (DM), "4:2" (CAM)
   formation?: string | null; // e.g. "4-2-3-1", "4-3-3"
   side?: 'LEFT' | 'RIGHT' | 'CENTER' | null;
@@ -178,7 +177,6 @@ export function normalizeToCanonicalPosition(
   ) {
     const isLeft =
       context?.side === 'LEFT' ||
-      context?.preferredFoot?.toUpperCase() === 'LEFT' ||
       (context?.grid && (context.grid.endsWith(':1') || context.grid.endsWith(':2')));
     return isLeft ? 'LWB' : 'RWB';
   }
@@ -235,11 +233,8 @@ export function normalizeToCanonicalPosition(
     if (['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'F'].includes(clean)) return 'RW';
   }
 
-  // Preferred foot supporting evidence for wide defenders
+  // Broad category preservation: DO NOT FORCE TO CB/CM/ST
   if (['DEFENCE', 'DEFENDER', 'DEF', 'D'].includes(clean)) {
-    if (context?.preferredFoot?.toUpperCase() === 'LEFT') return 'LB';
-    if (context?.preferredFoot?.toUpperCase() === 'RIGHT') return 'RB';
-    // PRESERVE broad category: DO NOT FORCE TO CB
     return 'DEF';
   }
 
