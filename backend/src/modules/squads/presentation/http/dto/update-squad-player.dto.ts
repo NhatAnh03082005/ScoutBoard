@@ -1,4 +1,11 @@
-import { IsOptional, IsString, IsEnum, IsBoolean, IsInt, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsBoolean,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SquadPlayerRoleEnum } from './add-player-to-squad.dto';
 

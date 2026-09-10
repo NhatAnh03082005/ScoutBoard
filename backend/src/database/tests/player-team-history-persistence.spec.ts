@@ -33,7 +33,9 @@ describe('Player Team History Persistence Integration Test (Live DB)', () => {
 
     const playerOrmRepo = AppDataSource.getRepository(PlayerOrmEntity);
     const teamOrmRepo = AppDataSource.getRepository(TeamOrmEntity);
-    const historyOrmRepo = AppDataSource.getRepository(PlayerTeamHistoryOrmEntity);
+    const historyOrmRepo = AppDataSource.getRepository(
+      PlayerTeamHistoryOrmEntity,
+    );
 
     playerWriteRepo = new TypeOrmPlayerWriteRepository(playerOrmRepo);
     teamWriteRepo = new TypeOrmTeamWriteRepository(teamOrmRepo);

@@ -1,4 +1,13 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID, IsEnum, IsBoolean, IsInt, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsEnum,
+  IsBoolean,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum SquadPlayerRoleEnum {
@@ -17,7 +26,8 @@ export class AddPlayerToSquadDto {
 
   @ApiPropertyOptional({
     example: 'CB-1',
-    description: 'Slot code in tactical layout (e.g. GK, CB-1, ST; null for substitutes)',
+    description:
+      'Slot code in tactical layout (e.g. GK, CB-1, ST; null for substitutes)',
   })
   @IsOptional()
   @IsString({ message: 'Slot code must be a string' })

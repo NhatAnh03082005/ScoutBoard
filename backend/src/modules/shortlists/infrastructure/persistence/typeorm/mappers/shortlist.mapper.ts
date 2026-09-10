@@ -1,4 +1,7 @@
-import { Shortlist, ShortlistVisibility } from '../../../../domain/entities/shortlist';
+import {
+  Shortlist,
+  ShortlistVisibility,
+} from '../../../../domain/entities/shortlist';
 import { ShortlistOrmEntity } from '../entities/shortlist.orm-entity';
 
 export class ShortlistMapper {

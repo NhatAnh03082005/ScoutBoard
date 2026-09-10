@@ -14,7 +14,10 @@ const client = new Client({
 
 // Comprehensive Premier League Tactical Mapping
 // Canonical Tactical Positions: GK, CB, LB, RB, LWB, RWB, CDM, CM, CAM, LM, RM, LW, RW, CF, ST
-const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[]; raw: string }> = {
+const PLAYER_TACTICAL_MAP: Record<
+  string,
+  { primary: string; secondary?: string[]; raw: string }
+> = {
   // --- MANCHESTER UNITED ---
   'A. Onana': { primary: 'GK', raw: 'Goalkeeper' },
   'Andre Onana': { primary: 'GK', raw: 'Goalkeeper' },
@@ -45,7 +48,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'P. Dorgu': { primary: 'LB', raw: 'Defender' },
   'J. Kamason': { primary: 'RB', raw: 'Defender' },
 
-  'Casemiro': { primary: 'CDM', raw: 'Midfielder' },
+  Casemiro: { primary: 'CDM', raw: 'Midfielder' },
   'M. Ugarte': { primary: 'CDM', raw: 'Midfielder' },
   'Manuel Ugarte': { primary: 'CDM', raw: 'Midfielder' },
   'T. Collyer': { primary: 'CDM', raw: 'Midfielder' },
@@ -57,7 +60,11 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'J. Fletcher': { primary: 'CM', raw: 'Midfielder' },
   'T. Rowe': { primary: 'CM', raw: 'Midfielder' },
   'J. Devaney': { primary: 'CM', raw: 'Midfielder' },
-  'Bruno Fernandes': { primary: 'CAM', secondary: ['CM', 'RW'], raw: 'Midfielder' },
+  'Bruno Fernandes': {
+    primary: 'CAM',
+    secondary: ['CM', 'RW'],
+    raw: 'Midfielder',
+  },
   'M. Mount': { primary: 'CAM', secondary: ['CM'], raw: 'Midfielder' },
   'Mason Mount': { primary: 'CAM', secondary: ['CM'], raw: 'Midfielder' },
 
@@ -65,7 +72,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Marcus Rashford': { primary: 'LW', secondary: ['ST'], raw: 'Attacker' },
   'A. Garnacho': { primary: 'LW', secondary: ['RW'], raw: 'Attacker' },
   'Alejandro Garnacho': { primary: 'LW', secondary: ['RW'], raw: 'Attacker' },
-  'Antony': { primary: 'RW', raw: 'Attacker' },
+  Antony: { primary: 'RW', raw: 'Attacker' },
   'A. Diallo': { primary: 'RW', secondary: ['CAM'], raw: 'Attacker' },
   'Amad Diallo': { primary: 'RW', secondary: ['CAM'], raw: 'Attacker' },
   'S. Mather': { primary: 'LW', raw: 'Attacker' },
@@ -79,21 +86,25 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   // --- ARSENAL ---
   'David Raya': { primary: 'GK', raw: 'Goalkeeper' },
   'D. Raya': { primary: 'GK', raw: 'Goalkeeper' },
-  'Neto': { primary: 'GK', raw: 'Goalkeeper' },
+  Neto: { primary: 'GK', raw: 'Goalkeeper' },
   'A. Ramsdale': { primary: 'GK', raw: 'Goalkeeper' },
   'K. Hein': { primary: 'GK', raw: 'Goalkeeper' },
 
   'W. Saliba': { primary: 'CB', raw: 'Defender' },
   'William Saliba': { primary: 'CB', raw: 'Defender' },
   'Gabriel Magalhães': { primary: 'CB', raw: 'Defender' },
-  'Gabriel': { primary: 'CB', raw: 'Defender' },
+  Gabriel: { primary: 'CB', raw: 'Defender' },
   'J. Kiwior': { primary: 'CB', secondary: ['LB'], raw: 'Defender' },
   'B. White': { primary: 'RB', secondary: ['CB'], raw: 'Defender' },
   'Ben White': { primary: 'RB', secondary: ['CB'], raw: 'Defender' },
   'J. Timber': { primary: 'RB', secondary: ['LB', 'CB'], raw: 'Defender' },
   'Jurriën Timber': { primary: 'RB', secondary: ['LB', 'CB'], raw: 'Defender' },
   'T. Tomiyasu': { primary: 'RB', secondary: ['LB', 'CB'], raw: 'Defender' },
-  'Takehiro Tomiyasu': { primary: 'RB', secondary: ['LB', 'CB'], raw: 'Defender' },
+  'Takehiro Tomiyasu': {
+    primary: 'RB',
+    secondary: ['LB', 'CB'],
+    raw: 'Defender',
+  },
   'R. Calafiori': { primary: 'LB', secondary: ['CB'], raw: 'Defender' },
   'Riccardo Calafiori': { primary: 'LB', secondary: ['CB'], raw: 'Defender' },
   'O. Zinchenko': { primary: 'LB', secondary: ['CM'], raw: 'Defender' },
@@ -106,7 +117,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Declan Rice': { primary: 'CDM', secondary: ['CM'], raw: 'Midfielder' },
   'T. Partey': { primary: 'CDM', secondary: ['RB'], raw: 'Midfielder' },
   'Thomas Partey': { primary: 'CDM', secondary: ['RB'], raw: 'Midfielder' },
-  'Jorginho': { primary: 'CDM', raw: 'Midfielder' },
+  Jorginho: { primary: 'CDM', raw: 'Midfielder' },
   'M. Merino': { primary: 'CM', secondary: ['CDM'], raw: 'Midfielder' },
   'Mikel Merino': { primary: 'CM', secondary: ['CDM'], raw: 'Midfielder' },
   'M. Ødegaard': { primary: 'CAM', raw: 'Midfielder' },
@@ -119,7 +130,11 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'G. Martinelli': { primary: 'LW', raw: 'Attacker' },
   'Gabriel Martinelli': { primary: 'LW', raw: 'Attacker' },
   'L. Trossard': { primary: 'LW', secondary: ['CF', 'CAM'], raw: 'Attacker' },
-  'Leandro Trossard': { primary: 'LW', secondary: ['CF', 'CAM'], raw: 'Attacker' },
+  'Leandro Trossard': {
+    primary: 'LW',
+    secondary: ['CF', 'CAM'],
+    raw: 'Attacker',
+  },
   'R. Sterling': { primary: 'LW', secondary: ['RW'], raw: 'Attacker' },
   'Raheem Sterling': { primary: 'LW', secondary: ['RW'], raw: 'Attacker' },
   'K. Havertz': { primary: 'ST', secondary: ['CAM'], raw: 'Attacker' },
@@ -128,7 +143,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'E. Nketiah': { primary: 'ST', raw: 'Attacker' },
 
   // --- MANCHESTER CITY ---
-  'Ederson': { primary: 'GK', raw: 'Goalkeeper' },
+  Ederson: { primary: 'GK', raw: 'Goalkeeper' },
   'S. Ortega': { primary: 'GK', raw: 'Goalkeeper' },
   'S. Carson': { primary: 'GK', raw: 'Goalkeeper' },
 
@@ -142,7 +157,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'J. Gvardiol': { primary: 'LB', secondary: ['CB'], raw: 'Defender' },
   'Joško Gvardiol': { primary: 'LB', secondary: ['CB'], raw: 'Defender' },
 
-  'Rodri': { primary: 'CDM', raw: 'Midfielder' },
+  Rodri: { primary: 'CDM', raw: 'Midfielder' },
   'M. Kovačić': { primary: 'CM', secondary: ['CDM'], raw: 'Midfielder' },
   'Mateo Kovačić': { primary: 'CM', secondary: ['CDM'], raw: 'Midfielder' },
   'İ. Gündoğan': { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
@@ -150,7 +165,11 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Matheus Nunes': { primary: 'CM', secondary: ['LW'], raw: 'Midfielder' },
   'K. De Bruyne': { primary: 'CAM', raw: 'Midfielder' },
   'Kevin De Bruyne': { primary: 'CAM', raw: 'Midfielder' },
-  'Bernardo Silva': { primary: 'CAM', secondary: ['RW', 'CM'], raw: 'Midfielder' },
+  'Bernardo Silva': {
+    primary: 'CAM',
+    secondary: ['RW', 'CM'],
+    raw: 'Midfielder',
+  },
   'P. Foden': { primary: 'CAM', secondary: ['RW', 'LW'], raw: 'Midfielder' },
   'Phil Foden': { primary: 'CAM', secondary: ['RW', 'LW'], raw: 'Midfielder' },
   'J. McAtee': { primary: 'CAM', raw: 'Midfielder' },
@@ -158,13 +177,13 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'J. Grealish': { primary: 'LW', raw: 'Attacker' },
   'J. Doku': { primary: 'LW', secondary: ['RW'], raw: 'Attacker' },
   'Jérémy Doku': { primary: 'LW', secondary: ['RW'], raw: 'Attacker' },
-  'Savinho': { primary: 'RW', secondary: ['LW'], raw: 'Attacker' },
+  Savinho: { primary: 'RW', secondary: ['LW'], raw: 'Attacker' },
   'Oscar Bobb': { primary: 'RW', raw: 'Attacker' },
   'E. Haaland': { primary: 'ST', raw: 'Attacker' },
   'Erling Haaland': { primary: 'ST', raw: 'Attacker' },
 
   // --- LIVERPOOL ---
-  'Alisson': { primary: 'GK', raw: 'Goalkeeper' },
+  Alisson: { primary: 'GK', raw: 'Goalkeeper' },
   'C. Kelleher': { primary: 'GK', raw: 'Goalkeeper' },
   'V. Jaroš': { primary: 'GK', raw: 'Goalkeeper' },
 
@@ -175,7 +194,11 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'J. Quansah': { primary: 'CB', raw: 'Defender' },
   'J. Gomez': { primary: 'CB', secondary: ['RB', 'LB'], raw: 'Defender' },
   'T. Alexander-Arnold': { primary: 'RB', secondary: ['CM'], raw: 'Defender' },
-  'Trent Alexander-Arnold': { primary: 'RB', secondary: ['CM'], raw: 'Defender' },
+  'Trent Alexander-Arnold': {
+    primary: 'RB',
+    secondary: ['CM'],
+    raw: 'Defender',
+  },
   'C. Bradley': { primary: 'RB', raw: 'Defender' },
   'A. Robertson': { primary: 'LB', raw: 'Defender' },
   'Andy Robertson': { primary: 'LB', raw: 'Defender' },
@@ -184,12 +207,24 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'R. Gravenberch': { primary: 'CDM', secondary: ['CM'], raw: 'Midfielder' },
   'Ryan Gravenberch': { primary: 'CDM', secondary: ['CM'], raw: 'Midfielder' },
   'W. Endo': { primary: 'CDM', raw: 'Midfielder' },
-  'A. Mac Allister': { primary: 'CM', secondary: ['CDM', 'CAM'], raw: 'Midfielder' },
-  'Alexis Mac Allister': { primary: 'CM', secondary: ['CDM', 'CAM'], raw: 'Midfielder' },
+  'A. Mac Allister': {
+    primary: 'CM',
+    secondary: ['CDM', 'CAM'],
+    raw: 'Midfielder',
+  },
+  'Alexis Mac Allister': {
+    primary: 'CM',
+    secondary: ['CDM', 'CAM'],
+    raw: 'Midfielder',
+  },
   'C. Jones': { primary: 'CM', raw: 'Midfielder' },
   'H. Elliott': { primary: 'CAM', secondary: ['RW'], raw: 'Midfielder' },
   'D. Szoboszlai': { primary: 'CAM', secondary: ['CM'], raw: 'Midfielder' },
-  'Dominik Szoboszlai': { primary: 'CAM', secondary: ['CM'], raw: 'Midfielder' },
+  'Dominik Szoboszlai': {
+    primary: 'CAM',
+    secondary: ['CM'],
+    raw: 'Midfielder',
+  },
 
   'M. Salah': { primary: 'RW', raw: 'Attacker' },
   'Mohamed Salah': { primary: 'RW', raw: 'Attacker' },
@@ -278,7 +313,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Dejan Kulusevski': { primary: 'RW', secondary: ['CAM'], raw: 'Attacker' },
   'D. Solanke': { primary: 'ST', raw: 'Attacker' },
   'Dominic Solanke': { primary: 'ST', raw: 'Attacker' },
-  'Richarlison': { primary: 'ST', secondary: ['LW'], raw: 'Attacker' },
+  Richarlison: { primary: 'ST', secondary: ['LW'], raw: 'Attacker' },
 
   // --- ASTON VILLA ---
   'E. Martínez': { primary: 'GK', raw: 'Goalkeeper' },
@@ -309,7 +344,11 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'E. Buendía': { primary: 'CAM', secondary: ['RW'], raw: 'Midfielder' },
   'J. Ramsey': { primary: 'LM', secondary: ['LW', 'CM'], raw: 'Midfielder' },
   'M. Rogers': { primary: 'CAM', secondary: ['LW', 'ST'], raw: 'Midfielder' },
-  'Morgan Rogers': { primary: 'CAM', secondary: ['LW', 'ST'], raw: 'Midfielder' },
+  'Morgan Rogers': {
+    primary: 'CAM',
+    secondary: ['LW', 'ST'],
+    raw: 'Midfielder',
+  },
 
   'L. Bailey': { primary: 'RW', raw: 'Attacker' },
   'Leon Bailey': { primary: 'RW', raw: 'Attacker' },
@@ -380,7 +419,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Bruno Guimarães': { primary: 'CDM', secondary: ['CM'], raw: 'Midfielder' },
   'S. Tonali': { primary: 'CM', secondary: ['CDM'], raw: 'Midfielder' },
   'Sandro Tonali': { primary: 'CM', secondary: ['CDM'], raw: 'Midfielder' },
-  'Joelinton': { primary: 'CM', secondary: ['LW'], raw: 'Midfielder' },
+  Joelinton: { primary: 'CM', secondary: ['LW'], raw: 'Midfielder' },
   'S. Longstaff': { primary: 'CM', raw: 'Midfielder' },
   'J. Willock': { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
   'L. Miley': { primary: 'CM', raw: 'Midfielder' },
@@ -437,7 +476,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'J. Branthwaite': { primary: 'CB', raw: 'Defender' },
   'Jarrad Branthwaite': { primary: 'CB', raw: 'Defender' },
   'M. Keane': { primary: 'CB', raw: 'Defender' },
-  'J. O\'Brien': { primary: 'CB', raw: 'Defender' },
+  "J. O'Brien": { primary: 'CB', raw: 'Defender' },
   'V. Mykolenko': { primary: 'LB', raw: 'Defender' },
   'Vitaliy Mykolenko': { primary: 'LB', raw: 'Defender' },
   'A. Young': { primary: 'RB', secondary: ['LB'], raw: 'Defender' },
@@ -447,10 +486,18 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'I. Gueye': { primary: 'CDM', raw: 'Midfielder' },
   'Idrissa Gueye': { primary: 'CDM', raw: 'Midfielder' },
   'J. Garner': { primary: 'CM', secondary: ['RB', 'CDM'], raw: 'Midfielder' },
-  'James Garner': { primary: 'CM', secondary: ['RB', 'CDM'], raw: 'Midfielder' },
+  'James Garner': {
+    primary: 'CM',
+    secondary: ['RB', 'CDM'],
+    raw: 'Midfielder',
+  },
   'T. Iroegbunam': { primary: 'CM', raw: 'Midfielder' },
   'A. Doucouré': { primary: 'CAM', secondary: ['CM'], raw: 'Midfielder' },
-  'Abdoulaye Doucouré': { primary: 'CAM', secondary: ['CM'], raw: 'Midfielder' },
+  'Abdoulaye Doucouré': {
+    primary: 'CAM',
+    secondary: ['CM'],
+    raw: 'Midfielder',
+  },
   'D. McNeil': { primary: 'LW', secondary: ['CAM'], raw: 'Attacker' },
   'Dwight McNeil': { primary: 'LW', secondary: ['CAM'], raw: 'Attacker' },
   'J. Harrison': { primary: 'RW', secondary: ['LW'], raw: 'Attacker' },
@@ -460,7 +507,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Iliman Ndiaye': { primary: 'LW', secondary: ['ST'], raw: 'Attacker' },
   'D. Calvert-Lewin': { primary: 'ST', raw: 'Attacker' },
   'Dominic Calvert-Lewin': { primary: 'ST', raw: 'Attacker' },
-  'Beto': { primary: 'ST', raw: 'Attacker' },
+  Beto: { primary: 'ST', raw: 'Attacker' },
   'Y. Chermiti': { primary: 'ST', raw: 'Attacker' },
 
   // --- WEST HAM ---
@@ -476,7 +523,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Aaron Wan-Bissaka': { primary: 'RB', raw: 'Defender' },
   'V. Coufal': { primary: 'RB', raw: 'Defender' },
   'Vladimír Coufal': { primary: 'RB', raw: 'Defender' },
-  'Emerson': { primary: 'LB', raw: 'Defender' },
+  Emerson: { primary: 'LB', raw: 'Defender' },
   'Emerson Palmieri': { primary: 'LB', raw: 'Defender' },
   'A. Cresswell': { primary: 'LB', raw: 'Defender' },
   'G. Rodríguez': { primary: 'CDM', raw: 'Midfielder' },
@@ -524,8 +571,8 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Mats Wieffer': { primary: 'CDM', raw: 'Midfielder' },
   'Y. Ayari': { primary: 'CM', raw: 'Midfielder' },
   'B. Gilmour': { primary: 'CM', raw: 'Midfielder' },
-  'M. O\'Riley': { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
-  'Matt O\'Riley': { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
+  "M. O'Riley": { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
+  "Matt O'Riley": { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
   'J. Enciso': { primary: 'CAM', secondary: ['LW'], raw: 'Midfielder' },
   'Julio Enciso': { primary: 'CAM', secondary: ['LW'], raw: 'Midfielder' },
   'K. Mitoma': { primary: 'LW', raw: 'Attacker' },
@@ -563,11 +610,23 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'C. Nørgaard': { primary: 'CDM', raw: 'Midfielder' },
   'Christian Nørgaard': { primary: 'CDM', raw: 'Midfielder' },
   'V. Janelt': { primary: 'CDM', secondary: ['CM', 'LB'], raw: 'Midfielder' },
-  'Vitaly Janelt': { primary: 'CDM', secondary: ['CM', 'LB'], raw: 'Midfielder' },
+  'Vitaly Janelt': {
+    primary: 'CDM',
+    secondary: ['CM', 'LB'],
+    raw: 'Midfielder',
+  },
   'M. Jensen': { primary: 'CM', raw: 'Midfielder' },
   'Mathias Jensen': { primary: 'CM', raw: 'Midfielder' },
-  'M. Damsgaard': { primary: 'CAM', secondary: ['CM', 'LW'], raw: 'Midfielder' },
-  'Mikkel Damsgaard': { primary: 'CAM', secondary: ['CM', 'LW'], raw: 'Midfielder' },
+  'M. Damsgaard': {
+    primary: 'CAM',
+    secondary: ['CM', 'LW'],
+    raw: 'Midfielder',
+  },
+  'Mikkel Damsgaard': {
+    primary: 'CAM',
+    secondary: ['CM', 'LW'],
+    raw: 'Midfielder',
+  },
   'F. Carvalho': { primary: 'CAM', secondary: ['LW'], raw: 'Midfielder' },
   'Fábio Carvalho': { primary: 'CAM', secondary: ['LW'], raw: 'Midfielder' },
   'B. Mbeumo': { primary: 'RW', secondary: ['ST'], raw: 'Attacker' },
@@ -589,7 +648,11 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Nélson Semedo': { primary: 'RB', secondary: ['RWB'], raw: 'Defender' },
   'M. Doherty': { primary: 'RB', secondary: ['LB'], raw: 'Defender' },
   'R. Aït-Nouri': { primary: 'LB', secondary: ['LWB', 'LM'], raw: 'Defender' },
-  'Rayan Aït-Nouri': { primary: 'LB', secondary: ['LWB', 'LM'], raw: 'Defender' },
+  'Rayan Aït-Nouri': {
+    primary: 'LB',
+    secondary: ['LWB', 'LM'],
+    raw: 'Defender',
+  },
   'M. Lemina': { primary: 'CDM', secondary: ['CM'], raw: 'Midfielder' },
   'Mario Lemina': { primary: 'CDM', secondary: ['CM'], raw: 'Midfielder' },
   'João Gomes': { primary: 'CDM', secondary: ['CM'], raw: 'Midfielder' },
@@ -606,7 +669,7 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Jørgen Strand Larsen': { primary: 'ST', raw: 'Attacker' },
 
   // --- BOURNEMOUTH ---
-  'Kepa': { primary: 'GK', raw: 'Goalkeeper' },
+  Kepa: { primary: 'GK', raw: 'Goalkeeper' },
   'Kepa Arrizabalaga': { primary: 'GK', raw: 'Goalkeeper' },
   'M. Travers': { primary: 'GK', raw: 'Goalkeeper' },
   'I. Zabarnyi': { primary: 'CB', raw: 'Defender' },
@@ -626,14 +689,18 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'R. Christie': { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
   'Ryan Christie': { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
   'A. Scott': { primary: 'CAM', secondary: ['CM'], raw: 'Midfielder' },
-  'M. Tavernier': { primary: 'LW', secondary: ['CAM', 'RW'], raw: 'Midfielder' },
+  'M. Tavernier': {
+    primary: 'LW',
+    secondary: ['CAM', 'RW'],
+    raw: 'Midfielder',
+  },
   'J. Kluivert': { primary: 'CAM', secondary: ['LW'], raw: 'Attacker' },
   'Justin Kluivert': { primary: 'CAM', secondary: ['LW'], raw: 'Attacker' },
   'A. Semenyo': { primary: 'RW', secondary: ['ST'], raw: 'Attacker' },
   'Antoine Semenyo': { primary: 'RW', secondary: ['ST'], raw: 'Attacker' },
   'L. Sinisterra': { primary: 'LW', raw: 'Attacker' },
   'D. Ouattara': { primary: 'RW', secondary: ['LB'], raw: 'Attacker' },
-  'Evanilson': { primary: 'ST', raw: 'Attacker' },
+  Evanilson: { primary: 'ST', raw: 'Attacker' },
   'E. Ünal': { primary: 'ST', raw: 'Attacker' },
   'Enes Ünal': { primary: 'ST', raw: 'Attacker' },
 
@@ -641,11 +708,11 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'M. Sels': { primary: 'GK', raw: 'Goalkeeper' },
   'Matz Sels': { primary: 'GK', raw: 'Goalkeeper' },
   'Carlos Miguel': { primary: 'GK', raw: 'Goalkeeper' },
-  'Murillo': { primary: 'CB', raw: 'Defender' },
+  Murillo: { primary: 'CB', raw: 'Defender' },
   'N. Milenković': { primary: 'CB', raw: 'Defender' },
   'Nikola Milenković': { primary: 'CB', raw: 'Defender' },
   'W. Boly': { primary: 'CB', raw: 'Defender' },
-  'Morato': { primary: 'CB', raw: 'Defender' },
+  Morato: { primary: 'CB', raw: 'Defender' },
   'N. Williams': { primary: 'RB', secondary: ['LB'], raw: 'Defender' },
   'Neco Williams': { primary: 'RB', secondary: ['LB'], raw: 'Defender' },
   'O. Aina': { primary: 'RB', secondary: ['LB'], raw: 'Defender' },
@@ -654,14 +721,18 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'Álex Moreno': { primary: 'LB', raw: 'Defender' },
   'I. Sangaré': { primary: 'CDM', raw: 'Midfielder' },
   'Ibrahim Sangaré': { primary: 'CDM', raw: 'Midfielder' },
-  'Danilo': { primary: 'CM', secondary: ['CDM'], raw: 'Midfielder' },
+  Danilo: { primary: 'CM', secondary: ['CDM'], raw: 'Midfielder' },
   'R. Yates': { primary: 'CM', raw: 'Midfielder' },
   'Ryan Yates': { primary: 'CM', raw: 'Midfielder' },
   'E. Anderson': { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
   'Elliot Anderson': { primary: 'CM', secondary: ['CAM'], raw: 'Midfielder' },
   'N. Domínguez': { primary: 'CM', raw: 'Midfielder' },
   'M. Gibbs-White': { primary: 'CAM', secondary: ['RW'], raw: 'Midfielder' },
-  'Morgan Gibbs-White': { primary: 'CAM', secondary: ['RW'], raw: 'Midfielder' },
+  'Morgan Gibbs-White': {
+    primary: 'CAM',
+    secondary: ['RW'],
+    raw: 'Midfielder',
+  },
   'C. Hudson-Odoi': { primary: 'LW', raw: 'Attacker' },
   'Callum Hudson-Odoi': { primary: 'LW', raw: 'Attacker' },
   'A. Elanga': { primary: 'RW', secondary: ['LW'], raw: 'Attacker' },
@@ -697,7 +768,11 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'B. Soumaré': { primary: 'CM', raw: 'Midfielder' },
   'B. El Khannouss': { primary: 'CAM', raw: 'Midfielder' },
   'F. Buonanotte': { primary: 'CAM', secondary: ['RW'], raw: 'Midfielder' },
-  'Facundo Buonanotte': { primary: 'CAM', secondary: ['RW'], raw: 'Midfielder' },
+  'Facundo Buonanotte': {
+    primary: 'CAM',
+    secondary: ['RW'],
+    raw: 'Midfielder',
+  },
   'S. Mavididi': { primary: 'LW', raw: 'Attacker' },
   'Stephy Mavididi': { primary: 'LW', raw: 'Attacker' },
   'A. Fatawu': { primary: 'RW', raw: 'Attacker' },
@@ -752,8 +827,8 @@ const PLAYER_TACTICAL_MAP: Record<string, { primary: string; secondary?: string[
   'A. Murić': { primary: 'GK', raw: 'Goalkeeper' },
   'Arijanet Murić': { primary: 'GK', raw: 'Goalkeeper' },
   'C. Walton': { primary: 'GK', raw: 'Goalkeeper' },
-  'D. O\'Shea': { primary: 'CB', secondary: ['RB'], raw: 'Defender' },
-  'Dara O\'Shea': { primary: 'CB', secondary: ['RB'], raw: 'Defender' },
+  "D. O'Shea": { primary: 'CB', secondary: ['RB'], raw: 'Defender' },
+  "Dara O'Shea": { primary: 'CB', secondary: ['RB'], raw: 'Defender' },
   'J. Greaves': { primary: 'CB', raw: 'Defender' },
   'Jacob Greaves': { primary: 'CB', raw: 'Defender' },
   'C. Burgess': { primary: 'CB', raw: 'Defender' },
@@ -794,7 +869,9 @@ async function resync() {
   await client.connect();
 
   // 1. Ensure raw_position column
-  await client.query('ALTER TABLE "players" ADD COLUMN IF NOT EXISTS "raw_position" VARCHAR(50) DEFAULT NULL;');
+  await client.query(
+    'ALTER TABLE "players" ADD COLUMN IF NOT EXISTS "raw_position" VARCHAR(50) DEFAULT NULL;',
+  );
   console.log('Ensured raw_position column exists on players table.');
 
   // 2. Query all players
@@ -850,7 +927,7 @@ async function resync() {
       `UPDATE players
        SET raw_position = $1, primary_position = $2, data_updated_at = NOW()
        WHERE id = $3`,
-      [targetRaw, targetPrimary, p.id]
+      [targetRaw, targetPrimary, p.id],
     );
     updatedCount++;
 
@@ -858,7 +935,7 @@ async function resync() {
     // First, check if primary position exists
     const existingPrimaryPos = await client.query(
       `SELECT id FROM player_positions WHERE player_id = $1 AND is_primary = true`,
-      [p.id]
+      [p.id],
     );
 
     if (existingPrimaryPos.rows.length > 0) {
@@ -866,13 +943,13 @@ async function resync() {
         `UPDATE player_positions
          SET position_code = $1
          WHERE player_id = $2 AND is_primary = true`,
-        [targetPrimary, p.id]
+        [targetPrimary, p.id],
       );
     } else {
       await client.query(
         `INSERT INTO player_positions (id, player_id, position_code, is_primary)
          VALUES (uuid_generate_v4(), $1, $2, true)`,
-        [p.id, targetPrimary]
+        [p.id, targetPrimary],
       );
     }
     positionsUpdated++;
@@ -881,13 +958,13 @@ async function resync() {
     for (const sec of secondaryPositions) {
       const existsSec = await client.query(
         `SELECT id FROM player_positions WHERE player_id = $1 AND position_code = $2`,
-        [p.id, sec]
+        [p.id, sec],
       );
       if (existsSec.rows.length === 0) {
         await client.query(
           `INSERT INTO player_positions (id, player_id, position_code, is_primary)
            VALUES (uuid_generate_v4(), $1, $2, false)`,
-          [p.id, sec]
+          [p.id, sec],
         );
       }
     }
@@ -926,26 +1003,29 @@ async function resync() {
   // 4. Verify 10 Sample Players
   console.log('\n--- SAMPLE PLAYERS VERIFICATION ---');
   const sampleNames = [
-    'A. Onana',          // 1 GK
-    'H. Maguire',        // 1 CB
-    'William Saliba',    // 2 CB
-    'A. Robinson',       // 1 LB
-    'Diogo Dalot',       // 1 RB (or Mazraoui)
-    'Casemiro',          // 1 DM/CDM
-    'K. Mainoo',         // 1 CM
-    'Bruno Fernandes',   // 1 AM/CAM
-    'M. Rashford',       // 1 LW
-    'B. Saka',           // 1 RW
-    'E. Haaland',        // 1 ST
+    'A. Onana', // 1 GK
+    'H. Maguire', // 1 CB
+    'William Saliba', // 2 CB
+    'A. Robinson', // 1 LB
+    'Diogo Dalot', // 1 RB (or Mazraoui)
+    'Casemiro', // 1 DM/CDM
+    'K. Mainoo', // 1 CM
+    'Bruno Fernandes', // 1 AM/CAM
+    'M. Rashford', // 1 LW
+    'B. Saka', // 1 RW
+    'E. Haaland', // 1 ST
   ];
 
-  const sampleRes = await client.query(`
+  const sampleRes = await client.query(
+    `
     SELECT p.id, p.external_id, p.name, p.raw_position, p.primary_position, t.name as team
     FROM players p
     LEFT JOIN teams t ON t.id = p.current_team_id
     WHERE p.name = ANY($1) OR p.short_name = ANY($1)
     ORDER BY p.name ASC;
-  `, [sampleNames]);
+  `,
+    [sampleNames],
+  );
 
   console.table(sampleRes.rows);
 

@@ -1,12 +1,5 @@
 export type TacticalRadarProfile =
-  | 'GK'
-  | 'CB'
-  | 'FULLBACK'
-  | 'CDM'
-  | 'CM'
-  | 'CAM'
-  | 'WIDE'
-  | 'ATT';
+  'GK' | 'CB' | 'FULLBACK' | 'CDM' | 'CM' | 'CAM' | 'WIDE' | 'ATT';
 
 export type RadarProfile = TacticalRadarProfile;
 
@@ -45,7 +38,8 @@ export function getRadarProfile(posCode?: string | null): TacticalRadarProfile {
   if (upper === 'CM') return 'CM';
   if (['CAM', 'AM'].includes(upper)) return 'CAM';
   if (['LM', 'RM'].includes(upper)) return 'WIDE';
-  if (['LW', 'RW', 'CF', 'ST', 'FW', 'FWD', 'ATT', 'FORWARD'].includes(upper)) return 'ATT';
+  if (['LW', 'RW', 'CF', 'ST', 'FW', 'FWD', 'ATT', 'FORWARD'].includes(upper))
+    return 'ATT';
 
   return 'CM';
 }
@@ -87,14 +81,27 @@ export function getRadarMetrics(
 
   const profile = getRadarProfile(posCodeOrCategory);
   const minutes = stat.minutesPlayed ?? 0;
-  const passAcc = stat.passAccuracy ?? (stat.passesAttempted > 0 ? (stat.passesCompleted / stat.passesAttempted) * 100 : 0);
-  const passesP90 = stat.passesPer90 ?? (minutes > 0 ? (stat.passesAttempted * 90) / minutes : 0);
-  const keyPassesP90 = stat.keyPassesPer90 ?? (minutes > 0 ? (stat.keyPasses * 90) / minutes : 0);
-  const tacklesP90 = stat.tacklesPer90 ?? (minutes > 0 ? (stat.tackles * 90) / minutes : 0);
-  const intP90 = stat.interceptionsPer90 ?? (minutes > 0 ? (stat.interceptions * 90) / minutes : 0);
-  const goalsP90 = stat.goalsPer90 ?? (minutes > 0 ? (stat.goals * 90) / minutes : 0);
-  const assistsP90 = stat.assistsPer90 ?? (minutes > 0 ? (stat.assists * 90) / minutes : 0);
-  const shotsP90 = stat.shotsPer90 ?? (minutes > 0 ? (stat.shots * 90) / minutes : 0);
+  const passAcc =
+    stat.passAccuracy ??
+    (stat.passesAttempted > 0
+      ? (stat.passesCompleted / stat.passesAttempted) * 100
+      : 0);
+  const passesP90 =
+    stat.passesPer90 ??
+    (minutes > 0 ? (stat.passesAttempted * 90) / minutes : 0);
+  const keyPassesP90 =
+    stat.keyPassesPer90 ?? (minutes > 0 ? (stat.keyPasses * 90) / minutes : 0);
+  const tacklesP90 =
+    stat.tacklesPer90 ?? (minutes > 0 ? (stat.tackles * 90) / minutes : 0);
+  const intP90 =
+    stat.interceptionsPer90 ??
+    (minutes > 0 ? (stat.interceptions * 90) / minutes : 0);
+  const goalsP90 =
+    stat.goalsPer90 ?? (minutes > 0 ? (stat.goals * 90) / minutes : 0);
+  const assistsP90 =
+    stat.assistsPer90 ?? (minutes > 0 ? (stat.assists * 90) / minutes : 0);
+  const shotsP90 =
+    stat.shotsPer90 ?? (minutes > 0 ? (stat.shots * 90) / minutes : 0);
 
   const ballRecovery = tacklesP90 + intP90;
   const goalThreat = goalsP90 + assistsP90;
@@ -102,80 +109,286 @@ export function getRadarMetrics(
 
   switch (profile) {
     case 'GK': {
-      const savesP90 = stat.savesPer90 ?? (minutes > 0 && stat.saves ? (stat.saves * 90) / minutes : 0);
+      const savesP90 =
+        stat.savesPer90 ??
+        (minutes > 0 && stat.saves ? (stat.saves * 90) / minutes : 0);
       const cleanSheets = stat.cleanSheets ?? 0;
-      const gcP90 = stat.goalsConcededPer90 ?? (minutes > 0 && stat.goalsConceded ? (stat.goalsConceded * 90) / minutes : 1.5);
+      const gcP90 =
+        stat.goalsConcededPer90 ??
+        (minutes > 0 && stat.goalsConceded
+          ? (stat.goalsConceded * 90) / minutes
+          : 1.5);
 
       return [
-        { key: 'shotStopping', label: 'SHOT STOPPING', value: normalizeMetric(savesP90, 0, 5.0), rawValue: `${savesP90.toFixed(2)}/90` },
-        { key: 'cleanSheets', label: 'CLEAN SHEETS', value: normalizeMetric(cleanSheets, 0, 16), rawValue: `${cleanSheets} CS` },
-        { key: 'distribution', label: 'DISTRIBUTION', value: normalizeMetric(passAcc, 40, 90), rawValue: `${passAcc.toFixed(1)}%` },
-        { key: 'goalPrevention', label: 'GOAL PREVENTION', value: normalizeMetric(gcP90, 0.6, 2.4, true), rawValue: `${gcP90.toFixed(2)} GA/90` },
-        { key: 'passingVolume', label: 'PASSING VOLUME', value: normalizeMetric(passesP90, 10, 45), rawValue: `${passesP90.toFixed(1)}/90` },
+        {
+          key: 'shotStopping',
+          label: 'SHOT STOPPING',
+          value: normalizeMetric(savesP90, 0, 5.0),
+          rawValue: `${savesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'cleanSheets',
+          label: 'CLEAN SHEETS',
+          value: normalizeMetric(cleanSheets, 0, 16),
+          rawValue: `${cleanSheets} CS`,
+        },
+        {
+          key: 'distribution',
+          label: 'DISTRIBUTION',
+          value: normalizeMetric(passAcc, 40, 90),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'goalPrevention',
+          label: 'GOAL PREVENTION',
+          value: normalizeMetric(gcP90, 0.6, 2.4, true),
+          rawValue: `${gcP90.toFixed(2)} GA/90`,
+        },
+        {
+          key: 'passingVolume',
+          label: 'PASSING VOLUME',
+          value: normalizeMetric(passesP90, 10, 45),
+          rawValue: `${passesP90.toFixed(1)}/90`,
+        },
       ];
     }
     case 'CB': {
       return [
-        { key: 'tackles', label: 'TACKLING', value: normalizeMetric(tacklesP90, 0, 3.5), rawValue: `${tacklesP90.toFixed(2)}/90` },
-        { key: 'interceptions', label: 'INTERCEPTIONS', value: normalizeMetric(intP90, 0, 2.5), rawValue: `${intP90.toFixed(2)}/90` },
-        { key: 'ballRecovery', label: 'BALL RECOVERY', value: normalizeMetric(ballRecovery, 0, 5.5), rawValue: `${ballRecovery.toFixed(2)}/90` },
-        { key: 'passAccuracy', label: 'PASS ACCURACY', value: normalizeMetric(passAcc, 65, 95), rawValue: `${passAcc.toFixed(1)}%` },
-        { key: 'buildUp', label: 'BUILD-UP', value: normalizeMetric(passesP90, 0, 80), rawValue: `${passesP90.toFixed(1)}/90` },
+        {
+          key: 'tackles',
+          label: 'TACKLING',
+          value: normalizeMetric(tacklesP90, 0, 3.5),
+          rawValue: `${tacklesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'interceptions',
+          label: 'INTERCEPTIONS',
+          value: normalizeMetric(intP90, 0, 2.5),
+          rawValue: `${intP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'ballRecovery',
+          label: 'BALL RECOVERY',
+          value: normalizeMetric(ballRecovery, 0, 5.5),
+          rawValue: `${ballRecovery.toFixed(2)}/90`,
+        },
+        {
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 65, 95),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'buildUp',
+          label: 'BUILD-UP',
+          value: normalizeMetric(passesP90, 0, 80),
+          rawValue: `${passesP90.toFixed(1)}/90`,
+        },
       ];
     }
     case 'FULLBACK': {
       return [
-        { key: 'tackles', label: 'TACKLING', value: normalizeMetric(tacklesP90, 0, 3.5), rawValue: `${tacklesP90.toFixed(2)}/90` },
-        { key: 'interceptions', label: 'INTERCEPTIONS', value: normalizeMetric(intP90, 0, 2.5), rawValue: `${intP90.toFixed(2)}/90` },
-        { key: 'passAccuracy', label: 'PASS ACCURACY', value: normalizeMetric(passAcc, 60, 92), rawValue: `${passAcc.toFixed(1)}%` },
-        { key: 'passVolume', label: 'PASS VOLUME', value: normalizeMetric(passesP90, 0, 75), rawValue: `${passesP90.toFixed(1)}/90` },
-        { key: 'creativity', label: 'CREATIVITY', value: normalizeMetric(keyPassesP90, 0, 2.5), rawValue: `${keyPassesP90.toFixed(2)}/90` },
+        {
+          key: 'tackles',
+          label: 'TACKLING',
+          value: normalizeMetric(tacklesP90, 0, 3.5),
+          rawValue: `${tacklesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'interceptions',
+          label: 'INTERCEPTIONS',
+          value: normalizeMetric(intP90, 0, 2.5),
+          rawValue: `${intP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 60, 92),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'passVolume',
+          label: 'PASS VOLUME',
+          value: normalizeMetric(passesP90, 0, 75),
+          rawValue: `${passesP90.toFixed(1)}/90`,
+        },
+        {
+          key: 'creativity',
+          label: 'CREATIVITY',
+          value: normalizeMetric(keyPassesP90, 0, 2.5),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
       ];
     }
     case 'CDM': {
       return [
-        { key: 'passVolume', label: 'PASS VOLUME', value: normalizeMetric(passesP90, 0, 85), rawValue: `${passesP90.toFixed(1)}/90` },
-        { key: 'passAccuracy', label: 'PASS ACCURACY', value: normalizeMetric(passAcc, 70, 95), rawValue: `${passAcc.toFixed(1)}%` },
-        { key: 'ballRecovery', label: 'BALL RECOVERY', value: normalizeMetric(ballRecovery, 0, 6.0), rawValue: `${ballRecovery.toFixed(2)}/90` },
-        { key: 'interceptions', label: 'INTERCEPTIONS', value: normalizeMetric(intP90, 0, 3.0), rawValue: `${intP90.toFixed(2)}/90` },
-        { key: 'creativity', label: 'CREATIVITY', value: normalizeMetric(keyPassesP90, 0, 2.5), rawValue: `${keyPassesP90.toFixed(2)}/90` },
+        {
+          key: 'passVolume',
+          label: 'PASS VOLUME',
+          value: normalizeMetric(passesP90, 0, 85),
+          rawValue: `${passesP90.toFixed(1)}/90`,
+        },
+        {
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 70, 95),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'ballRecovery',
+          label: 'BALL RECOVERY',
+          value: normalizeMetric(ballRecovery, 0, 6.0),
+          rawValue: `${ballRecovery.toFixed(2)}/90`,
+        },
+        {
+          key: 'interceptions',
+          label: 'INTERCEPTIONS',
+          value: normalizeMetric(intP90, 0, 3.0),
+          rawValue: `${intP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'creativity',
+          label: 'CREATIVITY',
+          value: normalizeMetric(keyPassesP90, 0, 2.5),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
       ];
     }
     case 'CM': {
       return [
-        { key: 'passVolume', label: 'PASS VOLUME', value: normalizeMetric(passesP90, 0, 80), rawValue: `${passesP90.toFixed(1)}/90` },
-        { key: 'passAccuracy', label: 'PASS ACCURACY', value: normalizeMetric(passAcc, 65, 95), rawValue: `${passAcc.toFixed(1)}%` },
-        { key: 'creativity', label: 'CREATIVITY', value: normalizeMetric(keyPassesP90, 0, 3.0), rawValue: `${keyPassesP90.toFixed(2)}/90` },
-        { key: 'ballRecovery', label: 'BALL RECOVERY', value: normalizeMetric(ballRecovery, 0, 4.5), rawValue: `${ballRecovery.toFixed(2)}/90` },
-        { key: 'goalThreat', label: 'GOAL THREAT', value: normalizeMetric(goalThreat, 0, 0.8), rawValue: `${goalThreat.toFixed(2)}/90` },
+        {
+          key: 'passVolume',
+          label: 'PASS VOLUME',
+          value: normalizeMetric(passesP90, 0, 80),
+          rawValue: `${passesP90.toFixed(1)}/90`,
+        },
+        {
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 65, 95),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'creativity',
+          label: 'CREATIVITY',
+          value: normalizeMetric(keyPassesP90, 0, 3.0),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'ballRecovery',
+          label: 'BALL RECOVERY',
+          value: normalizeMetric(ballRecovery, 0, 4.5),
+          rawValue: `${ballRecovery.toFixed(2)}/90`,
+        },
+        {
+          key: 'goalThreat',
+          label: 'GOAL THREAT',
+          value: normalizeMetric(goalThreat, 0, 0.8),
+          rawValue: `${goalThreat.toFixed(2)}/90`,
+        },
       ];
     }
     case 'CAM': {
       return [
-        { key: 'creativity', label: 'CREATIVITY', value: normalizeMetric(keyPassesP90, 0, 3.5), rawValue: `${keyPassesP90.toFixed(2)}/90` },
-        { key: 'passAccuracy', label: 'PASS ACCURACY', value: normalizeMetric(passAcc, 65, 92), rawValue: `${passAcc.toFixed(1)}%` },
-        { key: 'assists', label: 'ASSISTS', value: normalizeMetric(assistsP90, 0, 0.6), rawValue: `${assistsP90.toFixed(2)}/90` },
-        { key: 'scoring', label: 'SCORING', value: normalizeMetric(goalsP90, 0, 0.7), rawValue: `${goalsP90.toFixed(2)}/90` },
-        { key: 'goalThreat', label: 'GOAL THREAT', value: normalizeMetric(goalThreat, 0, 1.0), rawValue: `${goalThreat.toFixed(2)}/90` },
+        {
+          key: 'creativity',
+          label: 'CREATIVITY',
+          value: normalizeMetric(keyPassesP90, 0, 3.5),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 65, 92),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'assists',
+          label: 'ASSISTS',
+          value: normalizeMetric(assistsP90, 0, 0.6),
+          rawValue: `${assistsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'scoring',
+          label: 'SCORING',
+          value: normalizeMetric(goalsP90, 0, 0.7),
+          rawValue: `${goalsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'goalThreat',
+          label: 'GOAL THREAT',
+          value: normalizeMetric(goalThreat, 0, 1.0),
+          rawValue: `${goalThreat.toFixed(2)}/90`,
+        },
       ];
     }
     case 'WIDE': {
       return [
-        { key: 'passVolume', label: 'PASS VOLUME', value: normalizeMetric(passesP90, 0, 65), rawValue: `${passesP90.toFixed(1)}/90` },
-        { key: 'passAccuracy', label: 'PASS ACCURACY', value: normalizeMetric(passAcc, 65, 92), rawValue: `${passAcc.toFixed(1)}%` },
-        { key: 'creativity', label: 'CREATIVITY', value: normalizeMetric(keyPassesP90, 0, 2.8), rawValue: `${keyPassesP90.toFixed(2)}/90` },
-        { key: 'scoring', label: 'SCORING', value: normalizeMetric(goalsP90, 0, 0.5), rawValue: `${goalsP90.toFixed(2)}/90` },
-        { key: 'goalThreat', label: 'GOAL THREAT', value: normalizeMetric(goalThreat, 0, 0.9), rawValue: `${goalThreat.toFixed(2)}/90` },
+        {
+          key: 'passVolume',
+          label: 'PASS VOLUME',
+          value: normalizeMetric(passesP90, 0, 65),
+          rawValue: `${passesP90.toFixed(1)}/90`,
+        },
+        {
+          key: 'passAccuracy',
+          label: 'PASS ACCURACY',
+          value: normalizeMetric(passAcc, 65, 92),
+          rawValue: `${passAcc.toFixed(1)}%`,
+        },
+        {
+          key: 'creativity',
+          label: 'CREATIVITY',
+          value: normalizeMetric(keyPassesP90, 0, 2.8),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'scoring',
+          label: 'SCORING',
+          value: normalizeMetric(goalsP90, 0, 0.5),
+          rawValue: `${goalsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'goalThreat',
+          label: 'GOAL THREAT',
+          value: normalizeMetric(goalThreat, 0, 0.9),
+          rawValue: `${goalThreat.toFixed(2)}/90`,
+        },
       ];
     }
     case 'ATT':
     default: {
       return [
-        { key: 'scoring', label: 'SCORING', value: normalizeMetric(goalsP90, 0, 1.0), rawValue: `${goalsP90.toFixed(2)}/90` },
-        { key: 'shooting', label: 'SHOOTING', value: normalizeMetric(shotsP90, 0, 4.5), rawValue: `${shotsP90.toFixed(2)}/90` },
-        { key: 'goalConversion', label: 'GOAL CONVERSION', value: normalizeMetric(goalConversion, 0, 35.0), rawValue: `${goalConversion.toFixed(1)}%` },
-        { key: 'chanceCreation', label: 'CHANCE CREATION', value: normalizeMetric(keyPassesP90, 0, 2.8), rawValue: `${keyPassesP90.toFixed(2)}/90` },
-        { key: 'assists', label: 'ASSISTS', value: normalizeMetric(assistsP90, 0, 0.5), rawValue: `${assistsP90.toFixed(2)}/90` },
+        {
+          key: 'scoring',
+          label: 'SCORING',
+          value: normalizeMetric(goalsP90, 0, 1.0),
+          rawValue: `${goalsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'shooting',
+          label: 'SHOOTING',
+          value: normalizeMetric(shotsP90, 0, 4.5),
+          rawValue: `${shotsP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'goalConversion',
+          label: 'GOAL CONVERSION',
+          value: normalizeMetric(goalConversion, 0, 35.0),
+          rawValue: `${goalConversion.toFixed(1)}%`,
+        },
+        {
+          key: 'chanceCreation',
+          label: 'CHANCE CREATION',
+          value: normalizeMetric(keyPassesP90, 0, 2.8),
+          rawValue: `${keyPassesP90.toFixed(2)}/90`,
+        },
+        {
+          key: 'assists',
+          label: 'ASSISTS',
+          value: normalizeMetric(assistsP90, 0, 0.5),
+          rawValue: `${assistsP90.toFixed(2)}/90`,
+        },
       ];
     }
   }
@@ -234,11 +447,23 @@ describe('Player Comparison Radar Profile Determination (Unit Tests)', () => {
     expect(metricsA).toHaveLength(5);
     expect(metricsB).toHaveLength(5);
 
-    const expectedKeys = ['creativity', 'passAccuracy', 'assists', 'scoring', 'goalThreat'];
+    const expectedKeys = [
+      'creativity',
+      'passAccuracy',
+      'assists',
+      'scoring',
+      'goalThreat',
+    ];
     expect(metricsA.map((m) => m.key)).toEqual(expectedKeys);
     expect(metricsB.map((m) => m.key)).toEqual(expectedKeys);
 
-    const expectedLabels = ['CREATIVITY', 'PASS ACCURACY', 'ASSISTS', 'SCORING', 'GOAL THREAT'];
+    const expectedLabels = [
+      'CREATIVITY',
+      'PASS ACCURACY',
+      'ASSISTS',
+      'SCORING',
+      'GOAL THREAT',
+    ];
     expect(metricsA.map((m) => m.label)).toEqual(expectedLabels);
     expect(metricsB.map((m) => m.label)).toEqual(expectedLabels);
   });
@@ -252,11 +477,23 @@ describe('Player Comparison Radar Profile Determination (Unit Tests)', () => {
     const metricsA = getRadarMetrics(selectedPosition, dummyStatsA);
     const metricsB = getRadarMetrics(selectedPosition, dummyStatsB);
 
-    const expectedKeys = ['passVolume', 'passAccuracy', 'creativity', 'ballRecovery', 'goalThreat'];
+    const expectedKeys = [
+      'passVolume',
+      'passAccuracy',
+      'creativity',
+      'ballRecovery',
+      'goalThreat',
+    ];
     expect(metricsA.map((m) => m.key)).toEqual(expectedKeys);
     expect(metricsB.map((m) => m.key)).toEqual(expectedKeys);
 
-    const expectedLabels = ['PASS VOLUME', 'PASS ACCURACY', 'CREATIVITY', 'BALL RECOVERY', 'GOAL THREAT'];
+    const expectedLabels = [
+      'PASS VOLUME',
+      'PASS ACCURACY',
+      'CREATIVITY',
+      'BALL RECOVERY',
+      'GOAL THREAT',
+    ];
     expect(metricsA.map((m) => m.label)).toEqual(expectedLabels);
     expect(metricsB.map((m) => m.label)).toEqual(expectedLabels);
   });

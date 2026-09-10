@@ -4,6 +4,7 @@ import {
   getShortlistsApi,
   addPlayerToShortlistApi,
   getShortlistPlayersApi,
+  createShortlistApi,
 } from '../../services/shortlist.service';
 import { getNationalityFlagUrl } from '../../utils/nationality-flag.util';
 import {
@@ -55,6 +56,13 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
   // Submitting
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // Inline Quick Create State
+  const [showInlineCreate, setShowInlineCreate] = useState<boolean>(false);
+  const [newListName, setNewListName] = useState<string>('');
+  const [newListVisibility, setNewListVisibility] = useState<'PRIVATE' | 'PUBLIC'>('PRIVATE');
+  const [creatingList, setCreatingList] = useState<boolean>(false);
+  const [createListError, setCreateListError] = useState<string | null>(null);
 
   // ESC key handler for accessibility
   useEffect(() => {
@@ -124,6 +132,34 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
 
   const playerName = player.fullName || player.name || 'Player';
   const teamName = player.currentTeam?.shortName || player.currentTeam?.name || 'Club';
+
+  const handleInlineCreateShortlist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newListName.trim();
+    if (!trimmed) {
+      setCreateListError('Please enter a shortlist name.');
+      return;
+    }
+
+    setCreatingList(true);
+    setCreateListError(null);
+
+    try {
+      const created = await createShortlistApi({
+        name: trimmed,
+        visibility: newListVisibility,
+      });
+
+      setShortlists((prev) => [created, ...prev]);
+      setSelectedShortlistId(created.id);
+      setNewListName('');
+      setShowInlineCreate(false);
+    } catch (err: any) {
+      setCreateListError(err.message || 'Failed to create shortlist');
+    } finally {
+      setCreatingList(false);
+    }
+  };
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,8 +253,8 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
+            background: 'var(--scout-bg-subtle)',
+            border: '1px solid var(--scout-border-default)',
             borderRadius: '10px',
             padding: '10px 12px',
             marginBottom: '12px',
@@ -252,17 +288,17 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
             )}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+            <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#ffffff' }}>
               {playerName}
             </h4>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
               {player.primaryPosition && (
-                <span style={{ background: '#0f172a', color: '#ffffff', fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
+                <span style={{ background: '#0f172a', color: 'var(--scout-surface-card)', fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
                   {player.primaryPosition}
                 </span>
               )}
               {teamName && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: '#334155' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: 'var(--scout-text-primary)' }}>
                   {player.currentTeam?.logoUrl && (
                     <img
                       src={player.currentTeam.logoUrl}
@@ -296,7 +332,7 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
         {error === 'UNAUTHORIZED' ? (
           <div style={{ textAlign: 'center', padding: '24px 12px' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔒</div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--scout-surface-card)', fontWeight: 700 }}>
               Authentication Required
             </h4>
             <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '18px', lineHeight: 1.5 }}>
@@ -345,26 +381,102 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
               </div>
             )}
 
-            {/* 2. Select Target Shortlist (No + Create New List button) */}
+            {/* 2. Select Target Shortlist with Quick Create Drawer */}
             <div className="scout-field-group">
-              <label className="scout-field-label">
-                SELECT TARGET SHORTLIST
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label className="scout-field-label" style={{ margin: 0 }}>
+                  SELECT TARGET SHORTLIST
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInlineCreate((prev) => !prev);
+                    setCreateListError(null);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#60a5fa',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span>{showInlineCreate ? '✕ Cancel' : '+ New Shortlist'}</span>
+                </button>
+              </div>
+
+              {/* Quick In-Modal Create Drawer */}
+              {showInlineCreate && (
+                <div className="scout-modal-inline-create">
+                  <div style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--scout-text-primary)' }}>
+                    Create & Select New Shortlist
+                  </div>
+                  {createListError && (
+                    <div style={{ fontSize: '11px', color: '#f87171' }}>
+                      ⚠️ {createListError}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      className="scout-input"
+                      placeholder="Shortlist name (e.g. U23 Center Backs)"
+                      value={newListName}
+                      onChange={(e) => setNewListName(e.target.value)}
+                      style={{ fontSize: '12px', padding: '6px 10px', height: '34px', flex: 1 }}
+                      autoFocus
+                    />
+                    <select
+                      value={newListVisibility}
+                      onChange={(e) => setNewListVisibility(e.target.value as 'PRIVATE' | 'PUBLIC')}
+                      style={{
+                        padding: '6px 8px',
+                        borderRadius: '8px',
+                        border: '1px solid var(--scout-border-default)',
+                        background: 'var(--scout-surface-card)',
+                        color: 'var(--scout-text-primary)',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        outline: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <option value="PRIVATE">🔒 Private</option>
+                      <option value="PUBLIC">🌐 Public</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={handleInlineCreateShortlist}
+                      disabled={creatingList || !newListName.trim()}
+                      className="scout-btn scout-btn-sm scout-btn-primary"
+                      style={{ padding: '0 12px', height: '34px', fontSize: '11px', whiteSpace: 'nowrap' }}
+                    >
+                      {creatingList ? '...' : 'Create'}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {loading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ height: '46px', background: '#f1f5f9', borderRadius: '10px' }}></div>
-                  <div style={{ height: '46px', background: '#f1f5f9', borderRadius: '10px' }}></div>
+                  <div style={{ height: '46px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px' }}></div>
+                  <div style={{ height: '46px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px' }}></div>
                 </div>
               ) : shortlists.length === 0 ? (
                 <div
                   style={{
                     textAlign: 'center',
                     padding: '24px 16px',
-                    background: '#f8fafc',
+                    background: 'var(--scout-bg-subtle)',
                     borderRadius: '12px',
-                    border: '1px solid #e2e8f0',
-                    color: '#64748b',
+                    border: '1px solid var(--scout-border-default)',
+                    color: 'var(--scout-text-muted)',
                     fontSize: '13px',
                   }}
                 >
@@ -398,24 +510,24 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                           borderRadius: '10px',
                           border: isSelected
                             ? '2px solid #2563eb'
-                            : '1px solid #e2e8f0',
+                            : '1px solid var(--scout-border-subtle)',
                           background: isSelected
-                            ? '#eff6ff'
-                            : '#ffffff',
+                            ? 'rgba(37, 99, 235, 0.14)'
+                            : 'var(--scout-surface-card)',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                           boxSizing: 'border-box',
                         }}
                         onMouseEnter={(e) => {
                           if (!isSelected) {
-                            e.currentTarget.style.borderColor = '#cbd5e1';
-                            e.currentTarget.style.backgroundColor = '#f8fafc';
+                            e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+                            e.currentTarget.style.backgroundColor = 'var(--scout-surface-card-hover)';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isSelected) {
-                            e.currentTarget.style.borderColor = '#e2e8f0';
-                            e.currentTarget.style.backgroundColor = '#ffffff';
+                            e.currentTarget.style.borderColor = 'var(--scout-border-subtle)';
+                            e.currentTarget.style.backgroundColor = 'var(--scout-surface-card)';
                           }
                         }}
                       >
@@ -431,7 +543,7 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                             style={{
                               fontSize: '13px',
                               fontWeight: 700,
-                              color: isSelected ? '#1e40af' : '#0f172a',
+                              color: isSelected ? '#60a5fa' : 'var(--scout-text-primary)',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -445,9 +557,9 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                           {alreadyInList && (
                             <span
                               style={{
-                                background: '#ecfdf5',
-                                color: '#047857',
-                                border: '1px solid #a7f3d0',
+                                background: 'rgba(16, 185, 129, 0.15)',
+                                color: '#34d399',
+                                border: '1px solid rgba(16, 185, 129, 0.35)',
                                 padding: '2px 8px',
                                 borderRadius: '6px',
                                 fontSize: '10.5px',
@@ -471,8 +583,8 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                               fontWeight: 700,
                               border: '1px solid',
                               ...(sl.visibility === 'PUBLIC'
-                                ? { background: '#f0fdf4', color: '#15803d', borderColor: '#bbf7d0' }
-                                : { background: '#f8fafc', color: '#475569', borderColor: '#e2e8f0' }),
+                                ? { background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.3)' }
+                                : { background: 'rgba(255, 255, 255, 0.06)', color: 'var(--scout-text-secondary)', borderColor: 'var(--scout-border-default)' }),
                             }}
                           >
                             {sl.visibility === 'PUBLIC' ? (
@@ -522,7 +634,7 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                 marginTop: 'auto',
                 paddingTop: '12px',
                 flexShrink: 0,
-                borderTop: '1px solid #f1f5f9',
+                borderTop: '1px solid var(--scout-border-default)',
               }}
             >
               <button

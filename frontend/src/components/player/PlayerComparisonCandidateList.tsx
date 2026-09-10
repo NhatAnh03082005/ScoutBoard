@@ -25,21 +25,21 @@ const calculateAgeNumber = (dateOfBirth?: string | null): number | string => {
 
 // Synchronized role colors matching position.utils.ts
 const getPositionBadgeStyle = (posCode?: string | null): { bg: string; text: string; border: string } => {
-  if (!posCode) return { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' };
+  if (!posCode) return { bg: 'rgba(255, 255, 255, 0.08)', text: 'var(--scout-text-secondary)', border: 'var(--scout-border-default)' };
   const upper = posCode.trim().toUpperCase();
   if (upper === 'GK') {
-    return { bg: '#dcfce7', text: '#15803d', border: '#86efac' }; // GK: green
+    return { bg: 'rgba(34, 197, 94, 0.15)', text: '#4ade80', border: 'rgba(34, 197, 94, 0.35)' }; // GK: green
   }
   if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'WB'].includes(upper)) {
-    return { bg: '#dbeafe', text: '#1d4ed8', border: '#93c5fd' }; // DEF: blue
+    return { bg: 'rgba(59, 130, 246, 0.15)', text: '#60a5fa', border: 'rgba(59, 130, 246, 0.35)' }; // DEF: blue
   }
   if (['CDM', 'CM', 'CAM', 'LM', 'RM', 'DM', 'AM'].includes(upper)) {
-    return { bg: '#fef3c7', text: '#b45309', border: '#fde68a' }; // MID: amber/yellow
+    return { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', border: 'rgba(245, 158, 11, 0.35)' }; // MID: amber/yellow
   }
   if (['ST', 'CF', 'LW', 'RW', 'FW'].includes(upper)) {
-    return { bg: '#fee2e2', text: '#b91c1c', border: '#fca5a5' }; // ATT: rose/red
+    return { bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171', border: 'rgba(239, 68, 68, 0.35)' }; // ATT: rose/red
   }
-  return { bg: '#fef3c7', text: '#b45309', border: '#fde68a' };
+  return { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', border: 'rgba(245, 158, 11, 0.35)' };
 };
 
 export const PlayerComparisonCandidateList: React.FC<
@@ -54,20 +54,21 @@ export const PlayerComparisonCandidateList: React.FC<
   if (loading) {
     return (
       <div
+        role="status"
+        aria-live="polite"
         style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
+          background: 'var(--scout-surface-card)',
+          border: '1px solid var(--scout-border-default)',
           borderRadius: '16px',
           padding: '40px 20px',
           textAlign: 'center',
-          color: '#64748b',
+          color: 'var(--scout-text-secondary)',
           fontSize: '13px',
           fontWeight: 700,
           marginBottom: '24px',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
         }}
       >
-        ⌛ Loading comparison candidates...
+        ⏳ Loading compatible comparison candidates...
       </div>
     );
   }
@@ -75,10 +76,11 @@ export const PlayerComparisonCandidateList: React.FC<
   if (error) {
     return (
       <div
+        role="alert"
         style={{
-          background: '#fef2f2',
-          border: '1px solid #fecaca',
-          color: '#b91c1c',
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#f87171',
           padding: '16px 20px',
           borderRadius: '16px',
           marginBottom: '24px',
@@ -96,19 +98,18 @@ export const PlayerComparisonCandidateList: React.FC<
     return (
       <div
         style={{
-          background: '#ffffff',
-          border: '1px dashed #cbd5e1',
+          background: 'var(--scout-surface-card)',
+          border: '1px dashed var(--scout-border-default)',
           borderRadius: '16px',
           padding: '48px 24px',
           textAlign: 'center',
           marginBottom: '24px',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
         }}
       >
         <div style={{ fontSize: '36px', marginBottom: '12px' }}>🔍</div>
         <h4
           style={{
-            color: '#0f172a',
+            color: 'var(--scout-text-primary)',
             fontSize: '16px',
             fontWeight: 800,
             marginBottom: '6px',
@@ -118,7 +119,7 @@ export const PlayerComparisonCandidateList: React.FC<
         </h4>
         <p
           style={{
-            color: '#64748b',
+            color: 'var(--scout-text-secondary)',
             fontSize: '13px',
             maxWidth: '480px',
             margin: '0 auto',
@@ -132,11 +133,13 @@ export const PlayerComparisonCandidateList: React.FC<
 
   return (
     <div
+      role="region"
+      aria-label="Compatible Candidates for Player B"
       style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
+        background: 'var(--scout-surface-card)',
+        border: '1px solid var(--scout-border-default)',
         borderRadius: '16px',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
         overflow: 'hidden',
         marginBottom: '24px',
       }}
@@ -146,8 +149,8 @@ export const PlayerComparisonCandidateList: React.FC<
           <thead>
             <tr
               style={{
-                background: 'rgba(248, 250, 252, 0.9)',
-                borderBottom: '1px solid #e2e8f0',
+                background: 'var(--scout-bg-subtle)',
+                borderBottom: '1px solid var(--scout-border-default)',
               }}
             >
               <th
@@ -156,12 +159,12 @@ export const PlayerComparisonCandidateList: React.FC<
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#64748b',
+                  color: 'var(--scout-text-muted)',
                   padding: '14px 16px',
                   width: '32%',
                 }}
               >
-                Cầu thủ (Player)
+                Candidate Player (B)
               </th>
               <th
                 style={{
@@ -169,12 +172,12 @@ export const PlayerComparisonCandidateList: React.FC<
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#64748b',
+                  color: 'var(--scout-text-muted)',
                   padding: '14px 12px',
                   width: '10%',
                 }}
               >
-                Vị trí
+                Position
               </th>
               <th
                 style={{
@@ -182,12 +185,12 @@ export const PlayerComparisonCandidateList: React.FC<
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#64748b',
+                  color: 'var(--scout-text-muted)',
                   padding: '14px 12px',
                   width: '18%',
                 }}
               >
-                CLB Hiện Tại
+                Current Club
               </th>
               <th
                 style={{
@@ -195,12 +198,12 @@ export const PlayerComparisonCandidateList: React.FC<
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#64748b',
+                  color: 'var(--scout-text-muted)',
                   padding: '14px 12px',
                   width: '12%',
                 }}
               >
-                Quốc tịch
+                Nationality
               </th>
               <th
                 style={{
@@ -208,12 +211,12 @@ export const PlayerComparisonCandidateList: React.FC<
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#64748b',
+                  color: 'var(--scout-text-muted)',
                   padding: '14px 12px',
                   width: '8%',
                 }}
               >
-                Tuổi
+                Age
               </th>
               <th
                 style={{
@@ -221,12 +224,12 @@ export const PlayerComparisonCandidateList: React.FC<
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#64748b',
+                  color: 'var(--scout-text-muted)',
                   padding: '14px 12px',
                   width: '10%',
                 }}
               >
-                Cân nặng
+                Weight
               </th>
               <th
                 style={{
@@ -234,12 +237,12 @@ export const PlayerComparisonCandidateList: React.FC<
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#64748b',
+                  color: 'var(--scout-text-muted)',
                   padding: '14px 12px',
                   width: '10%',
                 }}
               >
-                Chiều cao
+                Height
               </th>
               <th
                 style={{
@@ -247,13 +250,13 @@ export const PlayerComparisonCandidateList: React.FC<
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#64748b',
+                  color: 'var(--scout-text-muted)',
                   padding: '14px 16px',
-                  width: '12%',
+                  width: '14%',
                   textAlign: 'center',
                 }}
               >
-                Hành động
+                Action
               </th>
             </tr>
           </thead>
@@ -266,15 +269,17 @@ export const PlayerComparisonCandidateList: React.FC<
               return (
                 <tr
                   key={player.id}
+                  aria-selected={isSelected}
                   style={{
-                    borderBottom: '1px solid #f1f5f9',
-                    background: isSelected ? '#eff6ff' : 'transparent',
+                    borderBottom: '1px solid var(--scout-border-subtle)',
+                    background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'transparent',
+                    borderLeft: isSelected ? '4px solid #f59e0b' : '4px solid transparent',
                     cursor: 'pointer',
-                    transition: 'background-color 0.15s ease',
+                    transition: 'background-color 0.15s ease, border-color 0.15s ease',
                   }}
                   onClick={() => onSelectCandidate(player)}
                   onMouseEnter={(e) => {
-                    if (!isSelected) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(239, 246, 255, 0.4)';
+                    if (!isSelected) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
@@ -288,15 +293,15 @@ export const PlayerComparisonCandidateList: React.FC<
                           width: '40px',
                           height: '40px',
                           borderRadius: '50%',
-                          background: '#eff6ff',
-                          border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                          background: 'var(--scout-surface-input)',
+                          border: isSelected ? '2px solid #f59e0b' : '1px solid var(--scout-border-default)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontSize: '18px',
                           overflow: 'hidden',
                           flexShrink: 0,
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          boxShadow: isSelected ? '0 0 10px rgba(245, 158, 11, 0.3)' : '0 1px 2px rgba(0, 0, 0, 0.05)',
                         }}
                       >
                         {player.imageUrl ? (
@@ -316,18 +321,37 @@ export const PlayerComparisonCandidateList: React.FC<
                         <div
                           style={{
                             fontWeight: 900,
-                            color: isSelected ? '#1d4ed8' : '#0f172a',
+                            color: isSelected ? '#fbbf24' : 'var(--scout-text-primary)',
                             fontSize: '14px',
                             lineHeight: 1.3,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
                           }}
                         >
-                          {player.fullName}
+                          <span>{player.fullName}</span>
+                          {isSelected && (
+                            <span
+                              style={{
+                                background: '#f59e0b',
+                                color: '#0f172a',
+                                fontSize: '10px',
+                                fontWeight: 900,
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.04em',
+                              }}
+                            >
+                              Player B
+                            </span>
+                          )}
                         </div>
                         <div
                           style={{
                             fontFamily: 'monospace',
                             fontSize: '10px',
-                            color: '#94a3b8',
+                            color: 'var(--scout-text-muted)',
                             marginTop: '2px',
                           }}
                         >
@@ -363,7 +387,7 @@ export const PlayerComparisonCandidateList: React.FC<
                   </td>
 
                   {/* Club */}
-                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: 'var(--scout-text-secondary)' }}>
                     {player.currentTeam ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {player.currentTeam.logoUrl ? (
@@ -378,12 +402,12 @@ export const PlayerComparisonCandidateList: React.FC<
                         <span>{player.currentTeam.name}</span>
                       </div>
                     ) : (
-                      <span style={{ color: '#94a3b8' }}>Free Agent</span>
+                      <span style={{ color: 'var(--scout-text-muted)' }}>Free Agent</span>
                     )}
                   </td>
 
                   {/* Nationality */}
-                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: 'var(--scout-text-secondary)' }}>
                     {player.nationality ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {(() => {
@@ -402,18 +426,18 @@ export const PlayerComparisonCandidateList: React.FC<
                   </td>
 
                   {/* Age */}
-                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>
+                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 700, color: 'var(--scout-text-primary)' }}>
                     {age}
                   </td>
 
                   {/* Weight */}
-                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#475569' }}>
-                    {player.weightKg != null ? `${player.weightKg} kg` : ''}
+                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: 'var(--scout-text-secondary)' }}>
+                    {player.weightKg != null ? `${player.weightKg} kg` : '—'}
                   </td>
 
                   {/* Height */}
-                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: '#475569' }}>
-                    {player.heightCm != null ? `${player.heightCm} cm` : ''}
+                  <td style={{ padding: '12px 12px', fontSize: '12px', fontWeight: 600, color: 'var(--scout-text-secondary)' }}>
+                    {player.heightCm != null ? `${player.heightCm} cm` : '—'}
                   </td>
 
                   {/* Compare Action Button */}
@@ -424,17 +448,18 @@ export const PlayerComparisonCandidateList: React.FC<
                         e.stopPropagation();
                         onSelectCandidate(player);
                       }}
+                      aria-label={`Select ${player.fullName} as Player B`}
                       style={{
-                        background: isSelected ? '#15803d' : '#2563eb',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        fontSize: '12px',
-                        padding: '8px 16px',
-                        borderRadius: '12px',
+                        background: isSelected ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--scout-surface-input)',
+                        color: isSelected ? '#0f172a' : 'var(--scout-text-primary)',
+                        fontWeight: 800,
+                        fontSize: '11.5px',
+                        padding: '7px 14px',
+                        borderRadius: '10px',
                         boxShadow: isSelected
-                          ? '0 2px 4px rgba(21, 128, 61, 0.25)'
-                          : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                        border: 'none',
+                          ? '0 2px 8px rgba(245, 158, 11, 0.4)'
+                          : 'none',
+                        border: isSelected ? '1px solid #f59e0b' : '1px solid var(--scout-border-default)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -444,7 +469,7 @@ export const PlayerComparisonCandidateList: React.FC<
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      {isSelected ? '✓ Selected' : '+ Compare'}
+                      {isSelected ? '✓ Player B' : '+ Select (B)'}
                     </button>
                   </td>
                 </tr>

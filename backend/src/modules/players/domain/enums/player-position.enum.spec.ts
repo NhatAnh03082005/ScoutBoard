@@ -84,30 +84,30 @@ describe('PlayerPositionEnum & Normalizer', () => {
 
     it('should correctly infer LB / RB from generic Defender when tactical lineup grid is present', () => {
       // Grid row 2 (defense): col 1 = LB, col 2/3 = CB, col 4/5 = RB
-      expect(
-        normalizeToCanonicalPosition('Defender', { grid: '2:1' }),
-      ).toBe('LB');
-      expect(
-        normalizeToCanonicalPosition('Defender', { grid: '2:2' }),
-      ).toBe('CB');
-      expect(
-        normalizeToCanonicalPosition('Defender', { grid: '2:3' }),
-      ).toBe('CB');
-      expect(
-        normalizeToCanonicalPosition('Defender', { grid: '2:4' }),
-      ).toBe('RB');
-      expect(
-        normalizeToCanonicalPosition('Defender', { grid: '2:5' }),
-      ).toBe('RB');
+      expect(normalizeToCanonicalPosition('Defender', { grid: '2:1' })).toBe(
+        'LB',
+      );
+      expect(normalizeToCanonicalPosition('Defender', { grid: '2:2' })).toBe(
+        'CB',
+      );
+      expect(normalizeToCanonicalPosition('Defender', { grid: '2:3' })).toBe(
+        'CB',
+      );
+      expect(normalizeToCanonicalPosition('Defender', { grid: '2:4' })).toBe(
+        'RB',
+      );
+      expect(normalizeToCanonicalPosition('Defender', { grid: '2:5' })).toBe(
+        'RB',
+      );
     });
 
     it('should infer LB / RB when side context is provided with generic Defender', () => {
-      expect(
-        normalizeToCanonicalPosition('Defender', { side: 'LEFT' }),
-      ).toBe('LB');
-      expect(
-        normalizeToCanonicalPosition('Defender', { side: 'RIGHT' }),
-      ).toBe('RB');
+      expect(normalizeToCanonicalPosition('Defender', { side: 'LEFT' })).toBe(
+        'LB',
+      );
+      expect(normalizeToCanonicalPosition('Defender', { side: 'RIGHT' })).toBe(
+        'RB',
+      );
     });
   });
 

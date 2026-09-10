@@ -49,7 +49,10 @@ export class PersistSeasonUseCase {
       throw new BadRequestException('Season payload is required');
     }
 
-    if (!season.externalProvider || String(season.externalProvider).trim() === '') {
+    if (
+      !season.externalProvider ||
+      String(season.externalProvider).trim() === ''
+    ) {
       throw new BadRequestException('externalProvider is required');
     }
 

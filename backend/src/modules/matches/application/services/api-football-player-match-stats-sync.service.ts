@@ -24,7 +24,9 @@ export interface FixturePlayerStatsSyncResult {
 
 @Injectable()
 export class ApiFootballPlayerMatchStatsSyncService {
-  private readonly logger = new Logger(ApiFootballPlayerMatchStatsSyncService.name);
+  private readonly logger = new Logger(
+    ApiFootballPlayerMatchStatsSyncService.name,
+  );
 
   constructor(
     @Inject(API_FOOTBALL_CLIENT)
@@ -43,7 +45,9 @@ export class ApiFootballPlayerMatchStatsSyncService {
     matchInternalId?: string,
   ): Promise<FixturePlayerStatsSyncResult> {
     const fixtureExtId = String(fixtureExternalId);
-    this.logger.log(`Fetching player statistics for Fixture ${fixtureExtId} from API-Football...`);
+    this.logger.log(
+      `Fetching player statistics for Fixture ${fixtureExtId} from API-Football...`,
+    );
 
     // 1. Resolve internal Match UUID
     let matchId = matchInternalId;
@@ -69,7 +73,9 @@ export class ApiFootballPlayerMatchStatsSyncService {
 
     const teamResponses = res?.response || [];
     if (teamResponses.length === 0) {
-      this.logger.warn(`No player statistics found for fixture ${fixtureExtId}`);
+      this.logger.warn(
+        `No player statistics found for fixture ${fixtureExtId}`,
+      );
       return {
         fixtureExternalId: fixtureExtId,
         matchId,
@@ -138,11 +144,12 @@ export class ApiFootballPlayerMatchStatsSyncService {
           continue;
         }
 
-        const transformed = ApiFootballPlayerMatchStatisticMapper.toTransformedStatistic(
-          p,
-          teamExtId,
-          fixtureExtId,
-        );
+        const transformed =
+          ApiFootballPlayerMatchStatisticMapper.toTransformedStatistic(
+            p,
+            teamExtId,
+            fixtureExtId,
+          );
 
         inputsToPersist.push({
           matchId,

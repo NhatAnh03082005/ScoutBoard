@@ -159,7 +159,9 @@ export class ExecuteAdminSyncUseCase {
     let totalFailed = 0;
     let fatalErrorMessage: string | null = null;
 
-    const seasonYear = season.externalId || (season.seasonCode ? season.seasonCode.split('-')[0] : '2024');
+    const seasonYear =
+      season.externalId ||
+      (season.seasonCode ? season.seasonCode.split('-')[0] : '2024');
 
     try {
       // 5. Execution Pipeline based on Target
@@ -242,7 +244,10 @@ export class ExecuteAdminSyncUseCase {
             level: SyncLogLevel.INFO,
             entityType: 'MATCH',
             message: `Match sync completed: ${matchRes.successful}/${matchRes.totalRequested} fixtures persisted`,
-            details: { successful: matchRes.successful, failed: matchRes.failed },
+            details: {
+              successful: matchRes.successful,
+              failed: matchRes.failed,
+            },
           });
         } else {
           this.logger.log(
@@ -347,10 +352,11 @@ export class ExecuteAdminSyncUseCase {
 
           for (const m of matchesToSync) {
             if (m.externalId) {
-              const statRes = await this.playerMatchStatsSyncService.syncStatisticsByFixtureId(
-                m.externalId,
-                m.id,
-              );
+              const statRes =
+                await this.playerMatchStatsSyncService.syncStatisticsByFixtureId(
+                  m.externalId,
+                  m.id,
+                );
               totalStatsPersisted += statRes.persistedCount;
               totalStatsSkipped += statRes.skippedCount;
             }
@@ -364,7 +370,10 @@ export class ExecuteAdminSyncUseCase {
             level: SyncLogLevel.INFO,
             entityType: 'STATISTICS',
             message: `Player Match Statistics sync completed: ${totalStatsPersisted} player statistics persisted for ${matchesToSync.length} matches`,
-            details: { totalPersisted: totalStatsPersisted, matchesCount: matchesToSync.length },
+            details: {
+              totalPersisted: totalStatsPersisted,
+              matchesCount: matchesToSync.length,
+            },
           });
         } else {
           this.logger.log(

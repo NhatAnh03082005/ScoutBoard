@@ -14,7 +14,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../../auth/presentation/http/guards/jwt-auth.guard';
 import { CreateShortlistDto } from '../dto/create-shortlist.dto';
 import { UpdateShortlistDto } from '../dto/update-shortlist.dto';
@@ -99,14 +104,20 @@ export class ShortlistsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all shortlists owned by the authenticated user' })
+  @ApiOperation({
+    summary: 'List all shortlists owned by the authenticated user',
+  })
   @ApiResponse({
     status: 200,
     description: 'List of shortlists',
     type: [ShortlistResponseDto],
   })
-  async findAll(@Request() req: RequestWithAuthUser): Promise<ShortlistResponseDto[]> {
-    const shortlists = await this.listShortlistsByOwnerUseCase.execute(req.user.id);
+  async findAll(
+    @Request() req: RequestWithAuthUser,
+  ): Promise<ShortlistResponseDto[]> {
+    const shortlists = await this.listShortlistsByOwnerUseCase.execute(
+      req.user.id,
+    );
     return shortlists.map((s) => ShortlistResponseDto.fromDomain(s));
   }
 
@@ -224,7 +235,10 @@ export class ShortlistsController {
     type: ShortlistPlayerResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Shortlist or Player not found' })
-  @ApiResponse({ status: 409, description: 'Player is already in this shortlist' })
+  @ApiResponse({
+    status: 409,
+    description: 'Player is already in this shortlist',
+  })
   async addPlayer(
     @Param('id') id: string,
     @Body() dto: AddPlayerToShortlistDto,
@@ -239,7 +253,10 @@ export class ShortlistsController {
       });
       return ShortlistPlayerResponseDto.fromDomain(added);
     } catch (err) {
-      if (err instanceof ShortlistNotFoundError || err instanceof PlayerNotFoundError) {
+      if (
+        err instanceof ShortlistNotFoundError ||
+        err instanceof PlayerNotFoundError
+      ) {
         throw new NotFoundException(err.message);
       }
       if (err instanceof PlayerAlreadyInShortlistError) {
@@ -251,7 +268,10 @@ export class ShortlistsController {
 
   @Delete(':id/players/:playerId')
   @ApiOperation({ summary: 'Remove a player from an owned shortlist' })
-  @ApiResponse({ status: 200, description: 'Player removed from shortlist successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Player removed from shortlist successfully',
+  })
   @ApiResponse({ status: 404, description: 'Shortlist or Player not found' })
   async removePlayer(
     @Param('id') id: string,
@@ -269,7 +289,10 @@ export class ShortlistsController {
         message: 'Player removed from shortlist successfully',
       };
     } catch (err) {
-      if (err instanceof ShortlistNotFoundError || err instanceof PlayerNotInShortlistError) {
+      if (
+        err instanceof ShortlistNotFoundError ||
+        err instanceof PlayerNotInShortlistError
+      ) {
         throw new NotFoundException(err.message);
       }
       throw err;
@@ -277,7 +300,9 @@ export class ShortlistsController {
   }
 
   @Patch(':id/players/:playerId/note')
-  @ApiOperation({ summary: 'Update scout note for a player in an owned shortlist' })
+  @ApiOperation({
+    summary: 'Update scout note for a player in an owned shortlist',
+  })
   @ApiResponse({
     status: 200,
     description: 'Updated shortlist player record',
@@ -299,7 +324,10 @@ export class ShortlistsController {
       });
       return ShortlistPlayerResponseDto.fromDomain(updated);
     } catch (err) {
-      if (err instanceof ShortlistNotFoundError || err instanceof PlayerNotInShortlistError) {
+      if (
+        err instanceof ShortlistNotFoundError ||
+        err instanceof PlayerNotInShortlistError
+      ) {
         throw new NotFoundException(err.message);
       }
       throw err;

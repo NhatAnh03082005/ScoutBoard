@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SquadPlayerRepository } from '../../../../domain/repositories/squad-player.repository';
-import { SquadPlayer, SquadPlayerRole } from '../../../../domain/entities/squad-player';
+import {
+  SquadPlayer,
+  SquadPlayerRole,
+} from '../../../../domain/entities/squad-player';
 import { SquadPlayerOrmEntity } from '../entities/squad-player.orm-entity';
 import { SquadPlayerMapper } from '../mappers/squad-player.mapper';
 
@@ -122,7 +125,10 @@ export class TypeOrmSquadPlayerRepository implements SquadPlayerRepository {
   async save(squadPlayer: SquadPlayer): Promise<SquadPlayer> {
     const entity = SquadPlayerMapper.toPersistence(squadPlayer);
     const updated = await this.ormRepository.save(entity);
-    const fetched = await this.findBySquadAndPlayer(updated.squadId, updated.playerId);
+    const fetched = await this.findBySquadAndPlayer(
+      updated.squadId,
+      updated.playerId,
+    );
     return fetched || SquadPlayerMapper.toDomain(updated);
   }
 

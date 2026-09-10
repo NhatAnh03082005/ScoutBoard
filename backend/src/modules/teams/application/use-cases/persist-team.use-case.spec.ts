@@ -57,7 +57,9 @@ describe('PersistTeamUseCase', () => {
   it('should persist an array of transformed teams', async () => {
     const result = await useCase.executeMany([mockTransformedTeam]);
 
-    expect(mockRepository.upsertMany).toHaveBeenCalledWith([mockTransformedTeam]);
+    expect(mockRepository.upsertMany).toHaveBeenCalledWith([
+      mockTransformedTeam,
+    ]);
     expect(result).toEqual([mockTeamEntity]);
   });
 
@@ -69,7 +71,9 @@ describe('PersistTeamUseCase', () => {
   });
 
   it('should reject invalid input missing required fields', async () => {
-    await expect(useCase.execute(null as any)).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      BadRequestException,
+    );
     await expect(
       useCase.execute({ ...mockTransformedTeam, externalProvider: '' }),
     ).rejects.toThrow(BadRequestException);

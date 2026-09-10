@@ -37,7 +37,9 @@ export class AddPlayerToShortlistUseCase {
   ) {}
 
   async execute(input: AddPlayerToShortlistInput): Promise<ShortlistPlayer> {
-    const shortlist = await this.shortlistRepository.findById(input.shortlistId);
+    const shortlist = await this.shortlistRepository.findById(
+      input.shortlistId,
+    );
     if (!shortlist || shortlist.getOwnerId() !== input.ownerId) {
       throw new ShortlistNotFoundError(input.shortlistId);
     }
@@ -47,12 +49,16 @@ export class AddPlayerToShortlistUseCase {
       throw new PlayerNotFoundError(input.playerId);
     }
 
-    const existing = await this.shortlistPlayerRepository.findByShortlistAndPlayer(
-      input.shortlistId,
-      input.playerId,
-    );
+    const existing =
+      await this.shortlistPlayerRepository.findByShortlistAndPlayer(
+        input.shortlistId,
+        input.playerId,
+      );
     if (existing) {
-      throw new PlayerAlreadyInShortlistError(input.playerId, input.shortlistId);
+      throw new PlayerAlreadyInShortlistError(
+        input.playerId,
+        input.shortlistId,
+      );
     }
 
     return this.shortlistPlayerRepository.addPlayer({

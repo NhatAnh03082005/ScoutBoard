@@ -137,6 +137,8 @@ describe('Season Persistence & Upsert Integration Test (Live DB)', () => {
       currentMatchday: null,
     };
 
-    await expect(repository.upsert(invalidInput, nonExistentCompId)).rejects.toThrow();
+    await expect(
+      repository.upsert(invalidInput, nonExistentCompId),
+    ).rejects.toThrow();
   });
 });

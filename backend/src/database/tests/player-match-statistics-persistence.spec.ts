@@ -38,7 +38,11 @@ describe('PlayerMatchStatisticsPersistence (Live PostgreSQL Integration)', () =>
     const statRepo = AppDataSource.getRepository(PlayerMatchStatisticOrmEntity);
 
     repository = new TypeOrmPlayerMatchStatisticWriteRepository(statRepo);
-    useCase = new PersistPlayerMatchStatisticsUseCase(repository, matchRepo, playerRepo);
+    useCase = new PersistPlayerMatchStatisticsUseCase(
+      repository,
+      matchRepo,
+      playerRepo,
+    );
 
     // 1. Create Competition & Season
     testComp = await compRepo.save(

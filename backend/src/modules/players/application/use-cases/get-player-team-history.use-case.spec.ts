@@ -15,6 +15,8 @@ describe('GetPlayerTeamHistoryUseCase', () => {
       findSeasonStatisticsByCompetitionAndSeason: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
+      getDistinctPositions: jest.fn(),
+      queryPlayers: jest.fn(),
     };
 
     useCase = new GetPlayerTeamHistoryUseCase(mockPlayerRepo);
@@ -30,7 +32,10 @@ describe('GetPlayerTeamHistoryUseCase', () => {
   });
 
   it('should return formatted team history if player exists', async () => {
-    mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Saka' } as any);
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'player-1',
+      name: 'Saka',
+    } as any);
     mockPlayerRepo.findTeamHistoryByPlayerId.mockResolvedValue([
       {
         id: 'hist-1',

@@ -29,6 +29,8 @@ export class ListPlayersInSquadUseCase {
       throw new SquadNotFoundError(input.squadId);
     }
 
-    return this.squadPlayerRepository.findPlayersWithDetailsBySquadId(input.squadId);
+    return this.squadPlayerRepository.findPlayersWithDetailsBySquadId(
+      input.squadId,
+    );
   }
 }

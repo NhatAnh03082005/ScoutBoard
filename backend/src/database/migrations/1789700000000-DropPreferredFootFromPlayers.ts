@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class DropPreferredFootFromPlayers1789700000000
-  implements MigrationInterface
-{
+export class DropPreferredFootFromPlayers1789700000000 implements MigrationInterface {
   name = 'DropPreferredFootFromPlayers1789700000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

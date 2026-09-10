@@ -1,4 +1,10 @@
-import { Module, forwardRef } from '@nestjs/common';
+import {
+  Module,
+  forwardRef,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlayerOrmEntity } from './infrastructure/persistence/typeorm/entities/player.orm-entity';
 import { PlayerPositionOrmEntity } from './infrastructure/persistence/typeorm/entities/player-position.orm-entity';
@@ -38,7 +44,8 @@ import { EnrichPlayerProfileUseCase } from './application/use-cases/enrich-playe
 import { PlayerEnrichmentSyncService } from './application/services/player-enrichment-sync.service';
 import { PlayerSeasonStatisticsAggregationService } from './application/services/player-season-statistics-aggregation.service';
 import { ApiFootballPlayerSyncService } from './application/services/api-football-player-sync.service';
-
+import { QueryPlayersUseCase } from './application/use-cases/query-players.use-case';
+import { PlayersQueryMethodMiddleware } from './presentation/http/middlewares/players-query-method.middleware';
 
 @Module({
   imports: [
@@ -92,6 +99,8 @@ import { ApiFootballPlayerSyncService } from './application/services/api-footbal
     PlayerEnrichmentSyncService,
     PlayerSeasonStatisticsAggregationService,
     ApiFootballPlayerSyncService,
+    QueryPlayersUseCase,
+    PlayersQueryMethodMiddleware,
   ],
   exports: [
     PLAYER_READ_REPOSITORY,
@@ -114,8 +123,13 @@ import { ApiFootballPlayerSyncService } from './application/services/api-footbal
     PlayerEnrichmentSyncService,
     PlayerSeasonStatisticsAggregationService,
     ApiFootballPlayerSyncService,
+    QueryPlayersUseCase,
   ],
 })
-
-export class PlayersModule {}
-
+export class PlayersModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(PlayersQueryMethodMiddleware)
+      .forRoutes({ path: 'players', method: RequestMethod.ALL });
+  }
+}

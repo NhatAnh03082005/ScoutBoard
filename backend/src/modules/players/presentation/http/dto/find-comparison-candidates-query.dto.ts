@@ -15,7 +15,8 @@ import { ComparisonScope } from '../../../domain/enums/comparison-scope.enum';
 
 export class FindComparisonCandidatesQueryDto {
   @ApiProperty({
-    description: 'Phạm vi so sánh (COMPETITION: Giải đấu cụ thể, ALL: Tất cả giải đấu)',
+    description:
+      'Phạm vi so sánh (COMPETITION: Giải đấu cụ thể, ALL: Tất cả giải đấu)',
     enum: ComparisonScope,
   })
   @IsNotEmpty({ message: 'scope không được để trống' })
@@ -65,7 +66,8 @@ export class FindComparisonCandidatesQueryDto {
   nationality?: string;
 
   @ApiPropertyOptional({
-    description: 'Vị trí thi đấu (GK, CB, LB, RB, LWB, RWB, CDM, CM, CAM, LM, RM, ST, CF, LW, RW)',
+    description:
+      'Vị trí thi đấu (GK, CB, LB, RB, LWB, RWB, CDM, CM, CAM, LM, RM, ST, CF, LW, RW)',
   })
   @IsOptional()
   @IsString()

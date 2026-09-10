@@ -146,16 +146,36 @@ export class PlayerSeasonStatisticOrmEntity {
   @Column({ type: 'integer', nullable: true, default: null })
   saves: number | null;
 
-  @Column({ name: 'goals_conceded', type: 'integer', nullable: true, default: null })
+  @Column({
+    name: 'goals_conceded',
+    type: 'integer',
+    nullable: true,
+    default: null,
+  })
   goalsConceded: number | null;
 
-  @Column({ name: 'clean_sheets', type: 'integer', nullable: true, default: null })
+  @Column({
+    name: 'clean_sheets',
+    type: 'integer',
+    nullable: true,
+    default: null,
+  })
   cleanSheets: number | null;
 
-  @Column({ name: 'penalties_saved', type: 'integer', nullable: true, default: null })
+  @Column({
+    name: 'penalties_saved',
+    type: 'integer',
+    nullable: true,
+    default: null,
+  })
   penaltiesSaved: number | null;
 
-  @Column({ name: 'penalties_faced', type: 'integer', nullable: true, default: null })
+  @Column({
+    name: 'penalties_faced',
+    type: 'integer',
+    nullable: true,
+    default: null,
+  })
   penaltiesFaced: number | null;
 
   @Column({

@@ -82,10 +82,11 @@ export class PersistPlayerTeamHistoryUseCase {
         );
       }
 
-      const playerEntity = await this.playerWriteRepository.findByExternalIdentity(
-        provider,
-        String(playerExtId).trim(),
-      );
+      const playerEntity =
+        await this.playerWriteRepository.findByExternalIdentity(
+          provider,
+          String(playerExtId).trim(),
+        );
 
       if (!playerEntity) {
         throw new NotFoundException(

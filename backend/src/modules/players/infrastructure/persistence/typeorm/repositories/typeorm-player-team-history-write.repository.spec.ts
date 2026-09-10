@@ -90,7 +90,9 @@ describe('TypeOrmPlayerTeamHistoryWriteRepository', () => {
       shirtNumber: 9,
     };
     mockHistoryRepo.findOne.mockResolvedValue(existing);
-    mockHistoryRepo.save.mockImplementation(async (e) => e as PlayerTeamHistoryOrmEntity);
+    mockHistoryRepo.save.mockImplementation(
+      async (e) => e as PlayerTeamHistoryOrmEntity,
+    );
 
     const result = await repository.upsert({
       playerId: mockPlayerId,
@@ -122,8 +124,12 @@ describe('TypeOrmPlayerTeamHistoryWriteRepository', () => {
     mockHistoryRepo.findOne
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
-    mockHistoryRepo.create.mockImplementation((e) => ({ ...e, id: 'gen-id' } as any));
-    mockHistoryRepo.save.mockImplementation(async (e) => e as PlayerTeamHistoryOrmEntity);
+    mockHistoryRepo.create.mockImplementation(
+      (e) => ({ ...e, id: 'gen-id' }) as any,
+    );
+    mockHistoryRepo.save.mockImplementation(
+      async (e) => e as PlayerTeamHistoryOrmEntity,
+    );
 
     const spell1 = await repository.upsert({
       playerId: mockPlayerId,
@@ -147,13 +153,32 @@ describe('TypeOrmPlayerTeamHistoryWriteRepository', () => {
 
   it('TC-16: should batch upsert history records and deduplicate input', async () => {
     mockHistoryRepo.findOne.mockResolvedValue(null);
-    mockHistoryRepo.create.mockImplementation((e) => ({ ...e, id: 'gen-id' } as any));
-    mockHistoryRepo.save.mockImplementation(async (e) => e as PlayerTeamHistoryOrmEntity);
+    mockHistoryRepo.create.mockImplementation(
+      (e) => ({ ...e, id: 'gen-id' }) as any,
+    );
+    mockHistoryRepo.save.mockImplementation(
+      async (e) => e as PlayerTeamHistoryOrmEntity,
+    );
 
     const results = await repository.upsertMany([
-      { playerId: mockPlayerId, teamId: 'team-1', startDate: '2015-01-01', isCurrent: false },
-      { playerId: mockPlayerId, teamId: 'team-1', startDate: '2015-01-01', isCurrent: false }, // duplicate
-      { playerId: mockPlayerId, teamId: 'team-2', startDate: '2021-01-01', isCurrent: true },
+      {
+        playerId: mockPlayerId,
+        teamId: 'team-1',
+        startDate: '2015-01-01',
+        isCurrent: false,
+      },
+      {
+        playerId: mockPlayerId,
+        teamId: 'team-1',
+        startDate: '2015-01-01',
+        isCurrent: false,
+      }, // duplicate
+      {
+        playerId: mockPlayerId,
+        teamId: 'team-2',
+        startDate: '2021-01-01',
+        isCurrent: true,
+      },
     ]);
 
     expect(results).toHaveLength(2);

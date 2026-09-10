@@ -61,14 +61,34 @@ describe('ApiFootballMatchMapper', () => {
       },
     });
 
-    expect(ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('NS')).status).toBe('SCHEDULED');
-    expect(ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('1H')).status).toBe('IN_PLAY');
-    expect(ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('HT')).status).toBe('IN_PLAY');
-    expect(ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('2H')).status).toBe('IN_PLAY');
-    expect(ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('AET')).status).toBe('FINISHED');
-    expect(ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('PEN')).status).toBe('FINISHED');
-    expect(ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('PST')).status).toBe('POSTPONED');
-    expect(ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('CANC')).status).toBe('POSTPONED');
+    expect(
+      ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('NS')).status,
+    ).toBe('SCHEDULED');
+    expect(
+      ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('1H')).status,
+    ).toBe('IN_PLAY');
+    expect(
+      ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('HT')).status,
+    ).toBe('IN_PLAY');
+    expect(
+      ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('2H')).status,
+    ).toBe('IN_PLAY');
+    expect(
+      ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('AET'))
+        .status,
+    ).toBe('FINISHED');
+    expect(
+      ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('PEN'))
+        .status,
+    ).toBe('FINISHED');
+    expect(
+      ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('PST'))
+        .status,
+    ).toBe('POSTPONED');
+    expect(
+      ApiFootballMatchMapper.toTransformedMatch(fixtureWithStatus('CANC'))
+        .status,
+    ).toBe('POSTPONED');
   });
 
   it('should throw error if fixture id is missing', () => {

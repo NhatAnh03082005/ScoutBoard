@@ -3,7 +3,11 @@ import {
   SQUAD_REPOSITORY,
   SquadRepository,
 } from '../../domain/repositories/squad.repository';
-import { Squad, SquadVisibility, FormationCode } from '../../domain/entities/squad';
+import {
+  Squad,
+  SquadVisibility,
+  FormationCode,
+} from '../../domain/entities/squad';
 import { SquadNotFoundError } from '../../domain/errors/squad.errors';
 
 export interface UpdateSquadInput {

@@ -52,14 +52,23 @@ describe('PersistPlayerUseCase', () => {
   it('should persist a valid transformed player with teamId', async () => {
     const result = await useCase.execute(mockTransformedPlayer, mockTeamId);
 
-    expect(mockRepository.upsert).toHaveBeenCalledWith(mockTransformedPlayer, mockTeamId);
+    expect(mockRepository.upsert).toHaveBeenCalledWith(
+      mockTransformedPlayer,
+      mockTeamId,
+    );
     expect(result).toBe(mockPlayerEntity);
   });
 
   it('should persist an array of transformed players', async () => {
-    const result = await useCase.executeMany([mockTransformedPlayer], mockTeamId);
+    const result = await useCase.executeMany(
+      [mockTransformedPlayer],
+      mockTeamId,
+    );
 
-    expect(mockRepository.upsertMany).toHaveBeenCalledWith([mockTransformedPlayer], mockTeamId);
+    expect(mockRepository.upsertMany).toHaveBeenCalledWith(
+      [mockTransformedPlayer],
+      mockTeamId,
+    );
     expect(result).toEqual([mockPlayerEntity]);
   });
 
@@ -71,7 +80,9 @@ describe('PersistPlayerUseCase', () => {
   });
 
   it('should reject invalid input missing required fields', async () => {
-    await expect(useCase.execute(null as any)).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      BadRequestException,
+    );
     await expect(
       useCase.execute({ ...mockTransformedPlayer, externalProvider: '' }),
     ).rejects.toThrow(BadRequestException);

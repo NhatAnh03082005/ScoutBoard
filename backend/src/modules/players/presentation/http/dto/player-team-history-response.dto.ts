@@ -21,7 +21,10 @@ export class PlayerTeamHistoryResponseDto {
   @ApiProperty({ description: 'ID bản ghi lịch sử' })
   id: string;
 
-  @ApiProperty({ description: 'Thông tin đội bóng', type: TeamBasicResponseDto })
+  @ApiProperty({
+    description: 'Thông tin đội bóng',
+    type: TeamBasicResponseDto,
+  })
   team: TeamBasicResponseDto;
 
   @ApiProperty({ description: 'Ngày gia nhập (YYYY-MM-DD)', nullable: true })

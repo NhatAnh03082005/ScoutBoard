@@ -25,7 +25,11 @@ export class TypeOrmPlayerTeamHistoryWriteRepository implements PlayerTeamHistor
     const pId = playerId.trim();
     const tId = teamId.trim();
 
-    if (startDate !== undefined && startDate !== null && String(startDate).trim() !== '') {
+    if (
+      startDate !== undefined &&
+      startDate !== null &&
+      String(startDate).trim() !== ''
+    ) {
       return this.historyRepository.findOne({
         where: {
           playerId: pId,
@@ -46,7 +50,9 @@ export class TypeOrmPlayerTeamHistoryWriteRepository implements PlayerTeamHistor
     });
   }
 
-  async findByPlayerId(playerId: string): Promise<PlayerTeamHistoryOrmEntity[]> {
+  async findByPlayerId(
+    playerId: string,
+  ): Promise<PlayerTeamHistoryOrmEntity[]> {
     return this.historyRepository.find({
       where: {
         playerId: playerId.trim(),
@@ -81,10 +87,7 @@ export class TypeOrmPlayerTeamHistoryWriteRepository implements PlayerTeamHistor
         .execute();
 
       // 2. Synchronize players.current_team_id
-      await this.playerRepository.update(
-        { id: pId },
-        { currentTeamId: tId },
-      );
+      await this.playerRepository.update({ id: pId }, { currentTeamId: tId });
     }
 
     // 3. Find existing record by natural identity (playerId, teamId, startDate)

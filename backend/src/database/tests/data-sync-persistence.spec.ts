@@ -237,5 +237,3 @@ describe('Data Sync Jobs & Logs Persistence Integration Test (Live PostgreSQL)',
     expect(reloaded?.initiatedBy).toBeNull();
   });
 });
-
-

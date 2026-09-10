@@ -28,7 +28,10 @@ import {
   InvalidFormationCodeError,
 } from '../../../domain/errors/squad.errors';
 import { JwtAuthGuard } from '../../../../auth/presentation/http/guards/jwt-auth.guard';
-import { FormationCodeEnum, SquadVisibilityEnum } from '../dto/create-squad.dto';
+import {
+  FormationCodeEnum,
+  SquadVisibilityEnum,
+} from '../dto/create-squad.dto';
 import { SquadPlayerRoleEnum } from '../dto/add-player-to-squad.dto';
 
 describe('SquadsController (Unit & API Contract)', () => {
@@ -82,9 +85,18 @@ describe('SquadsController (Unit & API Contract)', () => {
         { provide: UpdateSquadUseCase, useValue: mockUpdateUseCase },
         { provide: DeleteSquadUseCase, useValue: mockDeleteUseCase },
         { provide: AddPlayerToSquadUseCase, useValue: mockAddPlayerUseCase },
-        { provide: UpdateSquadPlayerUseCase, useValue: mockUpdatePlayerUseCase },
-        { provide: RemovePlayerFromSquadUseCase, useValue: mockRemovePlayerUseCase },
-        { provide: ListPlayersInSquadUseCase, useValue: mockListPlayersUseCase },
+        {
+          provide: UpdateSquadPlayerUseCase,
+          useValue: mockUpdatePlayerUseCase,
+        },
+        {
+          provide: RemovePlayerFromSquadUseCase,
+          useValue: mockRemovePlayerUseCase,
+        },
+        {
+          provide: ListPlayersInSquadUseCase,
+          useValue: mockListPlayersUseCase,
+        },
       ],
     }).compile();
 
@@ -112,7 +124,7 @@ describe('SquadsController (Unit & API Contract)', () => {
         visibility: SquadVisibilityEnum.PRIVATE,
       };
 
-      const res = await controller.create(dto, reqA as any);
+      const res = await controller.create(dto, reqA);
       expect(res.id).toBe('squad-1');
       expect(res.name).toBe('Dream Team EPL 2026');
     });
@@ -122,7 +134,7 @@ describe('SquadsController (Unit & API Contract)', () => {
         new Squad('squad-1', 'user-A', 'Squad 1', '4-3-3'),
       ]);
 
-      const res = await controller.findAll(reqA as any);
+      const res = await controller.findAll(reqA);
       expect(res.length).toBe(1);
     });
 
@@ -131,7 +143,7 @@ describe('SquadsController (Unit & API Contract)', () => {
         new Squad('squad-1', 'user-A', 'My Squad', '4-3-3'),
       );
 
-      const res = await controller.findOne('squad-1', reqA as any);
+      const res = await controller.findOne('squad-1', reqA);
       expect(res.name).toBe('My Squad');
     });
 
@@ -140,21 +152,28 @@ describe('SquadsController (Unit & API Contract)', () => {
         new Squad('squad-1', 'user-A', 'Renamed', '4-2-3-1'),
       );
 
-      const res = await controller.update('squad-1', { name: 'Renamed' }, reqA as any);
+      const res = await controller.update('squad-1', { name: 'Renamed' }, reqA);
       expect(res.name).toBe('Renamed');
     });
 
     it('Delete own squad', async () => {
       mockDeleteUseCase.execute.mockResolvedValue(undefined);
 
-      const res = await controller.remove('squad-1', reqA as any);
+      const res = await controller.remove('squad-1', reqA);
       expect(res.success).toBe(true);
     });
   });
 
   describe('Squad Player Management (TC-01 through TC-14)', () => {
     it('TC-01: Add starter player', async () => {
-      const added = new SquadPlayer('sp-1', 'squad-1', 'player-1', 'GK', 'STARTER', false);
+      const added = new SquadPlayer(
+        'sp-1',
+        'squad-1',
+        'player-1',
+        'GK',
+        'STARTER',
+        false,
+      );
       mockAddPlayerUseCase.execute.mockResolvedValue(added);
 
       const res = await controller.addPlayer(
@@ -164,7 +183,7 @@ describe('SquadsController (Unit & API Contract)', () => {
           slotCode: 'GK',
           role: SquadPlayerRoleEnum.STARTER,
         },
-        reqA as any,
+        reqA,
       );
 
       expect(mockAddPlayerUseCase.execute).toHaveBeenCalledWith({
@@ -182,7 +201,15 @@ describe('SquadsController (Unit & API Contract)', () => {
     });
 
     it('TC-02: Add substitute player', async () => {
-      const added = new SquadPlayer('sp-2', 'squad-1', 'player-2', null, 'SUBSTITUTE', false, 1);
+      const added = new SquadPlayer(
+        'sp-2',
+        'squad-1',
+        'player-2',
+        null,
+        'SUBSTITUTE',
+        false,
+        1,
+      );
       mockAddPlayerUseCase.execute.mockResolvedValue(added);
 
       const res = await controller.addPlayer(
@@ -193,7 +220,7 @@ describe('SquadsController (Unit & API Contract)', () => {
           role: SquadPlayerRoleEnum.SUBSTITUTE,
           displayOrder: 1,
         },
-        reqA as any,
+        reqA,
       );
 
       expect(res.role).toBe('SUBSTITUTE');
@@ -238,14 +265,20 @@ describe('SquadsController (Unit & API Contract)', () => {
     });
 
     it('TC-06: Move slot for starter player', async () => {
-      const updated = new SquadPlayer('sp-1', 'squad-1', 'player-1', 'CB-2', 'STARTER');
+      const updated = new SquadPlayer(
+        'sp-1',
+        'squad-1',
+        'player-1',
+        'CB-2',
+        'STARTER',
+      );
       mockUpdatePlayerUseCase.execute.mockResolvedValue(updated);
 
       const res = await controller.updatePlayer(
         'squad-1',
         'player-1',
         { slotCode: 'CB-2' },
-        reqA as any,
+        reqA,
       );
 
       expect(mockUpdatePlayerUseCase.execute).toHaveBeenCalledWith({
@@ -261,14 +294,20 @@ describe('SquadsController (Unit & API Contract)', () => {
     });
 
     it('TC-07 & TC-08: Role change (Starter <-> Substitute)', async () => {
-      const updatedToSub = new SquadPlayer('sp-1', 'squad-1', 'player-1', null, 'SUBSTITUTE');
+      const updatedToSub = new SquadPlayer(
+        'sp-1',
+        'squad-1',
+        'player-1',
+        null,
+        'SUBSTITUTE',
+      );
       mockUpdatePlayerUseCase.execute.mockResolvedValue(updatedToSub);
 
       const res = await controller.updatePlayer(
         'squad-1',
         'player-1',
         { role: SquadPlayerRoleEnum.SUBSTITUTE, slotCode: null },
-        reqA as any,
+        reqA,
       );
 
       expect(res.role).toBe('SUBSTITUTE');
@@ -276,14 +315,21 @@ describe('SquadsController (Unit & API Contract)', () => {
     });
 
     it('TC-09: Set captain on starter', async () => {
-      const updatedCaptain = new SquadPlayer('sp-1', 'squad-1', 'player-1', 'CM-1', 'STARTER', true);
+      const updatedCaptain = new SquadPlayer(
+        'sp-1',
+        'squad-1',
+        'player-1',
+        'CM-1',
+        'STARTER',
+        true,
+      );
       mockUpdatePlayerUseCase.execute.mockResolvedValue(updatedCaptain);
 
       const res = await controller.updatePlayer(
         'squad-1',
         'player-1',
         { isCaptain: true },
-        reqA as any,
+        reqA,
       );
 
       expect(res.isCaptain).toBe(true);
@@ -322,7 +368,7 @@ describe('SquadsController (Unit & API Contract)', () => {
     it('TC-12: Remove player from squad executes successfully', async () => {
       mockRemovePlayerUseCase.execute.mockResolvedValue(undefined);
 
-      const res = await controller.removePlayer('squad-1', 'player-1', reqA as any);
+      const res = await controller.removePlayer('squad-1', 'player-1', reqA);
 
       expect(mockRemovePlayerUseCase.execute).toHaveBeenCalledWith({
         squadId: 'squad-1',

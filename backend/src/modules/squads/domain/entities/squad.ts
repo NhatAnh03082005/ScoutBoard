@@ -145,8 +145,13 @@ export class Squad {
   }
 
   public updateFormationCode(formationCode: FormationCode | string): void {
-    if (!formationCode || !ALLOWED_FORMATION_CODES.includes(formationCode as any)) {
-      throw new InvalidFormationCodeError(`Formation code "${formationCode}" is invalid`);
+    if (
+      !formationCode ||
+      !ALLOWED_FORMATION_CODES.includes(formationCode as any)
+    ) {
+      throw new InvalidFormationCodeError(
+        `Formation code "${formationCode}" is invalid`,
+      );
     }
     this.formationCode = formationCode;
   }
@@ -178,14 +183,27 @@ export class Squad {
   }
 
   private validate(): void {
-    if (!this.ownerId || typeof this.ownerId !== 'string' || this.ownerId.trim() === '') {
+    if (
+      !this.ownerId ||
+      typeof this.ownerId !== 'string' ||
+      this.ownerId.trim() === ''
+    ) {
       throw new InvalidSquadOwnerError();
     }
-    if (!this.name || typeof this.name !== 'string' || this.name.trim() === '') {
+    if (
+      !this.name ||
+      typeof this.name !== 'string' ||
+      this.name.trim() === ''
+    ) {
       throw new InvalidSquadNameError();
     }
-    if (!this.formationCode || !ALLOWED_FORMATION_CODES.includes(this.formationCode as any)) {
-      throw new InvalidFormationCodeError(`Formation code "${this.formationCode}" is invalid`);
+    if (
+      !this.formationCode ||
+      !ALLOWED_FORMATION_CODES.includes(this.formationCode as any)
+    ) {
+      throw new InvalidFormationCodeError(
+        `Formation code "${this.formationCode}" is invalid`,
+      );
     }
   }
 }

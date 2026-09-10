@@ -983,7 +983,7 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
             {/* Modal Header */}
             <div className="scout-modal-clean-header" style={{ marginBottom: '14px' }}>
               <div>
-                <h3 id="player-picker-title" style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                <h3 id="player-picker-title" style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: 'var(--scout-text-primary)' }}>
                   {pickerTargetRole === 'STARTER' && pickerTargetSlot ? (
                     <span>
                       Assign Player for <strong style={{ color: '#2563eb' }}>{pickerTargetSlot.displayRole || pickerTargetSlot.label}</strong>
@@ -1017,11 +1017,11 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
                   gap: '8px',
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  background: '#eff6ff',
-                  border: '1px solid #bfdbfe',
+                  background: 'rgba(59, 130, 246, 0.16)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
                   marginBottom: '12px',
                   fontSize: '12px',
-                  color: '#1e40af',
+                  color: '#60a5fa',
                 }}
               >
                 <span style={{ fontWeight: 800 }}>Vị trí yêu cầu:</span>
@@ -1060,9 +1060,9 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
                   Searching eligible players...
                 </div>
               ) : eligiblePoolPlayers.length === 0 ? (
-                <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>
+                <div style={{ padding: '32px', textAlign: 'center', color: 'var(--scout-text-muted)', background: 'var(--scout-surface-card)', borderRadius: '10px', border: '1px dashed var(--scout-border-default)' }}>
                   <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
-                  <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>No eligible players found</div>
+                  <div style={{ fontWeight: 700, color: 'var(--scout-text-primary)', marginBottom: '4px' }}>No eligible players found</div>
                   <div style={{ fontSize: '12px' }}>
                     {pickerTargetSlot
                       ? `No players found with ${pickerTargetSlot.requiredPosition} in primary or secondary positions.`
@@ -1100,13 +1100,13 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
                             onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                           />
                         ) : (
-                          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
                             <JerseyIcon size={18} />
                           </div>
                         )}
 
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--scout-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {player.fullName}
                           </div>
                           <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1180,7 +1180,7 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
           >
             <div className="scout-modal-clean-header" style={{ marginBottom: '14px' }}>
               <div>
-                <h3 id="formation-modal-title" style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                <h3 id="formation-modal-title" style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: 'var(--scout-text-primary)' }}>
                   Switch Tactical Formation
                 </h3>
                 <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
@@ -1234,7 +1234,7 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
               Delete Squad?
             </h3>
             <p style={{ fontSize: '13.5px', color: '#64748b', marginBottom: '22px', lineHeight: 1.5 }}>
-              Are you sure you want to delete <strong style={{ color: '#0f172a' }}>&ldquo;{squad?.name}&rdquo;</strong>? This action cannot be undone.
+              Are you sure you want to delete <strong style={{ color: 'var(--scout-text-primary)' }}>&ldquo;{squad?.name}&rdquo;</strong>? This action cannot be undone.
             </p>
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>

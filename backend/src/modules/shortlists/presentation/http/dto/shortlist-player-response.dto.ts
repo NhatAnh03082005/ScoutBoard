@@ -17,7 +17,9 @@ export class ShortlistPlayerResponseDto {
   @ApiPropertyOptional()
   addedAt?: Date;
 
-  static fromDomain(shortlistPlayer: ShortlistPlayer): ShortlistPlayerResponseDto {
+  static fromDomain(
+    shortlistPlayer: ShortlistPlayer,
+  ): ShortlistPlayerResponseDto {
     const dto = new ShortlistPlayerResponseDto();
     dto.id = shortlistPlayer.id;
     dto.shortlistId = shortlistPlayer.shortlistId;

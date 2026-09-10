@@ -26,7 +26,9 @@ export interface AggregateSeasonSummaryResult {
 
 @Injectable()
 export class PlayerSeasonStatisticsAggregationService {
-  private readonly logger = new Logger(PlayerSeasonStatisticsAggregationService.name);
+  private readonly logger = new Logger(
+    PlayerSeasonStatisticsAggregationService.name,
+  );
 
   constructor(
     @Inject(PLAYER_SEASON_STATISTIC_WRITE_REPOSITORY)
@@ -81,7 +83,9 @@ export class PlayerSeasonStatisticsAggregationService {
   /**
    * Automatically re-aggregates season statistics for all players who participated in a match
    */
-  async aggregateAfterMatch(matchId: string): Promise<PlayerSeasonStatisticOrmEntity[]> {
+  async aggregateAfterMatch(
+    matchId: string,
+  ): Promise<PlayerSeasonStatisticOrmEntity[]> {
     const match = await this.matchRepo.findOne({
       where: { id: matchId },
     });
@@ -133,7 +137,6 @@ export class PlayerSeasonStatisticsAggregationService {
     if (competitionId) {
       query.andWhere('match.competitionId = :competitionId', { competitionId });
     }
-
 
     const rows = await query.getRawMany();
     const results: PlayerSeasonStatisticOrmEntity[] = [];

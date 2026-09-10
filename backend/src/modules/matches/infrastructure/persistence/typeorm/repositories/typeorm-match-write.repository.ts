@@ -85,7 +85,12 @@ export class TypeOrmMatchWriteRepository implements MatchWriteRepository {
       { match: TransformedMatch; refs: MatchResolvedReferences }
     >();
     for (const item of items) {
-      if (!item || !item.match || !item.match.externalProvider || !item.match.externalId) {
+      if (
+        !item ||
+        !item.match ||
+        !item.match.externalProvider ||
+        !item.match.externalId
+      ) {
         continue;
       }
       const key = `${item.match.externalProvider.trim()}:${item.match.externalId.trim()}`;

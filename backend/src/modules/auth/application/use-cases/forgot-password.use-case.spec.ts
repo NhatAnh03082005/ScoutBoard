@@ -33,7 +33,9 @@ describe('ForgotPasswordUseCase', () => {
 
     const result = await useCase.execute({ email: 'nonexistent@example.com' });
 
-    expect(result.message).toContain('mã OTP xác thực đặt lại mật khẩu đã được gửi');
+    expect(result.message).toContain(
+      'mã OTP xác thực đặt lại mật khẩu đã được gửi',
+    );
     expect(mockEmailService.sendPasswordResetEmail).not.toHaveBeenCalled();
   });
 
@@ -58,6 +60,8 @@ describe('ForgotPasswordUseCase', () => {
     expect(mockUserRepository.save).toHaveBeenCalled();
     expect(mockEmailService.sendPasswordResetEmail).toHaveBeenCalled();
     expect(user.getPasswordResetCode()).toBeDefined();
-    expect(result.message).toContain('mã OTP xác thực đặt lại mật khẩu đã được gửi');
+    expect(result.message).toContain(
+      'mã OTP xác thực đặt lại mật khẩu đã được gửi',
+    );
   });
 });

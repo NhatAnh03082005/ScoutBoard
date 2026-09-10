@@ -25,7 +25,9 @@
     "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/run-seeds.ts",
     "sync:match-stats": "ts-node -r tsconfig-paths/register src/scripts/sync-remaining-fixture-stats.ts",
-    "enrich:profiles": "ts-node -r tsconfig-paths/register src/scripts/enrich-remaining-profiles.ts"
+    "enrich:profiles": "ts-node -r tsconfig-paths/register src/scripts/enrich-remaining-profiles.ts",
+    "sync:laliga": "ts-node -r tsconfig-paths/register src/scripts/sync-laliga-season.ts",
+    "sync:41-matches": "ts-node -r tsconfig-paths/register src/scripts/sync-41-laliga-matches.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

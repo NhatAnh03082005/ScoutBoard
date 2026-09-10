@@ -24,27 +24,39 @@ describe('CreateSquadPlayersTable1789300000000 (Migration)', () => {
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         2,
-        expect.stringContaining('CREATE INDEX "IDX_squad_players_squad_id" ON "squad_players" ("squad_id")'),
+        expect.stringContaining(
+          'CREATE INDEX "IDX_squad_players_squad_id" ON "squad_players" ("squad_id")',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         3,
-        expect.stringContaining('CREATE INDEX "IDX_squad_players_player_id" ON "squad_players" ("player_id")'),
+        expect.stringContaining(
+          'CREATE INDEX "IDX_squad_players_player_id" ON "squad_players" ("player_id")',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         4,
-        expect.stringContaining('CREATE UNIQUE INDEX "uq_squad_starter_slot" ON "squad_players" ("squad_id", "slot_code") WHERE role = \'STARTER\''),
+        expect.stringContaining(
+          'CREATE UNIQUE INDEX "uq_squad_starter_slot" ON "squad_players" ("squad_id", "slot_code") WHERE role = \'STARTER\'',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         5,
-        expect.stringContaining('CREATE UNIQUE INDEX "uq_squad_captain" ON "squad_players" ("squad_id") WHERE is_captain = TRUE'),
+        expect.stringContaining(
+          'CREATE UNIQUE INDEX "uq_squad_captain" ON "squad_players" ("squad_id") WHERE is_captain = TRUE',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         6,
-        expect.stringContaining('ALTER TABLE "squad_players" ADD CONSTRAINT "FK_squad_players_squad_id" FOREIGN KEY ("squad_id") REFERENCES "squads"("id") ON DELETE CASCADE'),
+        expect.stringContaining(
+          'ALTER TABLE "squad_players" ADD CONSTRAINT "FK_squad_players_squad_id" FOREIGN KEY ("squad_id") REFERENCES "squads"("id") ON DELETE CASCADE',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         7,
-        expect.stringContaining('ALTER TABLE "squad_players" ADD CONSTRAINT "FK_squad_players_player_id" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE CASCADE'),
+        expect.stringContaining(
+          'ALTER TABLE "squad_players" ADD CONSTRAINT "FK_squad_players_player_id" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE CASCADE',
+        ),
       );
     });
 
@@ -107,7 +119,11 @@ describe('CreateSquadPlayersTable1789300000000 (Migration)', () => {
       // 1. Create a test user
       const userRes = await AppDataSource.query(
         `INSERT INTO "users" ("email", "password_hash", "full_name") VALUES ($1, $2, $3) RETURNING "id"`,
-        [`test-squad-player-owner-${Date.now()}-${Math.random()}@example.com`, 'hash', 'Test Squad Player Owner'],
+        [
+          `test-squad-player-owner-${Date.now()}-${Math.random()}@example.com`,
+          'hash',
+          'Test Squad Player Owner',
+        ],
       );
       testUserId = userRes[0].id;
 
@@ -128,21 +144,36 @@ describe('CreateSquadPlayersTable1789300000000 (Migration)', () => {
       const player1Res = await AppDataSource.query(
         `INSERT INTO "players" ("external_provider", "external_id", "name", "primary_position") 
          VALUES ($1, $2, $3, $4) RETURNING "id"`,
-        ['manual_test', `p1-${Date.now()}-${Math.random()}`, 'Test Player 1', 'GK'],
+        [
+          'manual_test',
+          `p1-${Date.now()}-${Math.random()}`,
+          'Test Player 1',
+          'GK',
+        ],
       );
       testPlayer1Id = player1Res[0].id;
 
       const player2Res = await AppDataSource.query(
         `INSERT INTO "players" ("external_provider", "external_id", "name", "primary_position") 
          VALUES ($1, $2, $3, $4) RETURNING "id"`,
-        ['manual_test', `p2-${Date.now()}-${Math.random()}`, 'Test Player 2', 'CB'],
+        [
+          'manual_test',
+          `p2-${Date.now()}-${Math.random()}`,
+          'Test Player 2',
+          'CB',
+        ],
       );
       testPlayer2Id = player2Res[0].id;
 
       const player3Res = await AppDataSource.query(
         `INSERT INTO "players" ("external_provider", "external_id", "name", "primary_position") 
          VALUES ($1, $2, $3, $4) RETURNING "id"`,
-        ['manual_test', `p3-${Date.now()}-${Math.random()}`, 'Test Player 3', 'ST'],
+        [
+          'manual_test',
+          `p3-${Date.now()}-${Math.random()}`,
+          'Test Player 3',
+          'ST',
+        ],
       );
       testPlayer3Id = player3Res[0].id;
     });
@@ -150,11 +181,18 @@ describe('CreateSquadPlayersTable1789300000000 (Migration)', () => {
     afterEach(async () => {
       // Clean up test user & players
       if (testUserId) {
-        await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [testUserId]);
+        await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [
+          testUserId,
+        ]);
       }
-      const playerIds = [testPlayer1Id, testPlayer2Id, testPlayer3Id].filter(Boolean);
+      const playerIds = [testPlayer1Id, testPlayer2Id, testPlayer3Id].filter(
+        Boolean,
+      );
       if (playerIds.length > 0) {
-        await AppDataSource.query(`DELETE FROM "players" WHERE "id" = ANY($1)`, [playerIds]);
+        await AppDataSource.query(
+          `DELETE FROM "players" WHERE "id" = ANY($1)`,
+          [playerIds],
+        );
       }
     });
 
@@ -181,7 +219,9 @@ describe('CreateSquadPlayersTable1789300000000 (Migration)', () => {
       expect((colMap.get('player_id') as any).is_nullable).toBe('NO');
 
       expect(colMap.has('slot_code')).toBe(true);
-      expect((colMap.get('slot_code') as any).data_type).toBe('character varying');
+      expect((colMap.get('slot_code') as any).data_type).toBe(
+        'character varying',
+      );
       expect((colMap.get('slot_code') as any).is_nullable).toBe('YES');
 
       expect(colMap.has('role')).toBe(true);
@@ -191,14 +231,18 @@ describe('CreateSquadPlayersTable1789300000000 (Migration)', () => {
       expect(colMap.has('is_captain')).toBe(true);
       expect((colMap.get('is_captain') as any).data_type).toBe('boolean');
       expect((colMap.get('is_captain') as any).is_nullable).toBe('NO');
-      expect((colMap.get('is_captain') as any).column_default).toContain('false');
+      expect((colMap.get('is_captain') as any).column_default).toContain(
+        'false',
+      );
 
       expect(colMap.has('display_order')).toBe(true);
       expect((colMap.get('display_order') as any).data_type).toBe('integer');
       expect((colMap.get('display_order') as any).is_nullable).toBe('YES');
 
       expect(colMap.has('added_at')).toBe(true);
-      expect((colMap.get('added_at') as any).data_type).toBe('timestamp with time zone');
+      expect((colMap.get('added_at') as any).data_type).toBe(
+        'timestamp with time zone',
+      );
       expect((colMap.get('added_at') as any).is_nullable).toBe('NO');
     });
 
@@ -304,7 +348,9 @@ describe('CreateSquadPlayersTable1789300000000 (Migration)', () => {
       const squadPlayerId = res[0].id;
 
       // Delete squad 1
-      await AppDataSource.query(`DELETE FROM "squads" WHERE "id" = $1`, [testSquad1Id]);
+      await AppDataSource.query(`DELETE FROM "squads" WHERE "id" = $1`, [
+        testSquad1Id,
+      ]);
 
       // Check squad_players row is deleted
       const check = await AppDataSource.query(
@@ -322,7 +368,9 @@ describe('CreateSquadPlayersTable1789300000000 (Migration)', () => {
       const squadPlayerId = res[0].id;
 
       // Delete player 3
-      await AppDataSource.query(`DELETE FROM "players" WHERE "id" = $1`, [testPlayer3Id]);
+      await AppDataSource.query(`DELETE FROM "players" WHERE "id" = $1`, [
+        testPlayer3Id,
+      ]);
       testPlayer3Id = ''; // Prevent cleanup error
 
       // Check squad_players row is removed

@@ -349,7 +349,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
               style={{
                 fontSize: '32px',
                 fontWeight: 900,
-                color: '#1e3a8a',
+                color: '#ffffff',
                 margin: 0,
                 letterSpacing: '-0.03em',
                 lineHeight: 1.15,
@@ -392,11 +392,11 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                   gap: '6px',
                   padding: '4px 12px',
                   borderRadius: '9999px',
-                  background: '#eff6ff',
-                  border: '1px solid #bfdbfe',
+                  background: 'rgba(59, 130, 246, 0.16)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
                   fontSize: '12px',
                   fontWeight: 700,
-                  color: '#1e40af',
+                  color: '#60a5fa',
                 }}
               >
                 <span>📋</span>
@@ -412,11 +412,11 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                   gap: '6px',
                   padding: '4px 12px',
                   borderRadius: '9999px',
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
+                  background: 'rgba(34, 197, 94, 0.16)',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
                   fontSize: '12px',
                   fontWeight: 700,
-                  color: '#166534',
+                  color: '#4ade80',
                 }}
               >
                 <span>⚡</span>
@@ -477,8 +477,8 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
           style={{
             maxWidth: '600px',
             margin: '40px auto',
-            background: '#ffffff',
-            border: '1px solid #e2e8f0',
+            background: 'var(--scout-surface-card)',
+            border: '1px solid var(--scout-border-default)',
             borderRadius: '16px',
             padding: '48px 24px',
             textAlign: 'center',
@@ -486,7 +486,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
           }}
         >
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px' }}>
             Authentication Required
           </h3>
           <p style={{ color: '#64748b', fontSize: '14px', maxWidth: '400px', margin: '0 auto 20px', lineHeight: 1.5 }}>
@@ -509,8 +509,8 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
       {error && error !== 'UNAUTHORIZED' ? (
         <div
           style={{
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
             borderRadius: '16px',
             padding: '24px',
             marginBottom: '28px',
@@ -556,8 +556,8 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
             <div
               key={n}
               style={{
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
+                background: 'var(--scout-surface-card)',
+                border: '1px solid var(--scout-border-default)',
                 borderRadius: '18px',
                 padding: '22px',
                 height: '340px',
@@ -568,11 +568,11 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
               }}
             >
               <div>
-                <div style={{ width: '60%', height: '22px', background: '#f1f5f9', borderRadius: '6px', marginBottom: '10px' }} />
-                <div style={{ width: '40%', height: '16px', background: '#f8fafc', borderRadius: '4px', marginBottom: '16px' }} />
-                <div style={{ width: '100%', height: '160px', background: '#f1f5f9', borderRadius: '12px' }} />
+                <div style={{ width: '60%', height: '22px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '6px', marginBottom: '10px' }} />
+                <div style={{ width: '40%', height: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', marginBottom: '16px' }} />
+                <div style={{ width: '100%', height: '160px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '12px' }} />
               </div>
-              <div style={{ width: '100%', height: '36px', background: '#f8fafc', borderRadius: '8px' }} />
+              <div style={{ width: '100%', height: '36px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }} />
             </div>
           ))}
         </div>
@@ -604,7 +604,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
           {filteredSquads.length === 0 ? (
             <div
               style={{
-                background: '#ffffff',
+                background: 'var(--scout-surface-card)',
                 border: '1px dashed #cbd5e1',
                 borderRadius: '16px',
                 padding: '40px 24px',
@@ -656,8 +656,8 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                     key={squad.id}
                     className="scout-shortlist-card"
                     style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
+                      background: 'var(--scout-surface-card)',
+                      border: '1px solid var(--scout-border-default)',
                       borderRadius: '18px',
                       padding: '20px',
                       display: 'flex',
@@ -675,7 +675,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'none';
                       e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
-                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      e.currentTarget.style.borderColor = 'var(--scout-border-default)';
                     }}
                   >
                     <div>
@@ -694,7 +694,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                             style={{
                               fontSize: '17px',
                               fontWeight: 800,
-                              color: '#0f172a',
+                              color: '#ffffff',
                               margin: '0 0 6px 0',
                               cursor: onOpenSquad ? 'pointer' : 'default',
                               lineHeight: 1.3,
@@ -717,9 +717,9 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                                 borderRadius: '6px',
                                 fontSize: '11px',
                                 fontWeight: 800,
-                                background: '#eff6ff',
-                                color: '#1d4ed8',
-                                border: '1px solid #bfdbfe',
+                                background: 'rgba(59, 130, 246, 0.16)',
+                                color: '#60a5fa',
+                                border: '1px solid rgba(59, 130, 246, 0.3)',
                               }}
                             >
                               ⚡ {squad.formationCode}
@@ -748,7 +748,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                                     ? '#a7f3d0'
                                     : category === '5 ATB'
                                     ? '#fde68a'
-                                    : '#e2e8f0'
+                                    : 'var(--scout-border-default)'
                                 }`,
                               }}
                             >
@@ -763,7 +763,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                                 fontWeight: 700,
                                 background: squad.visibility === 'PUBLIC' ? '#ecfdf5' : '#f1f5f9',
                                 color: squad.visibility === 'PUBLIC' ? '#047857' : '#475569',
-                                border: `1px solid ${squad.visibility === 'PUBLIC' ? '#a7f3d0' : '#e2e8f0'}`,
+                                border: `1px solid ${squad.visibility === 'PUBLIC' ? '#a7f3d0' : 'var(--scout-border-default)'}`,
                               }}
                             >
                               {squad.visibility === 'PUBLIC' ? 'Public' : 'Private'}
@@ -777,7 +777,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                                 fontWeight: 800,
                                 background: isFullXI ? '#ecfdf5' : '#f1f5f9',
                                 color: isFullXI ? '#059669' : '#475569',
-                                border: `1px solid ${isFullXI ? '#a7f3d0' : '#e2e8f0'}`,
+                                border: `1px solid ${isFullXI ? '#a7f3d0' : 'var(--scout-border-default)'}`,
                               }}
                             >
                               {isFullXI ? 'XI Complete' : `${startersCount}/11 Starters`}
@@ -804,9 +804,9 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                               fontSize: '17px',
                               fontWeight: 900,
                               borderRadius: '8px',
-                              border: '1px solid #e2e8f0',
-                              background: '#f8fafc',
-                              color: '#64748b',
+                              border: '1px solid var(--scout-border-default)',
+                              background: 'var(--scout-surface-card)',
+                              color: 'var(--scout-text-secondary)',
                             }}
                             aria-label="Squad options"
                             title="Squad options"
@@ -823,8 +823,8 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                                 top: '100%',
                                 right: 0,
                                 marginTop: '4px',
-                                background: '#ffffff',
-                                border: '1px solid #e2e8f0',
+                                background: 'var(--scout-surface-card)',
+                                border: '1px solid var(--scout-border-default)',
                                 borderRadius: '10px',
                                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)',
                                 minWidth: '150px',
@@ -844,13 +844,13 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                                   border: 'none',
                                   fontSize: '12.5px',
                                   fontWeight: 600,
-                                  color: '#334155',
+                                  color: 'var(--scout-text-primary)',
                                   cursor: 'pointer',
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: '8px',
                                 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
                                 onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                               >
                                 <span>✏️</span>
@@ -874,7 +874,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                                   gap: '8px',
                                   borderTop: '1px solid #f1f5f9',
                                 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)')}
                                 onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                               >
                                 <span>🗑️</span>
@@ -914,14 +914,14 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                             marginBottom: '6px',
                           }}
                         >
-                          <span style={{ color: '#0f172a', fontWeight: 700 }}>
+                          <span style={{ color: '#ffffff', fontWeight: 700 }}>
                             Starting XI:{' '}
                             <span style={{ color: isFullXI ? '#10b981' : '#2563eb' }}>
                               {startersCount}/11
                             </span>
                           </span>
                           <span style={{ color: '#64748b', fontSize: '11.5px' }}>
-                            Bench: <strong style={{ color: '#334155' }}>{benchCount}</strong>
+                            Bench: <strong style={{ color: 'var(--scout-text-secondary)' }}>{benchCount}</strong>
                           </span>
                         </div>
 
@@ -930,7 +930,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                           style={{
                             width: '100%',
                             height: '6px',
-                            background: '#e2e8f0',
+                            background: 'var(--scout-border-default)',
                             borderRadius: '9999px',
                             overflow: 'hidden',
                           }}
@@ -973,7 +973,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         paddingTop: '12px',
-                        borderTop: '1px solid #f1f5f9',
+                        borderTop: '1px solid var(--scout-border-subtle)',
                         marginTop: '4px',
                       }}
                     >
@@ -1141,7 +1141,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                 lineHeight: 1.5,
               }}
             >
-              Are you sure you want to delete <strong style={{ color: '#0f172a' }}>&ldquo;{deletingSquad.name}&rdquo;</strong>? This will remove all starter and substitute assignments.
+              Are you sure you want to delete <strong style={{ color: '#ffffff' }}>&ldquo;{deletingSquad.name}&rdquo;</strong>? This will remove all starter and substitute assignments.
             </p>
 
             {deleteError && (

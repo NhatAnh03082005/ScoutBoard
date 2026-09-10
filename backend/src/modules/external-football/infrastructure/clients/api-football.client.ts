@@ -28,7 +28,6 @@ import { ApiFootballTeamListResponseDto } from '../dto/api-football-team.dto';
 import { ApiFootballFixtureListResponseDto } from '../dto/api-football-fixture.dto';
 import { ApiFootballFixturePlayersListResponseDto } from '../dto/api-football-fixture-player.dto';
 
-
 export interface ApiFootballClientConfig {
   baseUrl: string;
   apiKey: string;
@@ -289,7 +288,6 @@ export class ApiFootballClient implements ApiFootballClientPort {
   ): Promise<ApiFootballPlayerListResponseDto> {
     return this.request<ApiFootballPlayerListResponseDto>('/players', params);
   }
-
 
   async getPlayerById(
     id: number,

@@ -82,9 +82,10 @@ describe('ApiFootballPlayerSyncService', () => {
       id: 'player-uuid-1',
     } as any);
 
-
     mockPersistPlayerPositionsUseCase.execute.mockResolvedValueOnce({} as any);
-    mockPersistPlayerTeamHistoryUseCase.execute.mockResolvedValueOnce({} as any);
+    mockPersistPlayerTeamHistoryUseCase.execute.mockResolvedValueOnce(
+      {} as any,
+    );
 
     const result = await service.syncSquadForTeam('team-uuid-33', 33);
 

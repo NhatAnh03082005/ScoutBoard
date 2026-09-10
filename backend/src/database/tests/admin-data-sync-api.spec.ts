@@ -60,7 +60,6 @@ describe('Admin Data Sync REST API Integration Tests (Live PostgreSQL)', () => {
     const roleRepo = dataSource.getRepository(RoleOrmEntity);
     userRepo = dataSource.getRepository(UserOrmEntity);
 
-
     await logRepo.createQueryBuilder().delete().execute();
     await jobRepo.createQueryBuilder().delete().execute();
 

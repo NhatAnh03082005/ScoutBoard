@@ -45,12 +45,17 @@ describe('RemovePlayerFromShortlistUseCase (Unit)', () => {
     const shortlistPlayer = new ShortlistPlayer('rel-1', shortlistId, playerId);
 
     mockShortlistRepo.findById.mockResolvedValue(shortlist);
-    mockShortlistPlayerRepo.findByShortlistAndPlayer.mockResolvedValue(shortlistPlayer);
+    mockShortlistPlayerRepo.findByShortlistAndPlayer.mockResolvedValue(
+      shortlistPlayer,
+    );
     mockShortlistPlayerRepo.removePlayer.mockResolvedValue(undefined);
 
     await useCase.execute({ shortlistId, ownerId, playerId });
 
-    expect(mockShortlistPlayerRepo.removePlayer).toHaveBeenCalledWith(shortlistId, playerId);
+    expect(mockShortlistPlayerRepo.removePlayer).toHaveBeenCalledWith(
+      shortlistId,
+      playerId,
+    );
   });
 
   it('should throw PlayerNotInShortlistError if player is not in shortlist', async () => {

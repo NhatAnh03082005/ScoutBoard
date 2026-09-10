@@ -34,7 +34,9 @@ describe('ApiFootballTeamMapper', () => {
     expect(result.country).toBe('England');
     expect(result.foundedYear).toBe(1878);
     expect(result.venueName).toBe('Old Trafford');
-    expect(result.logoUrl).toBe('https://media.api-sports.io/football/teams/33.png');
+    expect(result.logoUrl).toBe(
+      'https://media.api-sports.io/football/teams/33.png',
+    );
     expect(result.status).toBe('ACTIVE');
     expect(result.squad).toEqual([]);
   });

@@ -55,12 +55,18 @@ describe('ApiFootballPlayerMapper', () => {
     expect(ApiFootballPlayerMapper.normalizePosition('Right-Back')).toBe('RB');
     expect(ApiFootballPlayerMapper.normalizePosition('Left-Back')).toBe('LB');
     expect(ApiFootballPlayerMapper.normalizePosition('Centre-Back')).toBe('CB');
-    expect(ApiFootballPlayerMapper.normalizePosition('Defensive Midfielder')).toBe('CDM');
+    expect(
+      ApiFootballPlayerMapper.normalizePosition('Defensive Midfielder'),
+    ).toBe('CDM');
     expect(ApiFootballPlayerMapper.normalizePosition('DM')).toBe('CDM');
-    expect(ApiFootballPlayerMapper.normalizePosition('Attacking Midfielder')).toBe('CAM');
+    expect(
+      ApiFootballPlayerMapper.normalizePosition('Attacking Midfielder'),
+    ).toBe('CAM');
     expect(ApiFootballPlayerMapper.normalizePosition('AM')).toBe('CAM');
     expect(ApiFootballPlayerMapper.normalizePosition('Left Winger')).toBe('LW');
-    expect(ApiFootballPlayerMapper.normalizePosition('Right Winger')).toBe('RW');
+    expect(ApiFootballPlayerMapper.normalizePosition('Right Winger')).toBe(
+      'RW',
+    );
     expect(ApiFootballPlayerMapper.normalizePosition('Striker')).toBe('ST');
   });
 

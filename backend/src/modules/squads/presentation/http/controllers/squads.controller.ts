@@ -14,7 +14,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../../auth/presentation/http/guards/jwt-auth.guard';
 import { CreateSquadDto } from '../dto/create-squad.dto';
 import { UpdateSquadDto } from '../dto/update-squad.dto';
@@ -113,7 +118,9 @@ export class SquadsController {
     description: 'List of squads',
     type: [SquadResponseDto],
   })
-  async findAll(@Request() req: RequestWithAuthUser): Promise<SquadResponseDto[]> {
+  async findAll(
+    @Request() req: RequestWithAuthUser,
+  ): Promise<SquadResponseDto[]> {
     const squads = await this.listSquadsByOwnerUseCase.execute(req.user.id);
     return squads.map((s) => SquadResponseDto.fromDomain(s));
   }
@@ -236,7 +243,10 @@ export class SquadsController {
     description: 'Player added to squad',
     type: SquadPlayerResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Invalid role, slot or captain constraints' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid role, slot or captain constraints',
+  })
   @ApiResponse({ status: 404, description: 'Squad or Player not found' })
   @ApiResponse({ status: 409, description: 'Player/Slot/Captain conflict' })
   async addPlayer(
@@ -256,7 +266,10 @@ export class SquadsController {
       });
       return SquadPlayerResponseDto.fromDomain(added);
     } catch (err) {
-      if (err instanceof SquadNotFoundError || err instanceof PlayerNotFoundError) {
+      if (
+        err instanceof SquadNotFoundError ||
+        err instanceof PlayerNotFoundError
+      ) {
         throw new NotFoundException(err.message);
       }
       if (
@@ -277,14 +290,23 @@ export class SquadsController {
   }
 
   @Patch(':id/players/:playerId')
-  @ApiOperation({ summary: 'Update a player within an owned squad (slot, role, captain, order)' })
+  @ApiOperation({
+    summary:
+      'Update a player within an owned squad (slot, role, captain, order)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Player updated in squad',
     type: SquadPlayerResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Invalid role, slot or captain constraints' })
-  @ApiResponse({ status: 404, description: 'Squad or Player not found in squad' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid role, slot or captain constraints',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Squad or Player not found in squad',
+  })
   @ApiResponse({ status: 409, description: 'Slot or Captain conflict' })
   async updatePlayer(
     @Param('id') id: string,
@@ -304,7 +326,10 @@ export class SquadsController {
       });
       return SquadPlayerResponseDto.fromDomain(updated);
     } catch (err) {
-      if (err instanceof SquadNotFoundError || err instanceof PlayerNotInSquadError) {
+      if (
+        err instanceof SquadNotFoundError ||
+        err instanceof PlayerNotInSquadError
+      ) {
         throw new NotFoundException(err.message);
       }
       if (
@@ -325,8 +350,14 @@ export class SquadsController {
 
   @Delete(':id/players/:playerId')
   @ApiOperation({ summary: 'Remove a player from an owned squad' })
-  @ApiResponse({ status: 200, description: 'Player removed from squad successfully' })
-  @ApiResponse({ status: 404, description: 'Squad or Player not found in squad' })
+  @ApiResponse({
+    status: 200,
+    description: 'Player removed from squad successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Squad or Player not found in squad',
+  })
   async removePlayer(
     @Param('id') id: string,
     @Param('playerId') playerId: string,
@@ -343,7 +374,10 @@ export class SquadsController {
         message: 'Player removed from squad successfully',
       };
     } catch (err) {
-      if (err instanceof SquadNotFoundError || err instanceof PlayerNotInSquadError) {
+      if (
+        err instanceof SquadNotFoundError ||
+        err instanceof PlayerNotInSquadError
+      ) {
         throw new NotFoundException(err.message);
       }
       throw err;

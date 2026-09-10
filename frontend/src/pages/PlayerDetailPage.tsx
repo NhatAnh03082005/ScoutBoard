@@ -444,35 +444,66 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
 
   return (
     <div className="scout-b2b-page-container">
-      {/* Top Header Navigation Bar */}
+      {/* Top Header Navigation Bar with Breadcrumb Context & Action Hierarchy */}
       <div className="scout-sports-topbar">
-        <button
-          type="button"
-          className="scout-sports-back-btn"
-          onClick={onBack}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="scout-detail-breadcrumb">
+          <button
+            type="button"
+            className="scout-sports-back-btn"
+            onClick={onBack}
+            title="Return to Player Search"
+            aria-label="Return to Player Search"
           >
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          <span>Back to Player Search</span>
-        </button>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>Search Results</span>
+          </button>
+          {player?.currentTeam && (
+            <>
+              <span style={{ color: 'var(--scout-border-default)', opacity: 0.6 }}>/</span>
+              <span style={{ color: 'var(--scout-text-secondary)', fontSize: '12.5px' }}>
+                {player.currentTeam.name}
+              </span>
+            </>
+          )}
+          {player && (
+            <>
+              <span style={{ color: 'var(--scout-border-default)', opacity: 0.6 }}>/</span>
+              <span style={{ color: 'var(--scout-text-primary)', fontWeight: 700, fontSize: '13px' }}>
+                {player.fullName}
+              </span>
+            </>
+          )}
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Secondary Action: Add to Shortlist (Bookmark Style) */}
           {player && (
             <button
               type="button"
-              className="scout-btn scout-btn-primary"
+              className="scout-btn scout-btn-secondary"
               onClick={() => setIsShortlistModalOpen(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid rgba(59, 130, 246, 0.4)',
+                color: '#60a5fa',
+                background: 'rgba(37, 99, 235, 0.12)',
+                fontWeight: 700,
+              }}
+              title="Save player to scouting watchlist"
             >
               <svg
                 width="15"
@@ -480,22 +511,23 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2.4"
+                strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
               </svg>
               <span>Add to Shortlist</span>
             </button>
           )}
 
+          {/* Primary Action: Compare Player (Analytical Core Feature) */}
           {player && onCompare && (
             <button
               type="button"
               className="scout-btn scout-btn-primary"
               onClick={() => onCompare(player, seasonStatistics)}
+              title="Open tactical comparison for this player"
             >
               <svg
                 width="16"
@@ -823,7 +855,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                       <span className="scout-sports-bio-key">Current Club</span>
                       <strong
                         className="scout-sports-bio-val"
-                        style={{ display: "flex", alignItems: "center", gap: "8px", color: "#0B4EA2" }}
+                        style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--scout-text-primary)" }}
                       >
                         {player.currentTeam.logoUrl && (
                           <img
@@ -948,7 +980,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                               style={{
                                 fontSize: "14px",
                                 fontWeight: 700,
-                                color: "#0f172a",
+                                color: "var(--scout-text-primary)",
                               }}
                             >
                               {item.team.name}
@@ -1205,9 +1237,9 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
             {!matchLoading && !matchError && matchStatistics.length === 0 && (
               <div className="scout-empty-state compact">
                 <div className="scout-empty-state-icon">📋</div>
-                <h4 className="scout-empty-state-title">No Match Statistics Found</h4>
+                <h4 className="scout-empty-state-title">No Match Appearances Recorded</h4>
                 <p className="scout-empty-state-desc">
-                  No individual match performance logs are recorded for the selected season and competition.
+                  No individual match logs found for {selectedSeasonCode} in this competition. Try selecting another season or competition above to inspect match logs.
                 </p>
               </div>
             )}
@@ -1217,7 +1249,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                 className="scout-b2b-table-wrapper"
                 style={{
                   borderRadius: "8px",
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid var(--scout-border-default)",
                   overflow: "hidden",
                 }}
               >
@@ -1266,7 +1298,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                       return (
                         <tr key={item.id} className="scout-b2b-table-row">
                           {/* Date */}
-                          <td style={{ fontSize: "12px", color: "#64748b" }}>
+                          <td style={{ fontSize: "12px", color: "var(--scout-text-secondary)" }}>
                             {kickoffStr}
                           </td>
 
@@ -1283,10 +1315,13 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                                 style={{
                                   fontSize: "11px",
                                   fontWeight: 700,
-                                  color: ctx.isHome ? "#1d4ed8" : "#b45309",
+                                  color: ctx.isHome ? "#60a5fa" : "#fbbf24",
                                   background: ctx.isHome
-                                    ? "#eff6ff"
-                                    : "#fef3c7",
+                                    ? "rgba(59, 130, 246, 0.16)"
+                                    : "rgba(245, 158, 11, 0.16)",
+                                  border: ctx.isHome
+                                    ? "1px solid rgba(59, 130, 246, 0.3)"
+                                    : "1px solid rgba(245, 158, 11, 0.3)",
                                   padding: "2px 6px",
                                   borderRadius: "4px",
                                   display: "inline-block",
@@ -1295,7 +1330,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                                 {ctx.venuePrefix}
                               </span>
                               <span
-                                style={{ fontWeight: 600, color: "#0f172a" }}
+                                style={{ fontWeight: 600, color: "var(--scout-text-primary)" }}
                               >
                                 {ctx.opponent
                                   ? ctx.opponent.shortName || ctx.opponent.name
@@ -1308,7 +1343,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                           <td
                             style={{
                               fontWeight: 700,
-                              color: "#0f172a",
+                              color: "var(--scout-text-primary)",
                               fontSize: "13px",
                             }}
                           >
@@ -1321,20 +1356,28 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                               style={{
                                 background:
                                   ctx.result === "WIN"
-                                    ? "#dcfce7"
+                                    ? "rgba(34, 197, 94, 0.16)"
                                     : ctx.result === "DRAW"
-                                      ? "#fef3c7"
+                                      ? "rgba(245, 158, 11, 0.16)"
                                       : ctx.result === "LOSS"
-                                        ? "#fee2e2"
-                                        : "#f1f5f9",
+                                        ? "rgba(239, 68, 68, 0.16)"
+                                        : "rgba(255, 255, 255, 0.08)",
                                 color:
                                   ctx.result === "WIN"
-                                    ? "#15803d"
+                                    ? "#4ade80"
                                     : ctx.result === "DRAW"
-                                      ? "#b45309"
+                                      ? "#fbbf24"
                                       : ctx.result === "LOSS"
-                                        ? "#b91c1c"
-                                        : "#64748b",
+                                        ? "#f87171"
+                                        : "var(--scout-text-muted)",
+                                border:
+                                  ctx.result === "WIN"
+                                    ? "1px solid rgba(34, 197, 94, 0.3)"
+                                    : ctx.result === "DRAW"
+                                      ? "1px solid rgba(245, 158, 11, 0.3)"
+                                      : ctx.result === "LOSS"
+                                        ? "1px solid rgba(239, 68, 68, 0.3)"
+                                        : "1px solid var(--scout-border-default)",
                                 fontWeight: 800,
                                 fontSize: "11px",
                                 padding: "2px 8px",
@@ -1358,12 +1401,12 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                               className="scout-b2b-badge-count"
                               style={{
                                 background: item.isStarter
-                                  ? "#eff6ff"
-                                  : "#f1f5f9",
-                                color: item.isStarter ? "#1d4ed8" : "#64748b",
+                                  ? "rgba(59, 130, 246, 0.16)"
+                                  : "rgba(255, 255, 255, 0.06)",
+                                color: item.isStarter ? "#60a5fa" : "var(--scout-text-muted)",
                                 borderColor: item.isStarter
-                                  ? "#bfdbfe"
-                                  : "#e2e8f0",
+                                  ? "rgba(59, 130, 246, 0.3)"
+                                  : "var(--scout-border-default)",
                                 fontSize: "11px",
                               }}
                             >
@@ -1372,7 +1415,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                           </td>
 
                           {/* Minutes */}
-                          <td style={{ fontWeight: 600, color: "#0f172a" }}>
+                          <td style={{ fontWeight: 600, color: "var(--scout-text-secondary)" }}>
                             {item.minutesPlayed}'
                           </td>
 

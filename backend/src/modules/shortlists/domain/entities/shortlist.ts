@@ -20,11 +20,19 @@ export class Shortlist {
   }
 
   private validate(): void {
-    if (!this.ownerId || typeof this.ownerId !== 'string' || this.ownerId.trim() === '') {
+    if (
+      !this.ownerId ||
+      typeof this.ownerId !== 'string' ||
+      this.ownerId.trim() === ''
+    ) {
       throw new InvalidShortlistOwnerError();
     }
 
-    if (!this.name || typeof this.name !== 'string' || this.name.trim() === '') {
+    if (
+      !this.name ||
+      typeof this.name !== 'string' ||
+      this.name.trim() === ''
+    ) {
       throw new InvalidShortlistNameError();
     }
   }

@@ -158,7 +158,9 @@ describe('TypeOrmPlayerReadRepository (Unit)', () => {
         offset: 0,
       });
 
-      expect(mockOrmRepository.createQueryBuilder).toHaveBeenCalledWith('player');
+      expect(mockOrmRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'player',
+      );
       expect(mockQueryBuilder.innerJoin).toHaveBeenCalledWith(
         'player_season_statistics',
         'pss',

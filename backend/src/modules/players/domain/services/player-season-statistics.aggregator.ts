@@ -39,7 +39,9 @@ export class PlayerSeasonStatisticsAggregator {
   /**
    * Pure deterministic aggregation from trusted match statistics into season summary
    */
-  static aggregate(matchStats: PlayerMatchStatisticOrmEntity[]): AggregatedSeasonStats {
+  static aggregate(
+    matchStats: PlayerMatchStatisticOrmEntity[],
+  ): AggregatedSeasonStats {
     const list = Array.isArray(matchStats) ? matchStats : [];
 
     let matchesPlayed = 0;
@@ -132,10 +134,11 @@ export class PlayerSeasonStatisticsAggregator {
 
       if (hasGkStats) {
         savesPer90 = this.roundToTwoDecimals(saves * per90Factor);
-        goalsConcededPer90 = this.roundToTwoDecimals(goalsConceded * per90Factor);
+        goalsConcededPer90 = this.roundToTwoDecimals(
+          goalsConceded * per90Factor,
+        );
       }
     }
-
 
     // GK Save Percentage Calculation: only when (saves + goalsConceded) > 0
     let savePercentage: number | null = null;
@@ -162,7 +165,10 @@ export class PlayerSeasonStatisticsAggregator {
       yellowCards,
       redCards,
       duelsWon,
-      advancedStatistics: Object.keys(mergedAdvancedStats).length > 0 ? mergedAdvancedStats : null,
+      advancedStatistics:
+        Object.keys(mergedAdvancedStats).length > 0
+          ? mergedAdvancedStats
+          : null,
 
       goalsPer90,
       assistsPer90,

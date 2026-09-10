@@ -110,6 +110,8 @@ describe('SearchPlayersUseCase (Unit)', () => {
       findSeasonStatisticsByCompetitionAndSeason: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
+      getDistinctPositions: jest.fn(),
+      queryPlayers: jest.fn(),
     };
     mockCompRepo = {
       findAll: jest.fn(),

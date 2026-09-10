@@ -59,7 +59,10 @@ export class PlayerItemDto {
   @ApiProperty({ description: 'Vị trí sở trường chính', nullable: true })
   primaryPosition: string | null;
 
-  @ApiProperty({ description: 'Nhóm vị trí (GOALKEEPER, DEFENDER, MIDFIELDER, FORWARD)', nullable: true })
+  @ApiProperty({
+    description: 'Nhóm vị trí (GOALKEEPER, DEFENDER, MIDFIELDER, FORWARD)',
+    nullable: true,
+  })
   positionGroup?: string | null;
 
   @ApiProperty({

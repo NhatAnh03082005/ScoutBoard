@@ -41,7 +41,8 @@ export class ApiFootballPlayerMatchStatisticMapper {
     const penalty = stat.penalty || {};
 
     const isGoalkeeper = games.position === 'G';
-    const minutesPlayed = games.minutes !== undefined && games.minutes !== null ? games.minutes : 0;
+    const minutesPlayed =
+      games.minutes !== undefined && games.minutes !== null ? games.minutes : 0;
     const isStarter = games.substitute === false;
 
     // Outfield vs Goalkeeper specific logic
@@ -54,13 +55,17 @@ export class ApiFootballPlayerMatchStatisticMapper {
     if (isGoalkeeper) {
       saves = goals.saves ?? 0;
       goalsConceded = goals.conceded ?? 0;
-      cleanSheets = (goalsConceded === 0 && minutesPlayed >= 45) ? 1 : 0;
+      cleanSheets = goalsConceded === 0 && minutesPlayed >= 45 ? 1 : 0;
       penaltiesSaved = penalty.saved ?? 0;
       penaltiesFaced = (penalty.saved ?? 0) + (penalty.commited ?? 0);
     }
 
-    const passesAttempted = passes.total !== undefined && passes.total !== null ? passes.total : null;
-    const passesCompleted = this.parsePassesCompleted(passesAttempted, passes.accuracy ?? null);
+    const passesAttempted =
+      passes.total !== undefined && passes.total !== null ? passes.total : null;
+    const passesCompleted = this.parsePassesCompleted(
+      passesAttempted,
+      passes.accuracy ?? null,
+    );
 
     return {
       externalProvider: 'API_FOOTBALL',

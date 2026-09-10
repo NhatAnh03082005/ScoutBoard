@@ -36,9 +36,13 @@ export class ApiFootballPlayerSyncService {
     options: { fetchTransfers?: boolean } = {},
   ): Promise<PlayerSyncResult> {
     const teamExtId = String(teamExternalId);
-    this.logger.log(`Fetching squad for team ${teamExtId} from API-Football...`);
+    this.logger.log(
+      `Fetching squad for team ${teamExtId} from API-Football...`,
+    );
 
-    const res = await this.apiClient.getSquadByTeam({ team: parseInt(teamExtId, 10) });
+    const res = await this.apiClient.getSquadByTeam({
+      team: parseInt(teamExtId, 10),
+    });
     const teamResponse = res?.response?.[0];
     const squadPlayers = teamResponse?.players || [];
 
@@ -57,10 +61,8 @@ export class ApiFootballPlayerSyncService {
       const playerName = sp.name || 'Unknown';
 
       try {
-        const transformed = ApiFootballPlayerMapper.toTransformedPlayerFromSquad(
-          sp,
-          teamExtId,
-        );
+        const transformed =
+          ApiFootballPlayerMapper.toTransformedPlayerFromSquad(sp, teamExtId);
 
         const persistRes = await this.persistPlayerUseCase.execute(transformed);
         const internalPlayerId = persistRes.id;
@@ -113,7 +115,9 @@ export class ApiFootballPlayerSyncService {
                   await this.persistPlayerTeamHistoryUseCase.execute({
                     playerId: internalPlayerId,
                     startDate: t.date,
-                    teamExternalId: t.teams?.in?.id ? String(t.teams.in.id) : undefined,
+                    teamExternalId: t.teams?.in?.id
+                      ? String(t.teams.in.id)
+                      : undefined,
                     isCurrent: false,
                     externalProvider: 'API_FOOTBALL',
                   });

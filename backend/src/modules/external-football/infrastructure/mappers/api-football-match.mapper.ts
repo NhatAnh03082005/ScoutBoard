@@ -44,7 +44,9 @@ export class ApiFootballMatchMapper {
       throw new Error('Invalid API-Football fixture: missing fixture id');
     }
     if (!item?.teams?.home?.id || !item?.teams?.away?.id) {
-      throw new Error('Invalid API-Football fixture: missing home or away team id');
+      throw new Error(
+        'Invalid API-Football fixture: missing home or away team id',
+      );
     }
 
     return {

@@ -12,7 +12,8 @@ export class ShortlistPlayer {
   }
 
   updateNote(newNote: string | null): void {
-    this.note = newNote !== undefined && newNote !== null ? newNote.trim() : null;
+    this.note =
+      newNote !== undefined && newNote !== null ? newNote.trim() : null;
   }
 
   toJSON() {

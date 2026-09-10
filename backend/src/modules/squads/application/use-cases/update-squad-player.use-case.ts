@@ -7,7 +7,10 @@ import {
   SQUAD_PLAYER_REPOSITORY,
   SquadPlayerRepository,
 } from '../../domain/repositories/squad-player.repository';
-import { SquadPlayer, SquadPlayerRole } from '../../domain/entities/squad-player';
+import {
+  SquadPlayer,
+  SquadPlayerRole,
+} from '../../domain/entities/squad-player';
 import {
   SquadNotFoundError,
   PlayerNotInSquadError,
@@ -48,9 +51,11 @@ export class UpdateSquadPlayerUseCase {
       throw new PlayerNotInSquadError(input.playerId, input.squadId);
     }
 
-    const nextRole = input.role !== undefined ? input.role : squadPlayer.getRole();
-    const nextSlotCode = input.slotCode !== undefined ? input.slotCode : squadPlayer.getSlotCode();
-    
+    const nextRole =
+      input.role !== undefined ? input.role : squadPlayer.getRole();
+    const nextSlotCode =
+      input.slotCode !== undefined ? input.slotCode : squadPlayer.getSlotCode();
+
     let nextIsCaptain: boolean;
     if (input.isCaptain !== undefined) {
       nextIsCaptain = input.isCaptain;
@@ -67,7 +72,10 @@ export class UpdateSquadPlayerUseCase {
         nextSlotCode,
       );
       if (occupied && occupied.playerId !== input.playerId) {
-        throw new SquadStarterSlotAlreadyOccupiedError(nextSlotCode, input.squadId);
+        throw new SquadStarterSlotAlreadyOccupiedError(
+          nextSlotCode,
+          input.squadId,
+        );
       }
     }
 
@@ -76,9 +84,8 @@ export class UpdateSquadPlayerUseCase {
       if (nextRole !== 'STARTER') {
         throw new CaptainMustBeStarterError();
       }
-      const existingCaptain = await this.squadPlayerRepository.findCaptainBySquadId(
-        input.squadId,
-      );
+      const existingCaptain =
+        await this.squadPlayerRepository.findCaptainBySquadId(input.squadId);
       if (existingCaptain && existingCaptain.playerId !== input.playerId) {
         // Switch captaincy cleanly: unset the previous captain
         existingCaptain.setCaptain(false);

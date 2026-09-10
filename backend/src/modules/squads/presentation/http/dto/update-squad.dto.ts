@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsOptional, IsString, IsEnum, MaxLength, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsEnum,
+  MaxLength,
+  IsUUID,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SquadVisibilityEnum, FormationCodeEnum } from './create-squad.dto';
 
@@ -16,11 +23,13 @@ export class UpdateSquadDto {
   @ApiPropertyOptional({
     enum: FormationCodeEnum,
     example: '4-2-3-1',
-    description: 'Tactical formation code (4-3-3, 4-2-3-1, 4-4-2, 3-5-2, 3-4-3)',
+    description:
+      'Tactical formation code (4-3-3, 4-2-3-1, 4-4-2, 3-5-2, 3-4-3)',
   })
   @IsOptional()
   @IsEnum(FormationCodeEnum, {
-    message: 'Formation code must be one of: 4-3-3, 4-2-3-1, 4-4-2, 3-5-2, 3-4-3',
+    message:
+      'Formation code must be one of: 4-3-3, 4-2-3-1, 4-4-2, 3-5-2, 3-4-3',
   })
   formationCode?: FormationCodeEnum;
 

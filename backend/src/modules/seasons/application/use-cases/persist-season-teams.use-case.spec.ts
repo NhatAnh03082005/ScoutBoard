@@ -77,6 +77,8 @@ describe('PersistSeasonTeamsUseCase', () => {
       }),
     ).rejects.toThrow(BadRequestException);
 
-    await expect(useCase.execute(null as any)).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });

@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsEnum, MaxLength, IsNotEmpty } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  MaxLength,
+  IsNotEmpty,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ShortlistVisibilityEnum } from './create-shortlist.dto';
 

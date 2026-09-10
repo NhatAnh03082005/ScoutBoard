@@ -455,6 +455,15 @@ export default function App() {
                 setSelectedShortlistId(null);
                 window.history.pushState({}, '', '/MyShortlists');
               }}
+              onSelectPlayer={(playerId) => {
+                setSelectedPlayerIdForSearch(playerId);
+                setActiveTab('players');
+                window.history.pushState({}, '', '/players/' + playerId);
+              }}
+              onNavigateToSearch={() => {
+                setActiveTab('players');
+                window.history.pushState({}, '', '/players');
+              }}
               isAuthenticated={!!user}
               onNavigateToLogin={() => setActiveTab('login')}
             />
@@ -546,16 +555,16 @@ export default function App() {
               </div>
             )}
 
-            <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>Account Profile</h3>
+            <div className="card scout-card" style={{ background: 'var(--scout-surface-card)', borderRadius: '16px', padding: '24px', border: '1px solid var(--scout-border-default)', boxShadow: 'var(--scout-shadow-subtle)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#ffffff', fontWeight: 700 }}>Account Profile</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '13px' }}>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Email</span>
-                  <strong style={{ color: '#0f172a' }}>{user.email}</strong>
+                  <strong style={{ color: '#ffffff' }}>{user.email}</strong>
                 </div>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Full Name</span>
-                  <strong style={{ color: '#0f172a' }}>{user.fullName || '—'}</strong>
+                  <strong style={{ color: '#ffffff' }}>{user.fullName || '—'}</strong>
                 </div>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Status</span>
@@ -565,7 +574,7 @@ export default function App() {
                   <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Roles</span>
                   <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                     {user.roles?.map((r) => (
-                      <span key={r} className="scout-badge" style={{ background: '#eff6ff', color: '#1d4ed8' }}>{r}</span>
+                      <span key={r} className="scout-badge" style={{ background: 'rgba(37, 99, 235, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)' }}>{r}</span>
                     ))}
                   </div>
                 </div>
@@ -603,8 +612,8 @@ export default function App() {
             {/* Sub-Tab 2: User Management */}
             {adminSubTab === 'users' && (
               <>
-                <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
-                  <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>User Management Filters</h3>
+                <div className="card scout-card" style={{ background: 'var(--scout-surface-control)', borderRadius: '16px', padding: '20px', border: '1px solid var(--scout-border-default)', boxShadow: 'var(--scout-shadow-subtle)', marginBottom: '20px' }}>
+                  <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: '#ffffff', fontWeight: 700 }}>User Management Filters</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                     <input
                       type="text"
@@ -637,9 +646,9 @@ export default function App() {
                 </div>
 
                 {/* Admin Table */}
-                <div className="card" style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <div className="card scout-card" style={{ background: 'var(--scout-surface-card)', borderRadius: '16px', padding: '20px', border: '1px solid var(--scout-border-default)', boxShadow: 'var(--scout-shadow-subtle)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>User List ({adminUsers.length})</h3>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#ffffff', fontWeight: 700 }}>User List ({adminUsers.length})</h3>
                     <button
                       type="button"
                       onClick={fetchAdminUsers}
@@ -652,7 +661,7 @@ export default function App() {
               <div style={{ overflowX: 'auto' }}>
                 <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', fontSize: '12px' }}>
+                    <tr style={{ borderBottom: '1px solid var(--scout-border-default)', color: 'var(--scout-text-muted)', fontSize: '12px' }}>
                       <th style={{ padding: '10px 8px' }}>Email</th>
                       <th style={{ padding: '10px 8px' }}>Full Name</th>
                       <th style={{ padding: '10px 8px' }}>Status</th>
@@ -664,9 +673,9 @@ export default function App() {
                     {adminUsers.map((u) => {
                       const userIsAdmin = u.roles?.includes('ADMIN') ?? u.userRoles?.some((ur) => ur.role?.code === 'ADMIN');
                       return (
-                        <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9', fontSize: '13px' }}>
-                          <td style={{ padding: '10px 8px', fontWeight: 600, color: '#0f172a' }}>{u.email}</td>
-                          <td style={{ padding: '10px 8px', color: '#475569' }}>{u.fullName || '—'}</td>
+                        <tr key={u.id} style={{ borderBottom: '1px solid var(--scout-border-subtle)', fontSize: '13px' }}>
+                          <td style={{ padding: '10px 8px', fontWeight: 600, color: '#ffffff' }}>{u.email}</td>
+                          <td style={{ padding: '10px 8px', color: 'var(--scout-text-secondary)' }}>{u.fullName || '—'}</td>
                           <td style={{ padding: '10px 8px' }}>
                             <span className={`scout-badge ${u.status === 'ACTIVE' ? 'scout-badge-active' : 'scout-badge-locked'}`}>
                               {u.status}

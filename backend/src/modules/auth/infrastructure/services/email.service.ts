@@ -28,7 +28,9 @@ export class EmailService {
         });
         this.logger.log(`SMTP configured for host: ${host}:${port}`);
       } catch (err: any) {
-        this.logger.warn(`Failed to initialize SMTP transporter: ${err.message}`);
+        this.logger.warn(
+          `Failed to initialize SMTP transporter: ${err.message}`,
+        );
       }
     } else {
       this.logger.log(

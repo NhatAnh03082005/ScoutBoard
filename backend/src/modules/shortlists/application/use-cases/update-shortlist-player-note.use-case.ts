@@ -29,16 +29,21 @@ export class UpdateShortlistPlayerNoteUseCase {
     private readonly shortlistPlayerRepository: ShortlistPlayerRepository,
   ) {}
 
-  async execute(input: UpdateShortlistPlayerNoteInput): Promise<ShortlistPlayer> {
-    const shortlist = await this.shortlistRepository.findById(input.shortlistId);
+  async execute(
+    input: UpdateShortlistPlayerNoteInput,
+  ): Promise<ShortlistPlayer> {
+    const shortlist = await this.shortlistRepository.findById(
+      input.shortlistId,
+    );
     if (!shortlist || shortlist.getOwnerId() !== input.ownerId) {
       throw new ShortlistNotFoundError(input.shortlistId);
     }
 
-    const shortlistPlayer = await this.shortlistPlayerRepository.findByShortlistAndPlayer(
-      input.shortlistId,
-      input.playerId,
-    );
+    const shortlistPlayer =
+      await this.shortlistPlayerRepository.findByShortlistAndPlayer(
+        input.shortlistId,
+        input.playerId,
+      );
     if (!shortlistPlayer) {
       throw new PlayerNotInShortlistError(input.playerId, input.shortlistId);
     }

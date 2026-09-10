@@ -70,7 +70,6 @@ describe('ApiFootballCompetitionSyncService', () => {
       seasons: [{ id: 'season-uuid-1' }] as any,
     });
 
-
     const res = await service.syncCompetitionById(39);
 
     expect(mockApiClient.getLeagues).toHaveBeenCalledWith({ id: 39 });

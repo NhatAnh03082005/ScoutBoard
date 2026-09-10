@@ -115,7 +115,9 @@ describe('PersistTeamWithSquadUseCase', () => {
   it('should persist team and all squad players linking current_team_id', async () => {
     const result = await useCase.execute(mockTransformedTeam);
 
-    expect(mockPersistTeamUseCase.execute).toHaveBeenCalledWith(mockTransformedTeam);
+    expect(mockPersistTeamUseCase.execute).toHaveBeenCalledWith(
+      mockTransformedTeam,
+    );
     expect(mockPersistPlayerUseCase.executeMany).toHaveBeenCalledWith(
       mockTransformedTeam.squad,
       'team-uuid-123',
@@ -129,26 +131,38 @@ describe('PersistTeamWithSquadUseCase', () => {
     const teamWithoutSquad = { ...mockTransformedTeam, squad: [] };
     const result = await useCase.execute(teamWithoutSquad);
 
-    expect(mockPersistTeamUseCase.execute).toHaveBeenCalledWith(teamWithoutSquad);
+    expect(mockPersistTeamUseCase.execute).toHaveBeenCalledWith(
+      teamWithoutSquad,
+    );
     expect(mockPersistPlayerUseCase.executeMany).not.toHaveBeenCalled();
     expect(result.playersPersisted).toBe(0);
   });
 
   it('should propagate team persistence error and abort squad persistence', async () => {
-    mockPersistTeamUseCase.execute.mockRejectedValue(new Error('DB error on team'));
+    mockPersistTeamUseCase.execute.mockRejectedValue(
+      new Error('DB error on team'),
+    );
 
-    await expect(useCase.execute(mockTransformedTeam)).rejects.toThrow('DB error on team');
+    await expect(useCase.execute(mockTransformedTeam)).rejects.toThrow(
+      'DB error on team',
+    );
     expect(mockPersistPlayerUseCase.executeMany).not.toHaveBeenCalled();
   });
 
   it('should propagate player persistence error', async () => {
-    mockPersistPlayerUseCase.executeMany.mockRejectedValue(new Error('DB error on player'));
+    mockPersistPlayerUseCase.executeMany.mockRejectedValue(
+      new Error('DB error on player'),
+    );
 
-    await expect(useCase.execute(mockTransformedTeam)).rejects.toThrow('DB error on player');
+    await expect(useCase.execute(mockTransformedTeam)).rejects.toThrow(
+      'DB error on player',
+    );
   });
 
   it('should reject invalid team payload', async () => {
-    await expect(useCase.execute(null as any)).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      BadRequestException,
+    );
     await expect(
       useCase.execute({ ...mockTransformedTeam, externalProvider: '' }),
     ).rejects.toThrow(BadRequestException);

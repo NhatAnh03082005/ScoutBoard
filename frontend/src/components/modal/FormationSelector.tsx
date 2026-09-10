@@ -256,9 +256,9 @@ export const FormationSelector: React.FC<FormationSelectorProps> = ({
             style={{
               padding: '28px 16px',
               textAlign: 'center',
-              background: '#f8fafc',
+              background: 'var(--scout-bg-subtle)',
               borderRadius: '8px',
-              border: '1px dashed #cbd5e1',
+              border: '1px dashed var(--scout-border-default)',
             }}
           >
             <p style={{ margin: '0 0 6px', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>

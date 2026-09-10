@@ -27,7 +27,9 @@ export interface PersistBatchPlayerMatchStatisticsResult {
 
 @Injectable()
 export class PersistPlayerMatchStatisticsUseCase {
-  private readonly logger = new Logger(PersistPlayerMatchStatisticsUseCase.name);
+  private readonly logger = new Logger(
+    PersistPlayerMatchStatisticsUseCase.name,
+  );
 
   constructor(
     @Inject(PLAYER_MATCH_STATISTIC_WRITE_REPOSITORY)
@@ -50,7 +52,9 @@ export class PersistPlayerMatchStatisticsUseCase {
     });
 
     if (!match) {
-      throw new NotFoundException(`Canonical Match with ID ${input.matchId} not found`);
+      throw new NotFoundException(
+        `Canonical Match with ID ${input.matchId} not found`,
+      );
     }
 
     // 2. Verify Player exists
@@ -59,7 +63,9 @@ export class PersistPlayerMatchStatisticsUseCase {
     });
 
     if (!player) {
-      throw new NotFoundException(`Canonical Player with ID ${input.playerId} not found`);
+      throw new NotFoundException(
+        `Canonical Player with ID ${input.playerId} not found`,
+      );
     }
 
     // 3. Strict Data Quality Validation
@@ -104,7 +110,9 @@ export class PersistPlayerMatchStatisticsUseCase {
     });
 
     if (!match) {
-      throw new NotFoundException(`Canonical Match with ID ${matchId} not found`);
+      throw new NotFoundException(
+        `Canonical Match with ID ${matchId} not found`,
+      );
     }
 
     const persistedStats: PlayerMatchStatisticOrmEntity[] = [];

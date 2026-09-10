@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class UpgradePassingStatistics1785383500000
-  implements MigrationInterface
-{
+export class UpgradePassingStatistics1785383500000 implements MigrationInterface {
   name = 'UpgradePassingStatistics1785383500000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

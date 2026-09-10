@@ -174,7 +174,10 @@ export function isPlayerInSquad(players: any[], playerId: string): boolean {
   return players.some((p) => p.playerId === playerId);
 }
 
-export function findStarterForSlot(players: any[], slot: FormationSlot): any | undefined {
+export function findStarterForSlot(
+  players: any[],
+  slot: FormationSlot,
+): any | undefined {
   return players.find(
     (p) =>
       p.role === 'STARTER' &&
@@ -193,7 +196,10 @@ export function applyMoveStarter(
 
   const oldSlotCode = source.slotCode;
   const targetOccupant = players.find(
-    (p) => p.role === 'STARTER' && p.slotCode === targetSlotCode && p.playerId !== sourcePlayerId,
+    (p) =>
+      p.role === 'STARTER' &&
+      p.slotCode === targetSlotCode &&
+      p.playerId !== sourcePlayerId,
   );
 
   const nextPlayers = players.map((p) => {
@@ -231,7 +237,10 @@ export function applyBenchToStarter(
   targetSlotCode: string,
 ): { nextPlayers: any[]; displacedStarter?: any } {
   const displacedStarter = players.find(
-    (p) => p.role === 'STARTER' && p.slotCode === targetSlotCode && p.playerId !== playerId,
+    (p) =>
+      p.role === 'STARTER' &&
+      p.slotCode === targetSlotCode &&
+      p.playerId !== playerId,
   );
 
   const nextPlayers = players.map((p) => {
@@ -296,7 +305,10 @@ describe('Tactical Pitch Placement & Mutation Logic', () => {
       it(`should define exactly 11 slots for ${fmt}`, () => {
         const config = FORMATION_CONFIGS[fmt];
         expect(config).toBeDefined();
-        const totalSlots = config.reduce((acc, row) => acc + row.slots.length, 0);
+        const totalSlots = config.reduce(
+          (acc, row) => acc + row.slots.length,
+          0,
+        );
         expect(totalSlots).toBe(11);
       });
     });
@@ -304,7 +316,11 @@ describe('Tactical Pitch Placement & Mutation Logic', () => {
 
   describe('TC-01 & TC-06: Slot Matching & Duplicate Prevention', () => {
     it('TC-01: should match starter slot by slotCode and aliases', () => {
-      const found = findStarterForSlot(initialPlayers, { code: 'CB-1', label: 'CB', aliases: ['LCB'] });
+      const found = findStarterForSlot(initialPlayers, {
+        code: 'CB-1',
+        label: 'CB',
+        aliases: ['LCB'],
+      });
       expect(found).toBeDefined();
       expect(found.playerId).toBe('p-2');
     });
@@ -317,14 +333,22 @@ describe('Tactical Pitch Placement & Mutation Logic', () => {
 
   describe('TC-02 & TC-03: Move Starter & Swap', () => {
     it('TC-03: should move starter to empty slot', () => {
-      const { nextPlayers, swappedPlayer } = applyMoveStarter(initialPlayers, 'p-1', 'LB');
+      const { nextPlayers, swappedPlayer } = applyMoveStarter(
+        initialPlayers,
+        'p-1',
+        'LB',
+      );
       expect(swappedPlayer).toBeUndefined();
       const p1 = nextPlayers.find((p) => p.playerId === 'p-1');
       expect(p1.slotCode).toBe('LB');
     });
 
     it('TC-02: should swap positions when target slot is occupied', () => {
-      const { nextPlayers, swappedPlayer } = applyMoveStarter(initialPlayers, 'p-1', 'CB-1');
+      const { nextPlayers, swappedPlayer } = applyMoveStarter(
+        initialPlayers,
+        'p-1',
+        'CB-1',
+      );
       expect(swappedPlayer).toBeDefined();
       expect(swappedPlayer.playerId).toBe('p-2');
 
@@ -347,7 +371,11 @@ describe('Tactical Pitch Placement & Mutation Logic', () => {
     });
 
     it('TC-05: should promote substitute to starter and displace occupant to bench', () => {
-      const { nextPlayers, displacedStarter } = applyBenchToStarter(initialPlayers, 'p-3', 'CB-1');
+      const { nextPlayers, displacedStarter } = applyBenchToStarter(
+        initialPlayers,
+        'p-3',
+        'CB-1',
+      );
       expect(displacedStarter).toBeDefined();
       expect(displacedStarter.playerId).toBe('p-2');
 
@@ -368,12 +396,18 @@ describe('Tactical Pitch Placement & Mutation Logic', () => {
       const previousSnapshot = [...initialPlayers];
       // Simulate optimistic mutation
       let currentPlayers = applyStarterToBench(initialPlayers, 'p-1');
-      expect(currentPlayers.find((p) => p.playerId === 'p-1')?.role).toBe('SUBSTITUTE');
+      expect(currentPlayers.find((p) => p.playerId === 'p-1')?.role).toBe(
+        'SUBSTITUTE',
+      );
 
       // Simulate API failure -> rollback
       currentPlayers = previousSnapshot;
-      expect(currentPlayers.find((p) => p.playerId === 'p-1')?.role).toBe('STARTER');
-      expect(currentPlayers.find((p) => p.playerId === 'p-1')?.slotCode).toBe('GK');
+      expect(currentPlayers.find((p) => p.playerId === 'p-1')?.role).toBe(
+        'STARTER',
+      );
+      expect(currentPlayers.find((p) => p.playerId === 'p-1')?.slotCode).toBe(
+        'GK',
+      );
     });
   });
 });

@@ -8,9 +8,7 @@ import {
 import { PlayerSeasonStatisticOrmEntity } from '../entities/player-season-statistic.orm-entity';
 
 @Injectable()
-export class TypeOrmPlayerSeasonStatisticWriteRepository
-  implements PlayerSeasonStatisticWriteRepository
-{
+export class TypeOrmPlayerSeasonStatisticWriteRepository implements PlayerSeasonStatisticWriteRepository {
   constructor(
     @InjectRepository(PlayerSeasonStatisticOrmEntity)
     private readonly repository: Repository<PlayerSeasonStatisticOrmEntity>,

@@ -12,10 +12,6 @@ import { ApiFootballClient } from './infrastructure/clients/api-football.client'
     },
     ApiFootballClient,
   ],
-  exports: [
-    API_FOOTBALL_CLIENT,
-    ApiFootballClient,
-  ],
+  exports: [API_FOOTBALL_CLIENT, ApiFootballClient],
 })
 export class ExternalFootballModule {}
-

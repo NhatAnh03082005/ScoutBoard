@@ -103,7 +103,9 @@ describe('TypeOrmTeamWriteRepository', () => {
     };
 
     mockOrmRepository.findOne.mockResolvedValue(existingEntity);
-    mockOrmRepository.save.mockImplementation(async (entity) => entity as TeamOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (entity) => entity as TeamOrmEntity,
+    );
 
     const result = await repository.upsert(mockTransformedTeam);
 

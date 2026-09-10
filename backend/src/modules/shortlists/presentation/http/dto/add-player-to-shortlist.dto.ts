@@ -12,7 +12,8 @@ export class AddPlayerToShortlistDto {
 
   @ApiPropertyOptional({
     example: 'Scouted during Champions League match, excellent agility',
-    description: 'Optional initial scouting note for this player in the shortlist',
+    description:
+      'Optional initial scouting note for this player in the shortlist',
   })
   @IsOptional()
   @IsString({ message: 'Note must be a string' })

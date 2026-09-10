@@ -74,7 +74,9 @@ describe('TypeOrmPlayerPositionWriteRepository', () => {
       isPrimary: false,
     };
     mockPosRepo.findOne.mockResolvedValue(existing);
-    mockPosRepo.save.mockImplementation(async (e) => e as PlayerPositionOrmEntity);
+    mockPosRepo.save.mockImplementation(
+      async (e) => e as PlayerPositionOrmEntity,
+    );
 
     const result = await repository.upsert(mockPlayerId, 'ST', true);
 
@@ -128,8 +130,12 @@ describe('TypeOrmPlayerPositionWriteRepository', () => {
 
   it('TC-08 & TC-09: should batch upsert positions and deduplicate items in input', async () => {
     mockPosRepo.findOne.mockResolvedValue(null);
-    mockPosRepo.create.mockImplementation((e) => ({ ...e, id: 'pos-gen' } as any));
-    mockPosRepo.save.mockImplementation(async (e) => e as PlayerPositionOrmEntity);
+    mockPosRepo.create.mockImplementation(
+      (e) => ({ ...e, id: 'pos-gen' }) as any,
+    );
+    mockPosRepo.save.mockImplementation(
+      async (e) => e as PlayerPositionOrmEntity,
+    );
 
     const results = await repository.upsertMany([
       { playerId: mockPlayerId, positionCode: 'CB', isPrimary: true },

@@ -27,23 +27,40 @@ export class PlayerMatchStatisticsQualityValidator {
   /**
    * Pure deterministic validator for player match statistics invariants
    */
-  static validate(input: ValidatePlayerMatchStatisticInput): PlayerMatchStatisticValidationResult {
+  static validate(
+    input: ValidatePlayerMatchStatisticInput,
+  ): PlayerMatchStatisticValidationResult {
     const errors: string[] = [];
 
     // Invariant 0: Required UUID identifiers
-    if (!input.matchId || typeof input.matchId !== 'string' || input.matchId.trim() === '') {
+    if (
+      !input.matchId ||
+      typeof input.matchId !== 'string' ||
+      input.matchId.trim() === ''
+    ) {
       errors.push('Invalid matchId: UUID string required');
     }
-    if (!input.playerId || typeof input.playerId !== 'string' || input.playerId.trim() === '') {
+    if (
+      !input.playerId ||
+      typeof input.playerId !== 'string' ||
+      input.playerId.trim() === ''
+    ) {
       errors.push('Invalid playerId: UUID string required');
     }
-    if (!input.teamId || typeof input.teamId !== 'string' || input.teamId.trim() === '') {
+    if (
+      !input.teamId ||
+      typeof input.teamId !== 'string' ||
+      input.teamId.trim() === ''
+    ) {
       errors.push('Invalid teamId: UUID string required');
     }
 
     // Invariant 9: Player must belong to one of the canonical match teams
     if (input.matchHomeTeamId && input.matchAwayTeamId) {
-      if (input.teamId !== input.matchHomeTeamId && input.teamId !== input.matchAwayTeamId) {
+      if (
+        input.teamId !== input.matchHomeTeamId &&
+        input.teamId !== input.matchAwayTeamId
+      ) {
         errors.push(
           `Team mismatch: Player assigned to team ${input.teamId} which is neither Home (${input.matchHomeTeamId}) nor Away (${input.matchAwayTeamId}) team of match ${input.matchId}`,
         );
@@ -51,7 +68,10 @@ export class PlayerMatchStatisticsQualityValidator {
     }
 
     // Invariant 13: Reconciled match must not be ambiguous or unmatched
-    if (input.reconciliationStatus && input.reconciliationStatus !== 'MATCHED') {
+    if (
+      input.reconciliationStatus &&
+      input.reconciliationStatus !== 'MATCHED'
+    ) {
       errors.push(
         `Invalid match reconciliation status: Cannot persist statistics for match status "${input.reconciliationStatus}"`,
       );
@@ -60,7 +80,9 @@ export class PlayerMatchStatisticsQualityValidator {
     // Invariant 4: minutes_played >= 0 (no negative values allowed)
     if (input.minutesPlayed !== undefined && input.minutesPlayed !== null) {
       if (input.minutesPlayed < 0 || !Number.isInteger(input.minutesPlayed)) {
-        errors.push(`Invalid minutesPlayed (${input.minutesPlayed}): must be an integer >= 0`);
+        errors.push(
+          `Invalid minutesPlayed (${input.minutesPlayed}): must be an integer >= 0`,
+        );
       }
     }
 
@@ -72,7 +94,9 @@ export class PlayerMatchStatisticsQualityValidator {
       input.passesCompleted !== null
     ) {
       if (input.passesAttempted < 0 || input.passesCompleted < 0) {
-        errors.push('Invalid pass counts: passesAttempted and passesCompleted cannot be negative');
+        errors.push(
+          'Invalid pass counts: passesAttempted and passesCompleted cannot be negative',
+        );
       } else if (input.passesCompleted > input.passesAttempted) {
         errors.push(
           `Invalid pass invariant: passesCompleted (${input.passesCompleted}) cannot exceed passesAttempted (${input.passesAttempted})`,
@@ -88,7 +112,9 @@ export class PlayerMatchStatisticsQualityValidator {
       input.shotsOnTarget !== null
     ) {
       if (input.shots < 0 || input.shotsOnTarget < 0) {
-        errors.push('Invalid shot counts: shots and shotsOnTarget cannot be negative');
+        errors.push(
+          'Invalid shot counts: shots and shotsOnTarget cannot be negative',
+        );
       } else if (input.shotsOnTarget > input.shots) {
         errors.push(
           `Invalid shot invariant: shotsOnTarget (${input.shotsOnTarget}) cannot exceed total shots (${input.shots})`,
@@ -115,21 +141,27 @@ export class PlayerMatchStatisticsQualityValidator {
     // Invariant 5: saves >= 0 (GK)
     if (input.saves !== undefined && input.saves !== null) {
       if (input.saves < 0 || !Number.isInteger(input.saves)) {
-        errors.push(`Invalid saves count (${input.saves}): must be an integer >= 0`);
+        errors.push(
+          `Invalid saves count (${input.saves}): must be an integer >= 0`,
+        );
       }
     }
 
     // Invariant 6: goals_conceded >= 0 (GK)
     if (input.goalsConceded !== undefined && input.goalsConceded !== null) {
       if (input.goalsConceded < 0 || !Number.isInteger(input.goalsConceded)) {
-        errors.push(`Invalid goalsConceded (${input.goalsConceded}): must be an integer >= 0`);
+        errors.push(
+          `Invalid goalsConceded (${input.goalsConceded}): must be an integer >= 0`,
+        );
       }
     }
 
     // Invariant 7: clean_sheets consistency with GK semantics
     if (input.cleanSheets !== undefined && input.cleanSheets !== null) {
       if (input.cleanSheets < 0 || input.cleanSheets > 1) {
-        errors.push(`Invalid cleanSheets (${input.cleanSheets}): single match clean_sheets must be 0 or 1`);
+        errors.push(
+          `Invalid cleanSheets (${input.cleanSheets}): single match clean_sheets must be 0 or 1`,
+        );
       } else if (
         input.cleanSheets === 1 &&
         input.goalsConceded !== undefined &&
@@ -150,7 +182,9 @@ export class PlayerMatchStatisticsQualityValidator {
       input.penaltiesFaced !== null
     ) {
       if (input.penaltiesSaved < 0 || input.penaltiesFaced < 0) {
-        errors.push('Invalid penalty counts: penaltiesSaved and penaltiesFaced cannot be negative');
+        errors.push(
+          'Invalid penalty counts: penaltiesSaved and penaltiesFaced cannot be negative',
+        );
       } else if (input.penaltiesSaved > input.penaltiesFaced) {
         errors.push(
           `Invalid penalty invariant: penaltiesSaved (${input.penaltiesSaved}) cannot exceed penaltiesFaced (${input.penaltiesFaced})`,

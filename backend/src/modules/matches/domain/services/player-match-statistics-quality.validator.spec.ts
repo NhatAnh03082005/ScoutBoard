@@ -22,7 +22,8 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
   };
 
   it('TC-00: valid record passes validation with no errors', () => {
-    const result = PlayerMatchStatisticsQualityValidator.validate(validBaseInput);
+    const result =
+      PlayerMatchStatisticsQualityValidator.validate(validBaseInput);
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
   });
@@ -35,7 +36,11 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('passesCompleted (35) cannot exceed passesAttempted (30)')]),
+      expect.arrayContaining([
+        expect.stringContaining(
+          'passesCompleted (35) cannot exceed passesAttempted (30)',
+        ),
+      ]),
     );
   });
 
@@ -47,7 +52,11 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('shotsOnTarget (3) cannot exceed total shots (2)')]),
+      expect.arrayContaining([
+        expect.stringContaining(
+          'shotsOnTarget (3) cannot exceed total shots (2)',
+        ),
+      ]),
     );
   });
 
@@ -60,7 +69,9 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('goals (3) cannot exceed shotsOnTarget (2)')]),
+      expect.arrayContaining([
+        expect.stringContaining('goals (3) cannot exceed shotsOnTarget (2)'),
+      ]),
     );
   });
 
@@ -71,7 +82,9 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('Invalid minutesPlayed (-10)')]),
+      expect.arrayContaining([
+        expect.stringContaining('Invalid minutesPlayed (-10)'),
+      ]),
     );
   });
 
@@ -82,7 +95,9 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('Invalid saves count (-3)')]),
+      expect.arrayContaining([
+        expect.stringContaining('Invalid saves count (-3)'),
+      ]),
     );
   });
 
@@ -93,7 +108,9 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('Invalid goalsConceded (-1)')]),
+      expect.arrayContaining([
+        expect.stringContaining('Invalid goalsConceded (-1)'),
+      ]),
     );
   });
 
@@ -105,7 +122,11 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('cleanSheets cannot be 1 when goalsConceded is 2')]),
+      expect.arrayContaining([
+        expect.stringContaining(
+          'cleanSheets cannot be 1 when goalsConceded is 2',
+        ),
+      ]),
     );
   });
 
@@ -117,7 +138,11 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('penaltiesSaved (3) cannot exceed penaltiesFaced (2)')]),
+      expect.arrayContaining([
+        expect.stringContaining(
+          'penaltiesSaved (3) cannot exceed penaltiesFaced (2)',
+        ),
+      ]),
     );
   });
 
@@ -130,7 +155,11 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('Team mismatch: Player assigned to team other-unrelated-team-uuid')]),
+      expect.arrayContaining([
+        expect.stringContaining(
+          'Team mismatch: Player assigned to team other-unrelated-team-uuid',
+        ),
+      ]),
     );
   });
 
@@ -141,7 +170,11 @@ describe('PlayerMatchStatisticsQualityValidator (Task 6.11 Data Quality & Invari
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toEqual(
-      expect.arrayContaining([expect.stringContaining('Cannot persist statistics for match status "AMBIGUOUS"')]),
+      expect.arrayContaining([
+        expect.stringContaining(
+          'Cannot persist statistics for match status "AMBIGUOUS"',
+        ),
+      ]),
     );
   });
 });

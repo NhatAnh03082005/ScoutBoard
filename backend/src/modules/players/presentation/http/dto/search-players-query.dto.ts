@@ -41,7 +41,8 @@ export class SearchPlayersQueryDto {
   currentTeamId?: string;
 
   @ApiPropertyOptional({
-    description: 'Vị trí thi đấu (GK, CB, LB, RB, LWB, RWB, CDM, CM, CAM, LM, RM, ST, CF, LW, RW)',
+    description:
+      'Vị trí thi đấu (GK, CB, LB, RB, LWB, RWB, CDM, CM, CAM, LM, RM, ST, CF, LW, RW)',
   })
   @IsOptional()
   @IsString()

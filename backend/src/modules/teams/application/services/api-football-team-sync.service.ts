@@ -1,4 +1,9 @@
-import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   API_FOOTBALL_CLIENT,
   ApiFootballClientPort,
@@ -56,7 +61,8 @@ export class ApiFootballTeamSyncService {
     this.logger.log(`Received ${teamItems.length} teams from API-Football`);
 
     const results: TeamSyncResultItem[] = [];
-    const errors: { externalId: string; teamName?: string; error: string }[] = [];
+    const errors: { externalId: string; teamName?: string; error: string }[] =
+      [];
     const persistedTeamIds: string[] = [];
 
     for (const item of teamItems) {
@@ -65,7 +71,8 @@ export class ApiFootballTeamSyncService {
 
       try {
         const transformed = ApiFootballTeamMapper.toTransformedTeam(item);
-        const persistResult = await this.persistTeamUseCase.execute(transformed);
+        const persistResult =
+          await this.persistTeamUseCase.execute(transformed);
 
         results.push({
           externalId: extId,
@@ -73,7 +80,6 @@ export class ApiFootballTeamSyncService {
           teamName: transformed.name,
         });
         persistedTeamIds.push(persistResult.id);
-
       } catch (err: any) {
         this.logger.error(
           `Failed to persist team ${teamName} (${extId}): ${err.message}`,

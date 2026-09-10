@@ -27,7 +27,13 @@ describe('ApiFootballPlayerMatchStatisticMapper', () => {
         dribbles: { attempts: 2, success: 1, past: null },
         fouls: { drawn: 1, committed: 0 },
         cards: { yellow: 0, red: 0 },
-        penalty: { won: null, commited: null, scored: 0, missed: 0, saved: null },
+        penalty: {
+          won: null,
+          commited: null,
+          scored: 0,
+          missed: 0,
+          saved: null,
+        },
       },
     ],
   };

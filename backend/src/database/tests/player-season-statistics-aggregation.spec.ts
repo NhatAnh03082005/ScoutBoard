@@ -33,10 +33,16 @@ describe('PlayerSeasonStatisticsAggregation (Live PostgreSQL Integration)', () =
     const teamRepo = AppDataSource.getRepository(TeamOrmEntity);
     const playerRepo = AppDataSource.getRepository(PlayerOrmEntity);
     const matchRepo = AppDataSource.getRepository(MatchOrmEntity);
-    const matchStatRepo = AppDataSource.getRepository(PlayerMatchStatisticOrmEntity);
-    const seasonStatRepo = AppDataSource.getRepository(PlayerSeasonStatisticOrmEntity);
+    const matchStatRepo = AppDataSource.getRepository(
+      PlayerMatchStatisticOrmEntity,
+    );
+    const seasonStatRepo = AppDataSource.getRepository(
+      PlayerSeasonStatisticOrmEntity,
+    );
 
-    const writeRepo = new TypeOrmPlayerSeasonStatisticWriteRepository(seasonStatRepo);
+    const writeRepo = new TypeOrmPlayerSeasonStatisticWriteRepository(
+      seasonStatRepo,
+    );
     aggService = new PlayerSeasonStatisticsAggregationService(
       writeRepo,
       matchStatRepo,

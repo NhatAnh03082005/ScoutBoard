@@ -58,8 +58,8 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
   return (
     <div
       style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
+        background: 'var(--scout-surface-card)',
+        border: '1px solid var(--scout-border-default)',
         borderRadius: '16px',
         padding: '24px',
         boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
@@ -100,9 +100,9 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
           </span>
           <span
             style={{
-              background: '#eff6ff',
-              color: '#2563eb',
-              border: '1px solid #bfdbfe',
+              background: 'rgba(59, 130, 246, 0.16)',
+              color: '#60a5fa',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
               borderRadius: '9999px',
               padding: '4px 12px',
               fontWeight: 700,
@@ -144,18 +144,20 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
               type="button"
               onClick={() => onScopeChange('COMPETITION')}
               className={`scout-tab-segmented-btn ${scope === 'COMPETITION' ? 'active' : ''}`}
+              title="Compare metrics specifically within the selected competition"
               style={{ flex: 1, height: '100%', fontSize: '11.5px', letterSpacing: '0.04em', textTransform: 'uppercase' }}
             >
-              Specific Competition
+              🏆 Same Competition
             </button>
 
             <button
               type="button"
               onClick={() => onScopeChange('ALL')}
               className={`scout-tab-segmented-btn ${scope === 'ALL' ? 'active' : ''}`}
+              title="Compare season-wide metrics aggregated across all competitions"
               style={{ flex: 1, height: '100%', fontSize: '11.5px', letterSpacing: '0.04em', textTransform: 'uppercase' }}
             >
-              All Competitions
+              🌐 Whole Season
             </button>
           </div>
         </div>
@@ -181,13 +183,13 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
             style={{
               height: '40px',
               width: '100%',
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
+              background: 'var(--scout-surface-input)',
+              border: '1px solid var(--scout-border-default)',
               borderRadius: '12px',
               padding: '0 14px',
               fontSize: '12px',
               fontWeight: 700,
-              color: '#1e293b',
+              color: 'var(--scout-text-primary)',
               outline: 'none',
               transition: 'all 0.15s ease',
             }}
@@ -222,13 +224,13 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
               style={{
                 height: '40px',
                 width: '100%',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: 'var(--scout-surface-input)',
+                border: '1px solid var(--scout-border-default)',
                 borderRadius: '12px',
                 padding: '0 14px',
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#1e293b',
+                color: 'var(--scout-text-primary)',
                 outline: 'none',
                 transition: 'all 0.15s ease',
               }}

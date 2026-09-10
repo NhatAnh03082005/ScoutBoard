@@ -60,7 +60,14 @@ describe('UpdateSquadPlayerUseCase', () => {
 
   it('TC-07: Starter -> Substitute conversion resets captain status', async () => {
     mockSquadRepository.findById.mockResolvedValue(validSquad);
-    const player = new SquadPlayer('sp-1', 'squad-1', 'p-1', 'CB-1', 'STARTER', true);
+    const player = new SquadPlayer(
+      'sp-1',
+      'squad-1',
+      'p-1',
+      'CB-1',
+      'STARTER',
+      true,
+    );
     mockSquadPlayerRepository.findBySquadAndPlayer.mockResolvedValue(player);
     mockSquadPlayerRepository.save.mockImplementation(async (sp) => sp);
 
@@ -81,7 +88,15 @@ describe('UpdateSquadPlayerUseCase', () => {
 
   it('TC-08: Substitute -> Starter conversion', async () => {
     mockSquadRepository.findById.mockResolvedValue(validSquad);
-    const player = new SquadPlayer('sp-1', 'squad-1', 'p-1', null, 'SUBSTITUTE', false, 1);
+    const player = new SquadPlayer(
+      'sp-1',
+      'squad-1',
+      'p-1',
+      null,
+      'SUBSTITUTE',
+      false,
+      1,
+    );
     mockSquadPlayerRepository.findBySquadAndPlayer.mockResolvedValue(player);
     mockSquadPlayerRepository.findStarterBySlotCode.mockResolvedValue(null);
     mockSquadPlayerRepository.save.mockImplementation(async (sp) => sp);
@@ -100,7 +115,14 @@ describe('UpdateSquadPlayerUseCase', () => {
 
   it('TC-01: Set captain on starter player', async () => {
     mockSquadRepository.findById.mockResolvedValue(validSquad);
-    const player = new SquadPlayer('sp-1', 'squad-1', 'p-1', 'CM-1', 'STARTER', false);
+    const player = new SquadPlayer(
+      'sp-1',
+      'squad-1',
+      'p-1',
+      'CM-1',
+      'STARTER',
+      false,
+    );
     mockSquadPlayerRepository.findBySquadAndPlayer.mockResolvedValue(player);
     mockSquadPlayerRepository.findCaptainBySquadId.mockResolvedValue(null);
     mockSquadPlayerRepository.save.mockImplementation(async (sp) => sp);
@@ -117,11 +139,27 @@ describe('UpdateSquadPlayerUseCase', () => {
 
   it('TC-02: Change captain seamlessly switches captaincy from existing captain', async () => {
     mockSquadRepository.findById.mockResolvedValue(validSquad);
-    const player2 = new SquadPlayer('sp-2', 'squad-1', 'p-2', 'CM-1', 'STARTER', false);
-    const existingCaptain = new SquadPlayer('sp-1', 'squad-1', 'p-1', 'ST', 'STARTER', true);
+    const player2 = new SquadPlayer(
+      'sp-2',
+      'squad-1',
+      'p-2',
+      'CM-1',
+      'STARTER',
+      false,
+    );
+    const existingCaptain = new SquadPlayer(
+      'sp-1',
+      'squad-1',
+      'p-1',
+      'ST',
+      'STARTER',
+      true,
+    );
 
     mockSquadPlayerRepository.findBySquadAndPlayer.mockResolvedValue(player2);
-    mockSquadPlayerRepository.findCaptainBySquadId.mockResolvedValue(existingCaptain);
+    mockSquadPlayerRepository.findCaptainBySquadId.mockResolvedValue(
+      existingCaptain,
+    );
     mockSquadPlayerRepository.save.mockImplementation(async (sp) => sp);
 
     const result = await useCase.execute({
@@ -133,13 +171,22 @@ describe('UpdateSquadPlayerUseCase', () => {
 
     expect(existingCaptain.getIsCaptain()).toBe(false);
     expect(result.getIsCaptain()).toBe(true);
-    expect(mockSquadPlayerRepository.save).toHaveBeenCalledWith(existingCaptain);
+    expect(mockSquadPlayerRepository.save).toHaveBeenCalledWith(
+      existingCaptain,
+    );
     expect(mockSquadPlayerRepository.save).toHaveBeenCalledWith(player2);
   });
 
   it('TC-03: Remove captaincy from player', async () => {
     mockSquadRepository.findById.mockResolvedValue(validSquad);
-    const player = new SquadPlayer('sp-1', 'squad-1', 'p-1', 'CM-1', 'STARTER', true);
+    const player = new SquadPlayer(
+      'sp-1',
+      'squad-1',
+      'p-1',
+      'CM-1',
+      'STARTER',
+      true,
+    );
     mockSquadPlayerRepository.findBySquadAndPlayer.mockResolvedValue(player);
     mockSquadPlayerRepository.save.mockImplementation(async (sp) => sp);
 
@@ -155,7 +202,14 @@ describe('UpdateSquadPlayerUseCase', () => {
 
   it('TC-04: Try captain on substitute should throw CaptainMustBeStarterError', async () => {
     mockSquadRepository.findById.mockResolvedValue(validSquad);
-    const subPlayer = new SquadPlayer('sp-3', 'squad-1', 'p-3', null, 'SUBSTITUTE', false);
+    const subPlayer = new SquadPlayer(
+      'sp-3',
+      'squad-1',
+      'p-3',
+      null,
+      'SUBSTITUTE',
+      false,
+    );
     mockSquadPlayerRepository.findBySquadAndPlayer.mockResolvedValue(subPlayer);
 
     await expect(

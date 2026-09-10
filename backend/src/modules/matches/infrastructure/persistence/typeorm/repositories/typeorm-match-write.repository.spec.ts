@@ -114,7 +114,9 @@ describe('TypeOrmMatchWriteRepository', () => {
     };
 
     mockOrmRepository.findOne.mockResolvedValue(existingEntity);
-    mockOrmRepository.save.mockImplementation(async (entity) => entity as MatchOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (entity) => entity as MatchOrmEntity,
+    );
 
     const result = await repository.upsert(mockTransformedMatch, mockRefs);
 
@@ -152,7 +154,9 @@ describe('TypeOrmMatchWriteRepository', () => {
     };
 
     mockOrmRepository.findOne.mockResolvedValue(existingEntity);
-    mockOrmRepository.save.mockImplementation(async (entity) => entity as MatchOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (entity) => entity as MatchOrmEntity,
+    );
 
     // Live update 1: IN_PLAY 1-0
     const inPlayMatch: TransformedMatch = {
@@ -187,7 +191,10 @@ describe('TypeOrmMatchWriteRepository', () => {
     const results = await repository.upsertMany([
       { match: mockTransformedMatch, refs: mockRefs },
       { match: mockTransformedMatch, refs: mockRefs }, // duplicate in input
-      { match: { ...mockTransformedMatch, externalId: '327118' }, refs: mockRefs },
+      {
+        match: { ...mockTransformedMatch, externalId: '327118' },
+        refs: mockRefs,
+      },
     ]);
 
     expect(results).toHaveLength(2);

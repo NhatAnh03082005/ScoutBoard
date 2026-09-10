@@ -31,7 +31,8 @@ describe('ApiFootballCompetitionMapper', () => {
   };
 
   it('should correctly map API-Football league to TransformedCompetition', () => {
-    const result = ApiFootballCompetitionMapper.toTransformedCompetition(sampleDto);
+    const result =
+      ApiFootballCompetitionMapper.toTransformedCompetition(sampleDto);
 
     expect(result.externalProvider).toBe('API_FOOTBALL');
     expect(result.externalId).toBe('39');
@@ -39,7 +40,9 @@ describe('ApiFootballCompetitionMapper', () => {
     expect(result.country).toBe('England');
     expect(result.code).toBe('GB-ENG');
     expect(result.type).toBe('LEAGUE');
-    expect(result.logoUrl).toBe('https://media.api-sports.io/football/leagues/39.png');
+    expect(result.logoUrl).toBe(
+      'https://media.api-sports.io/football/leagues/39.png',
+    );
     expect(result.seasons).toHaveLength(2);
     expect(result.seasons[0].externalId).toBe('2024');
     expect(result.seasons[0].seasonCode).toBe('2024-2025');

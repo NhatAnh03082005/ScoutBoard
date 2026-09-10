@@ -1,5 +1,13 @@
-import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
-import { USER_REPOSITORY, UserRepository } from '../../../users/domain/repositories/user.repository';
+import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  USER_REPOSITORY,
+  UserRepository,
+} from '../../../users/domain/repositories/user.repository';
 
 export interface VerifyEmailInput {
   email: string;
@@ -48,7 +56,8 @@ export class VerifyEmailUseCase {
     await this.userRepository.save(user);
 
     return {
-      message: 'Xác thực email thành công! Tài khoản của bạn đã được kích hoạt.',
+      message:
+        'Xác thực email thành công! Tài khoản của bạn đã được kích hoạt.',
       user: user.sanitize(),
     };
   }

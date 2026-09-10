@@ -62,13 +62,28 @@ describe('ShortlistsController (Unit & API Contract)', () => {
       providers: [
         { provide: CreateShortlistUseCase, useValue: mockCreateUseCase },
         { provide: GetShortlistByIdUseCase, useValue: mockGetByIdUseCase },
-        { provide: ListShortlistsByOwnerUseCase, useValue: mockListByOwnerUseCase },
+        {
+          provide: ListShortlistsByOwnerUseCase,
+          useValue: mockListByOwnerUseCase,
+        },
         { provide: UpdateShortlistUseCase, useValue: mockUpdateUseCase },
         { provide: DeleteShortlistUseCase, useValue: mockDeleteUseCase },
-        { provide: AddPlayerToShortlistUseCase, useValue: mockAddPlayerUseCase },
-        { provide: RemovePlayerFromShortlistUseCase, useValue: mockRemovePlayerUseCase },
-        { provide: UpdateShortlistPlayerNoteUseCase, useValue: mockUpdateNoteUseCase },
-        { provide: ListPlayersInShortlistUseCase, useValue: mockListPlayersUseCase },
+        {
+          provide: AddPlayerToShortlistUseCase,
+          useValue: mockAddPlayerUseCase,
+        },
+        {
+          provide: RemovePlayerFromShortlistUseCase,
+          useValue: mockRemovePlayerUseCase,
+        },
+        {
+          provide: UpdateShortlistPlayerNoteUseCase,
+          useValue: mockUpdateNoteUseCase,
+        },
+        {
+          provide: ListPlayersInShortlistUseCase,
+          useValue: mockListPlayersUseCase,
+        },
       ],
     }).compile();
 
@@ -95,7 +110,7 @@ describe('ShortlistsController (Unit & API Contract)', () => {
         owner_id: 'malicious-injected-owner',
       };
 
-      const res = await controller.create(dto as any, reqA as any);
+      const res = await controller.create(dto as any, reqA);
 
       expect(mockCreateUseCase.execute).toHaveBeenCalledWith({
         ownerId: 'user-A',
@@ -114,7 +129,7 @@ describe('ShortlistsController (Unit & API Contract)', () => {
       ];
       mockListByOwnerUseCase.execute.mockResolvedValue(lists);
 
-      const res = await controller.findAll(reqA as any);
+      const res = await controller.findAll(reqA);
 
       expect(mockListByOwnerUseCase.execute).toHaveBeenCalledWith('user-A');
       expect(res.length).toBe(2);
@@ -126,10 +141,12 @@ describe('ShortlistsController (Unit & API Contract)', () => {
       const ownShortlist = new Shortlist('sl-1', 'user-A', 'List 1');
       mockGetByIdUseCase.execute.mockResolvedValue(ownShortlist);
 
-      const ownRes = await controller.findOne('sl-1', reqA as any);
+      const ownRes = await controller.findOne('sl-1', reqA);
       expect(ownRes.id).toBe('sl-1');
 
-      mockGetByIdUseCase.execute.mockRejectedValue(new ShortlistNotFoundError('sl-2'));
+      mockGetByIdUseCase.execute.mockRejectedValue(
+        new ShortlistNotFoundError('sl-2'),
+      );
 
       await expect(controller.findOne('sl-2', reqA as any)).rejects.toThrow(
         NotFoundException,
@@ -148,13 +165,19 @@ describe('ShortlistsController (Unit & API Contract)', () => {
 
       const res = await controller.update(
         'sl-1',
-        { name: 'Updated Name', description: 'Updated Desc', visibility: 'PUBLIC' as any },
-        reqA as any,
+        {
+          name: 'Updated Name',
+          description: 'Updated Desc',
+          visibility: 'PUBLIC' as any,
+        },
+        reqA,
       );
       expect(res.name).toBe('Updated Name');
       expect(res.visibility).toBe('PUBLIC');
 
-      mockUpdateUseCase.execute.mockRejectedValue(new ShortlistNotFoundError('sl-99'));
+      mockUpdateUseCase.execute.mockRejectedValue(
+        new ShortlistNotFoundError('sl-99'),
+      );
 
       await expect(
         controller.update('sl-99', { name: 'Hacked' }, reqA as any),
@@ -164,10 +187,15 @@ describe('ShortlistsController (Unit & API Contract)', () => {
     it('TC-08 & TC-09: Delete Owned Shortlist vs Another User Shortlist', async () => {
       mockDeleteUseCase.execute.mockResolvedValue(undefined);
 
-      const res = await controller.remove('sl-1', reqA as any);
-      expect(res).toEqual({ success: true, message: 'Shortlist deleted successfully' });
+      const res = await controller.remove('sl-1', reqA);
+      expect(res).toEqual({
+        success: true,
+        message: 'Shortlist deleted successfully',
+      });
 
-      mockDeleteUseCase.execute.mockRejectedValue(new ShortlistNotFoundError('sl-99'));
+      mockDeleteUseCase.execute.mockRejectedValue(
+        new ShortlistNotFoundError('sl-99'),
+      );
 
       await expect(controller.remove('sl-99', reqA as any)).rejects.toThrow(
         NotFoundException,
@@ -175,7 +203,9 @@ describe('ShortlistsController (Unit & API Contract)', () => {
     });
 
     it('TC-10: Invalid Input - throws BadRequestException when domain validation fails', async () => {
-      mockCreateUseCase.execute.mockRejectedValue(new InvalidShortlistNameError());
+      mockCreateUseCase.execute.mockRejectedValue(
+        new InvalidShortlistNameError(),
+      );
 
       await expect(
         controller.create({ name: '' } as any, reqA as any),
@@ -188,7 +218,7 @@ describe('ShortlistsController (Unit & API Contract)', () => {
       const players = [{ id: 'sp-1', shortlistId: 'sl-1', playerId: 'p-1' }];
       mockListPlayersUseCase.execute.mockResolvedValue(players);
 
-      const res = await controller.listPlayers('sl-1', reqA as any);
+      const res = await controller.listPlayers('sl-1', reqA);
 
       expect(mockListPlayersUseCase.execute).toHaveBeenCalledWith({
         shortlistId: 'sl-1',
@@ -198,13 +228,19 @@ describe('ShortlistsController (Unit & API Contract)', () => {
     });
 
     it('TC-01: addPlayer - adds player to owned shortlist', async () => {
-      const sp = new ShortlistPlayer('rel-1', 'sl-1', 'player-1', 'Scout note', new Date());
+      const sp = new ShortlistPlayer(
+        'rel-1',
+        'sl-1',
+        'player-1',
+        'Scout note',
+        new Date(),
+      );
       mockAddPlayerUseCase.execute.mockResolvedValue(sp);
 
       const res = await controller.addPlayer(
         'sl-1',
         { playerId: 'player-1', note: 'Scout note' },
-        reqA as any,
+        reqA,
       );
 
       expect(mockAddPlayerUseCase.execute).toHaveBeenCalledWith({
@@ -242,7 +278,7 @@ describe('ShortlistsController (Unit & API Contract)', () => {
     it('TC-05: removePlayer - removes relationship successfully', async () => {
       mockRemovePlayerUseCase.execute.mockResolvedValue(undefined);
 
-      const res = await controller.removePlayer('sl-1', 'player-1', reqA as any);
+      const res = await controller.removePlayer('sl-1', 'player-1', reqA);
 
       expect(mockRemovePlayerUseCase.execute).toHaveBeenCalledWith({
         shortlistId: 'sl-1',
@@ -269,7 +305,7 @@ describe('ShortlistsController (Unit & API Contract)', () => {
         'sl-1',
         'player-1',
         { note: 'Strong 1v1 defender' },
-        reqA as any,
+        reqA,
       );
 
       expect(mockUpdateNoteUseCase.execute).toHaveBeenCalledWith({
@@ -282,10 +318,18 @@ describe('ShortlistsController (Unit & API Contract)', () => {
     });
 
     it('TC-07: cross-user membership operations reject with 404', async () => {
-      mockAddPlayerUseCase.execute.mockRejectedValue(new ShortlistNotFoundError('sl-B'));
-      mockRemovePlayerUseCase.execute.mockRejectedValue(new ShortlistNotFoundError('sl-B'));
-      mockUpdateNoteUseCase.execute.mockRejectedValue(new ShortlistNotFoundError('sl-B'));
-      mockListPlayersUseCase.execute.mockRejectedValue(new ShortlistNotFoundError('sl-B'));
+      mockAddPlayerUseCase.execute.mockRejectedValue(
+        new ShortlistNotFoundError('sl-B'),
+      );
+      mockRemovePlayerUseCase.execute.mockRejectedValue(
+        new ShortlistNotFoundError('sl-B'),
+      );
+      mockUpdateNoteUseCase.execute.mockRejectedValue(
+        new ShortlistNotFoundError('sl-B'),
+      );
+      mockListPlayersUseCase.execute.mockRejectedValue(
+        new ShortlistNotFoundError('sl-B'),
+      );
 
       await expect(
         controller.addPlayer('sl-B', { playerId: 'player-1' }, reqA as any),
@@ -296,12 +340,17 @@ describe('ShortlistsController (Unit & API Contract)', () => {
       ).rejects.toThrow(NotFoundException);
 
       await expect(
-        controller.updatePlayerNote('sl-B', 'player-1', { note: 'test' }, reqA as any),
+        controller.updatePlayerNote(
+          'sl-B',
+          'player-1',
+          { note: 'test' },
+          reqA as any,
+        ),
       ).rejects.toThrow(NotFoundException);
 
-      await expect(
-        controller.listPlayers('sl-B', reqA as any),
-      ).rejects.toThrow(NotFoundException);
+      await expect(controller.listPlayers('sl-B', reqA as any)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

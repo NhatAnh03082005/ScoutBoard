@@ -33,9 +33,13 @@ export class UserMapper {
       entity.updatedAt,
       entity.isEmailVerified ?? false,
       entity.emailVerificationCode ?? null,
-      entity.emailVerificationExpiresAt ? new Date(entity.emailVerificationExpiresAt) : null,
+      entity.emailVerificationExpiresAt
+        ? new Date(entity.emailVerificationExpiresAt)
+        : null,
       entity.passwordResetCode ?? null,
-      entity.passwordResetExpiresAt ? new Date(entity.passwordResetExpiresAt) : null,
+      entity.passwordResetExpiresAt
+        ? new Date(entity.passwordResetExpiresAt)
+        : null,
     );
   }
 

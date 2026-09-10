@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddGoalkeeperColumnsToStatistics1787240000000
-  implements MigrationInterface
-{
+export class AddGoalkeeperColumnsToStatistics1787240000000 implements MigrationInterface {
   name = 'AddGoalkeeperColumnsToStatistics1787240000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

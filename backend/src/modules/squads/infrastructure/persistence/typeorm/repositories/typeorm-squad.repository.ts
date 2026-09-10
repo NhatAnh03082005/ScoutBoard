@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SquadRepository } from '../../../../domain/repositories/squad.repository';
-import { Squad, SquadVisibility, FormationCode } from '../../../../domain/entities/squad';
+import {
+  Squad,
+  SquadVisibility,
+  FormationCode,
+} from '../../../../domain/entities/squad';
 import { SquadOrmEntity } from '../entities/squad.orm-entity';
 import { SquadMapper } from '../mappers/squad.mapper';
 

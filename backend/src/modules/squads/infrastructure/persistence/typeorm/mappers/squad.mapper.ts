@@ -1,4 +1,8 @@
-import { Squad, SquadVisibility, FormationCode } from '../../../../domain/entities/squad';
+import {
+  Squad,
+  SquadVisibility,
+  FormationCode,
+} from '../../../../domain/entities/squad';
 import { SquadOrmEntity } from '../entities/squad.orm-entity';
 
 export class SquadMapper {
@@ -7,7 +11,7 @@ export class SquadMapper {
       entity.id,
       entity.ownerId,
       entity.name,
-      entity.formationCode as FormationCode,
+      entity.formationCode,
       entity.seasonId,
       entity.description,
       entity.visibility as SquadVisibility,

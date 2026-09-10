@@ -11,7 +11,10 @@ import {
   PLAYER_READ_REPOSITORY,
   PlayerReadRepository,
 } from '../../../players/application/ports/player-read.repository';
-import { SquadPlayer, SquadPlayerRole } from '../../domain/entities/squad-player';
+import {
+  SquadPlayer,
+  SquadPlayerRole,
+} from '../../domain/entities/squad-player';
 import {
   SquadNotFoundError,
   PlayerNotFoundError,
@@ -53,21 +56,26 @@ export class AddPlayerToSquadUseCase {
       throw new PlayerNotFoundError(input.playerId);
     }
 
-    const existingPlayerInSquad = await this.squadPlayerRepository.findBySquadAndPlayer(
-      input.squadId,
-      input.playerId,
-    );
+    const existingPlayerInSquad =
+      await this.squadPlayerRepository.findBySquadAndPlayer(
+        input.squadId,
+        input.playerId,
+      );
     if (existingPlayerInSquad) {
       throw new PlayerAlreadyInSquadError(input.playerId, input.squadId);
     }
 
     if (input.role === 'STARTER' && input.slotCode) {
-      const occupiedSlot = await this.squadPlayerRepository.findStarterBySlotCode(
-        input.squadId,
-        input.slotCode,
-      );
+      const occupiedSlot =
+        await this.squadPlayerRepository.findStarterBySlotCode(
+          input.squadId,
+          input.slotCode,
+        );
       if (occupiedSlot) {
-        throw new SquadStarterSlotAlreadyOccupiedError(input.slotCode, input.squadId);
+        throw new SquadStarterSlotAlreadyOccupiedError(
+          input.slotCode,
+          input.squadId,
+        );
       }
     }
 
@@ -75,9 +83,8 @@ export class AddPlayerToSquadUseCase {
       if (input.role !== 'STARTER') {
         throw new CaptainMustBeStarterError();
       }
-      const existingCaptain = await this.squadPlayerRepository.findCaptainBySquadId(
-        input.squadId,
-      );
+      const existingCaptain =
+        await this.squadPlayerRepository.findCaptainBySquadId(input.squadId);
       if (existingCaptain) {
         throw new SquadCaptainAlreadyAssignedError(input.squadId);
       }

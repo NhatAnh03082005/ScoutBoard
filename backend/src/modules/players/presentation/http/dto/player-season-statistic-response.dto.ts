@@ -40,13 +40,23 @@ export class PlayerSeasonStatisticResponseDto {
   @ApiProperty({ description: 'ID bản ghi thống kê mùa' })
   id: string;
 
-  @ApiProperty({ description: 'Thông tin mùa giải', type: SeasonBasicResponseDto })
+  @ApiProperty({
+    description: 'Thông tin mùa giải',
+    type: SeasonBasicResponseDto,
+  })
   season: SeasonBasicResponseDto;
 
-  @ApiProperty({ description: 'Thông tin giải đấu', type: CompetitionBasicResponseDto })
+  @ApiProperty({
+    description: 'Thông tin giải đấu',
+    type: CompetitionBasicResponseDto,
+  })
   competition: CompetitionBasicResponseDto;
 
-  @ApiProperty({ description: 'Thông tin đội bóng', type: TeamBasicInfoDto, nullable: true })
+  @ApiProperty({
+    description: 'Thông tin đội bóng',
+    type: TeamBasicInfoDto,
+    nullable: true,
+  })
   team: TeamBasicInfoDto | null;
 
   @ApiProperty({ description: 'Số trận ra sân (Appearances)' })
@@ -101,13 +111,22 @@ export class PlayerSeasonStatisticResponseDto {
   @ApiProperty({ description: 'Số cú sút / 90 phút', nullable: true })
   shotsPer90: number | null;
 
-  @ApiProperty({ description: 'Số cú sút trúng đích / 90 phút', nullable: true })
+  @ApiProperty({
+    description: 'Số cú sút trúng đích / 90 phút',
+    nullable: true,
+  })
   shotsOnTargetPer90: number | null;
 
-  @ApiProperty({ description: 'Số đường chuyền thực hiện / 90 phút', nullable: true })
+  @ApiProperty({
+    description: 'Số đường chuyền thực hiện / 90 phút',
+    nullable: true,
+  })
   passesPer90: number | null;
 
-  @ApiProperty({ description: 'Số đường chuyền tạo cơ hội / 90 phút', nullable: true })
+  @ApiProperty({
+    description: 'Số đường chuyền tạo cơ hội / 90 phút',
+    nullable: true,
+  })
   keyPassesPer90: number | null;
 
   @ApiProperty({ description: 'Số lần tắc bóng / 90 phút', nullable: true })
@@ -129,7 +148,10 @@ export class PlayerSeasonStatisticResponseDto {
   @ApiProperty({ description: 'Số trận sạch lưới', nullable: true })
   cleanSheets: number | null;
 
-  @ApiProperty({ description: 'Số quả phạt đền cản phá thành công', nullable: true })
+  @ApiProperty({
+    description: 'Số quả phạt đền cản phá thành công',
+    nullable: true,
+  })
   penaltiesSaved: number | null;
 
   @ApiProperty({ description: 'Số quả phạt đền phải đối mặt', nullable: true })
@@ -141,7 +163,10 @@ export class PlayerSeasonStatisticResponseDto {
   @ApiProperty({ description: 'Số bàn thua / 90 phút', nullable: true })
   goalsConcededPer90: number | null;
 
-  @ApiProperty({ description: 'Tỷ lệ cứu thua (%) do provider cung cấp', nullable: true })
+  @ApiProperty({
+    description: 'Tỷ lệ cứu thua (%) do provider cung cấp',
+    nullable: true,
+  })
   savePercentage: number | null;
 
   @ApiProperty({ description: 'Tỷ lệ giữ sạch lưới (%)', nullable: true })

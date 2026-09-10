@@ -24,19 +24,27 @@ describe('CreateSquadsTable1789200000000 (Migration)', () => {
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         2,
-        expect.stringContaining('CREATE INDEX "idx_squads_owner" ON "squads" ("owner_id", "updated_at" DESC)'),
+        expect.stringContaining(
+          'CREATE INDEX "idx_squads_owner" ON "squads" ("owner_id", "updated_at" DESC)',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         3,
-        expect.stringContaining('CREATE INDEX "IDX_squads_season_id" ON "squads" ("season_id")'),
+        expect.stringContaining(
+          'CREATE INDEX "IDX_squads_season_id" ON "squads" ("season_id")',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         4,
-        expect.stringContaining('ALTER TABLE "squads" ADD CONSTRAINT "FK_squads_owner_id" FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE CASCADE'),
+        expect.stringContaining(
+          'ALTER TABLE "squads" ADD CONSTRAINT "FK_squads_owner_id" FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE CASCADE',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         5,
-        expect.stringContaining('ALTER TABLE "squads" ADD CONSTRAINT "FK_squads_season_id" FOREIGN KEY ("season_id") REFERENCES "seasons"("id") ON DELETE SET NULL'),
+        expect.stringContaining(
+          'ALTER TABLE "squads" ADD CONSTRAINT "FK_squads_season_id" FOREIGN KEY ("season_id") REFERENCES "seasons"("id") ON DELETE SET NULL',
+        ),
       );
     });
 
@@ -87,12 +95,18 @@ describe('CreateSquadsTable1789200000000 (Migration)', () => {
       // 1. Create a test user for foreign key verification
       const userRes = await AppDataSource.query(
         `INSERT INTO "users" ("email", "password_hash", "full_name") VALUES ($1, $2, $3) RETURNING "id"`,
-        [`test-squad-owner-${Date.now()}-${Math.random()}@example.com`, 'hash', 'Test Squad Owner'],
+        [
+          `test-squad-owner-${Date.now()}-${Math.random()}@example.com`,
+          'hash',
+          'Test Squad Owner',
+        ],
       );
       testUserId = userRes[0].id;
 
       // 2. Fetch or create a test season for season_id FK verification
-      const existingSeasons = await AppDataSource.query(`SELECT "id" FROM "seasons" LIMIT 1`);
+      const existingSeasons = await AppDataSource.query(
+        `SELECT "id" FROM "seasons" LIMIT 1`,
+      );
       if (existingSeasons.length > 0) {
         testSeasonId = existingSeasons[0].id;
       } else {
@@ -102,17 +116,27 @@ describe('CreateSquadsTable1789200000000 (Migration)', () => {
         );
         const seasonRes = await AppDataSource.query(
           `INSERT INTO "seasons" ("competition_id", "name", "season_code", "start_date", "end_date", "is_current", "external_provider", "external_id") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "id"`,
-          [compRes[0].id, '2025/2026', '2025-2026', '2025-08-01', '2026-05-31', true, 'API_FOOTBALL', `TS_${Date.now()}`],
+          [
+            compRes[0].id,
+            '2025/2026',
+            '2025-2026',
+            '2025-08-01',
+            '2026-05-31',
+            true,
+            'API_FOOTBALL',
+            `TS_${Date.now()}`,
+          ],
         );
         testSeasonId = seasonRes[0].id;
       }
-
     });
 
     afterEach(async () => {
       // Clean up test user (cascade deletes squads)
       if (testUserId) {
-        await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [testUserId]);
+        await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [
+          testUserId,
+        ]);
       }
     });
 
@@ -143,7 +167,9 @@ describe('CreateSquadsTable1789200000000 (Migration)', () => {
       expect((colMap.get('name') as any).is_nullable).toBe('NO');
 
       expect(colMap.has('formation_code')).toBe(true);
-      expect((colMap.get('formation_code') as any).data_type).toBe('character varying');
+      expect((colMap.get('formation_code') as any).data_type).toBe(
+        'character varying',
+      );
       expect((colMap.get('formation_code') as any).is_nullable).toBe('NO');
 
       expect(colMap.has('description')).toBe(true);
@@ -151,16 +177,24 @@ describe('CreateSquadsTable1789200000000 (Migration)', () => {
       expect((colMap.get('description') as any).is_nullable).toBe('YES');
 
       expect(colMap.has('visibility')).toBe(true);
-      expect((colMap.get('visibility') as any).data_type).toBe('character varying');
+      expect((colMap.get('visibility') as any).data_type).toBe(
+        'character varying',
+      );
       expect((colMap.get('visibility') as any).is_nullable).toBe('NO');
-      expect((colMap.get('visibility') as any).column_default).toContain('PRIVATE');
+      expect((colMap.get('visibility') as any).column_default).toContain(
+        'PRIVATE',
+      );
 
       expect(colMap.has('created_at')).toBe(true);
-      expect((colMap.get('created_at') as any).data_type).toBe('timestamp with time zone');
+      expect((colMap.get('created_at') as any).data_type).toBe(
+        'timestamp with time zone',
+      );
       expect((colMap.get('created_at') as any).is_nullable).toBe('NO');
 
       expect(colMap.has('updated_at')).toBe(true);
-      expect((colMap.get('updated_at') as any).data_type).toBe('timestamp with time zone');
+      expect((colMap.get('updated_at') as any).data_type).toBe(
+        'timestamp with time zone',
+      );
       expect((colMap.get('updated_at') as any).is_nullable).toBe('NO');
     });
 
@@ -227,8 +261,12 @@ describe('CreateSquadsTable1789200000000 (Migration)', () => {
 
       expect(res[0].created_at).toBeDefined();
       expect(res[0].updated_at).toBeDefined();
-      expect(new Date(res[0].created_at).getTime()).toBeLessThanOrEqual(Date.now() + 5000);
-      expect(new Date(res[0].updated_at).getTime()).toBeLessThanOrEqual(Date.now() + 5000);
+      expect(new Date(res[0].created_at).getTime()).toBeLessThanOrEqual(
+        Date.now() + 5000,
+      );
+      expect(new Date(res[0].updated_at).getTime()).toBeLessThanOrEqual(
+        Date.now() + 5000,
+      );
     });
 
     it('TC-09: Indexes - idx_squads_owner and IDX_squads_season_id must exist', async () => {
@@ -242,7 +280,9 @@ describe('CreateSquadsTable1789200000000 (Migration)', () => {
       expect(indexNames).toContain('idx_squads_owner');
       expect(indexNames).toContain('IDX_squads_season_id');
 
-      const ownerIdx = indexes.find((i: any) => i.indexname === 'idx_squads_owner');
+      const ownerIdx = indexes.find(
+        (i: any) => i.indexname === 'idx_squads_owner',
+      );
       expect(ownerIdx.indexdef).toContain('owner_id');
       expect(ownerIdx.indexdef).toContain('updated_at');
     });

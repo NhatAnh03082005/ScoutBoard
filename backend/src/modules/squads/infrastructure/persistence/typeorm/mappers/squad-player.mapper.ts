@@ -1,4 +1,7 @@
-import { SquadPlayer, SquadPlayerRole } from '../../../../domain/entities/squad-player';
+import {
+  SquadPlayer,
+  SquadPlayerRole,
+} from '../../../../domain/entities/squad-player';
 import { SquadPlayerOrmEntity } from '../entities/squad-player.orm-entity';
 
 export class SquadPlayerMapper {
@@ -8,7 +11,7 @@ export class SquadPlayerMapper {
       entity.squadId,
       entity.playerId,
       entity.slotCode,
-      entity.role as SquadPlayerRole,
+      entity.role,
       entity.isCaptain,
       entity.displayOrder,
       entity.addedAt,

@@ -78,7 +78,8 @@ export class RegisterUseCase {
     });
 
     return {
-      message: 'Đăng ký tài khoản thành công! Vui lòng kiểm tra email để kích hoạt.',
+      message:
+        'Đăng ký tài khoản thành công! Vui lòng kiểm tra email để kích hoạt.',
       user: user.sanitize(),
       ...tokens,
     };

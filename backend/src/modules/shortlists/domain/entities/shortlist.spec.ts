@@ -92,7 +92,10 @@ describe('Shortlist Domain Entity (Unit)', () => {
     expect(entityCode).not.toContain('PrimaryGeneratedColumn');
     expect(entityCode).not.toContain('ManyToOne');
 
-    const repoFilePath = path.resolve(__dirname, '../repositories/shortlist.repository.ts');
+    const repoFilePath = path.resolve(
+      __dirname,
+      '../repositories/shortlist.repository.ts',
+    );
     const repoCode = fs.readFileSync(repoFilePath, 'utf8');
 
     expect(repoCode).not.toContain('typeorm');

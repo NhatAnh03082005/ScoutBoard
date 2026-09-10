@@ -33,7 +33,9 @@ export class TypeOrmShortlistPlayerRepository implements ShortlistPlayerReposito
     return entities.map((e) => ShortlistPlayerMapper.toDomain(e));
   }
 
-  async findPlayersWithDetailsByShortlistId(shortlistId: string): Promise<any[]> {
+  async findPlayersWithDetailsByShortlistId(
+    shortlistId: string,
+  ): Promise<any[]> {
     const entities = await this.ormRepository.find({
       where: { shortlistId },
       relations: ['player', 'player.currentTeam'],
@@ -89,7 +91,10 @@ export class TypeOrmShortlistPlayerRepository implements ShortlistPlayerReposito
   async save(shortlistPlayer: ShortlistPlayer): Promise<ShortlistPlayer> {
     const entity = ShortlistPlayerMapper.toPersistence(shortlistPlayer);
     const updated = await this.ormRepository.save(entity);
-    const fetched = await this.findByShortlistAndPlayer(updated.shortlistId, updated.playerId);
+    const fetched = await this.findByShortlistAndPlayer(
+      updated.shortlistId,
+      updated.playerId,
+    );
     return fetched || ShortlistPlayerMapper.toDomain(updated);
   }
 

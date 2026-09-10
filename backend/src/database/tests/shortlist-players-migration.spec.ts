@@ -24,19 +24,27 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         2,
-        expect.stringContaining('CREATE INDEX "IDX_shortlist_players_shortlist_id"'),
+        expect.stringContaining(
+          'CREATE INDEX "IDX_shortlist_players_shortlist_id"',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         3,
-        expect.stringContaining('CREATE INDEX "IDX_shortlist_players_player_id"'),
+        expect.stringContaining(
+          'CREATE INDEX "IDX_shortlist_players_player_id"',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         4,
-        expect.stringContaining('ALTER TABLE "shortlist_players" ADD CONSTRAINT "FK_shortlist_players_shortlist_id" FOREIGN KEY ("shortlist_id") REFERENCES "shortlists"("id") ON DELETE CASCADE'),
+        expect.stringContaining(
+          'ALTER TABLE "shortlist_players" ADD CONSTRAINT "FK_shortlist_players_shortlist_id" FOREIGN KEY ("shortlist_id") REFERENCES "shortlists"("id") ON DELETE CASCADE',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         5,
-        expect.stringContaining('ALTER TABLE "shortlist_players" ADD CONSTRAINT "FK_shortlist_players_player_id" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE CASCADE'),
+        expect.stringContaining(
+          'ALTER TABLE "shortlist_players" ADD CONSTRAINT "FK_shortlist_players_player_id" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE CASCADE',
+        ),
       );
     });
 
@@ -90,7 +98,11 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
       // 1. Create a test user
       const userRes = await AppDataSource.query(
         `INSERT INTO "users" ("email", "password_hash", "full_name") VALUES ($1, $2, $3) RETURNING "id"`,
-        [`test-owner-${Date.now()}-${Math.random()}@example.com`, 'hash', 'Test Owner'],
+        [
+          `test-owner-${Date.now()}-${Math.random()}@example.com`,
+          'hash',
+          'Test Owner',
+        ],
       );
       testUserId = userRes[0].id;
 
@@ -110,13 +122,23 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
       // 3. Create 2 test players
       const playerRes1 = await AppDataSource.query(
         `INSERT INTO "players" ("external_provider", "external_id", "name", "primary_position") VALUES ($1, $2, $3, $4) RETURNING "id"`,
-        ['manual_test', `p1-${Date.now()}-${Math.random()}`, 'Test Player 1', 'RW'],
+        [
+          'manual_test',
+          `p1-${Date.now()}-${Math.random()}`,
+          'Test Player 1',
+          'RW',
+        ],
       );
       testPlayerId1 = playerRes1[0].id;
 
       const playerRes2 = await AppDataSource.query(
         `INSERT INTO "players" ("external_provider", "external_id", "name", "primary_position") VALUES ($1, $2, $3, $4) RETURNING "id"`,
-        ['manual_test', `p2-${Date.now()}-${Math.random()}`, 'Test Player 2', 'LW'],
+        [
+          'manual_test',
+          `p2-${Date.now()}-${Math.random()}`,
+          'Test Player 2',
+          'LW',
+        ],
       );
       testPlayerId2 = playerRes2[0].id;
     });
@@ -124,13 +146,19 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
     afterEach(async () => {
       // Clean up test data
       if (testUserId) {
-        await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [testUserId]);
+        await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [
+          testUserId,
+        ]);
       }
       if (testPlayerId1) {
-        await AppDataSource.query(`DELETE FROM "players" WHERE "id" = $1`, [testPlayerId1]);
+        await AppDataSource.query(`DELETE FROM "players" WHERE "id" = $1`, [
+          testPlayerId1,
+        ]);
       }
       if (testPlayerId2) {
-        await AppDataSource.query(`DELETE FROM "players" WHERE "id" = $1`, [testPlayerId2]);
+        await AppDataSource.query(`DELETE FROM "players" WHERE "id" = $1`, [
+          testPlayerId2,
+        ]);
       }
     });
 
@@ -161,7 +189,9 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
       expect((colMap.get('note') as any).is_nullable).toBe('YES');
 
       expect(colMap.has('added_at')).toBe(true);
-      expect((colMap.get('added_at') as any).data_type).toBe('timestamp with time zone');
+      expect((colMap.get('added_at') as any).data_type).toBe(
+        'timestamp with time zone',
+      );
       expect((colMap.get('added_at') as any).is_nullable).toBe('NO');
     });
 
@@ -173,7 +203,9 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
           `INSERT INTO "shortlist_players" ("shortlist_id", "player_id") VALUES ($1, $2)`,
           [nonExistentShortlistId, testPlayerId1],
         ),
-      ).rejects.toThrow(/FK_shortlist_players_shortlist_id|foreign key constraint/i);
+      ).rejects.toThrow(
+        /FK_shortlist_players_shortlist_id|foreign key constraint/i,
+      );
     });
 
     it('TC-03: Foreign Key to Player - non-existent player_id must be rejected', async () => {
@@ -184,7 +216,9 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
           `INSERT INTO "shortlist_players" ("shortlist_id", "player_id") VALUES ($1, $2)`,
           [testShortlistId1, nonExistentPlayerId],
         ),
-      ).rejects.toThrow(/FK_shortlist_players_player_id|foreign key constraint/i);
+      ).rejects.toThrow(
+        /FK_shortlist_players_player_id|foreign key constraint/i,
+      );
     });
 
     it('TC-04: Duplicate Player in Same Shortlist - should fail due to unique constraint', async () => {
@@ -198,7 +232,9 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
           `INSERT INTO "shortlist_players" ("shortlist_id", "player_id") VALUES ($1, $2)`,
           [testShortlistId1, testPlayerId1],
         ),
-      ).rejects.toThrow(/UQ_shortlist_players_shortlist_player|unique constraint/i);
+      ).rejects.toThrow(
+        /UQ_shortlist_players_shortlist_player|unique constraint/i,
+      );
     });
 
     it('TC-05: Same Player in Different Shortlists - both inserts must succeed', async () => {
@@ -225,7 +261,9 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
       const shortlistPlayerId = row[0].id;
 
       // Delete the shortlist
-      await AppDataSource.query(`DELETE FROM "shortlists" WHERE "id" = $1`, [testShortlistId1]);
+      await AppDataSource.query(`DELETE FROM "shortlists" WHERE "id" = $1`, [
+        testShortlistId1,
+      ]);
 
       // Check shortlist_players row is cascade deleted
       const check = await AppDataSource.query(
@@ -243,7 +281,9 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
       const shortlistPlayerId = row[0].id;
 
       // Delete the player
-      await AppDataSource.query(`DELETE FROM "players" WHERE "id" = $1`, [testPlayerId2]);
+      await AppDataSource.query(`DELETE FROM "players" WHERE "id" = $1`, [
+        testPlayerId2,
+      ]);
       testPlayerId2 = ''; // Avoid cleanup error
 
       // Check shortlist_players row is cascade deleted
@@ -261,7 +301,9 @@ describe('CreateShortlistPlayersTable1789100000000 (Migration)', () => {
       );
 
       expect(row[0].added_at).toBeDefined();
-      expect(new Date(row[0].added_at).getTime()).toBeLessThanOrEqual(Date.now() + 5000);
+      expect(new Date(row[0].added_at).getTime()).toBeLessThanOrEqual(
+        Date.now() + 5000,
+      );
     });
   });
 });

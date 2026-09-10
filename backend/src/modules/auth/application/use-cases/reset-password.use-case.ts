@@ -1,5 +1,13 @@
-import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
-import { USER_REPOSITORY, UserRepository } from '../../../users/domain/repositories/user.repository';
+import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  USER_REPOSITORY,
+  UserRepository,
+} from '../../../users/domain/repositories/user.repository';
 import { PASSWORD_HASHER, PasswordHasher } from '../ports/password-hasher.port';
 
 export interface ResetPasswordInput {
@@ -22,7 +30,9 @@ export class ResetPasswordUseCase {
   ) {}
 
   async execute(input: ResetPasswordInput): Promise<ResetPasswordOutput> {
-    const user = await this.userRepository.findByEmail(input.email.trim().toLowerCase());
+    const user = await this.userRepository.findByEmail(
+      input.email.trim().toLowerCase(),
+    );
     if (!user) {
       throw new NotFoundException('Không tìm thấy tài khoản với email này.');
     }
@@ -31,7 +41,9 @@ export class ResetPasswordUseCase {
     const expiresAt = user.getPasswordResetExpiresAt();
 
     if (!savedCode || savedCode !== input.code.trim()) {
-      throw new BadRequestException('Mã xác thực OTP đặt lại mật khẩu không chính xác.');
+      throw new BadRequestException(
+        'Mã xác thực OTP đặt lại mật khẩu không chính xác.',
+      );
     }
 
     if (expiresAt && new Date() > expiresAt) {
@@ -49,7 +61,8 @@ export class ResetPasswordUseCase {
     await this.userRepository.save(user);
 
     return {
-      message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.',
+      message:
+        'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.',
     };
   }
 }

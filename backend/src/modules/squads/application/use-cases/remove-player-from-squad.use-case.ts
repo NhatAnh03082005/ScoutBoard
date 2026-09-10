@@ -41,6 +41,9 @@ export class RemovePlayerFromSquadUseCase {
       throw new PlayerNotInSquadError(input.playerId, input.squadId);
     }
 
-    await this.squadPlayerRepository.removePlayer(input.squadId, input.playerId);
+    await this.squadPlayerRepository.removePlayer(
+      input.squadId,
+      input.playerId,
+    );
   }
 }

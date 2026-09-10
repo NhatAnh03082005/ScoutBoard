@@ -25,7 +25,9 @@ export class ApiFootballCompetitionSyncService {
   ) {}
 
   async syncCompetitionById(leagueId: number): Promise<CompetitionSyncResult> {
-    this.logger.log(`Fetching API-Football competition data for League ID: ${leagueId}`);
+    this.logger.log(
+      `Fetching API-Football competition data for League ID: ${leagueId}`,
+    );
 
     const res = await this.apiClient.getLeagues({ id: leagueId });
     if (!res?.response || res.response.length === 0) {
@@ -35,13 +37,15 @@ export class ApiFootballCompetitionSyncService {
     }
 
     const item = res.response[0];
-    const transformed = ApiFootballCompetitionMapper.toTransformedCompetition(item);
+    const transformed =
+      ApiFootballCompetitionMapper.toTransformedCompetition(item);
 
     this.logger.log(
       `Persisting competition "${transformed.name}" with ${transformed.seasons.length} seasons...`,
     );
 
-    const persisted = await this.persistCompWithSeasonsUseCase.execute(transformed);
+    const persisted =
+      await this.persistCompWithSeasonsUseCase.execute(transformed);
     const seasonIds = (persisted.seasons || []).map((s) => s.id);
 
     this.logger.log(
@@ -57,4 +61,3 @@ export class ApiFootballCompetitionSyncService {
     };
   }
 }
-

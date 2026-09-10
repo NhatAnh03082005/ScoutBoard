@@ -162,7 +162,9 @@ describe('ApiFootballClient', () => {
 
     const res = await client.getTeams({ league: 39, season: 2024 });
     expect(res.results).toBe(1);
-    expect(fetchMock.mock.calls[0][0]).toContain('/teams?league=39&season=2024');
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/teams?league=39&season=2024',
+    );
   });
 
   it('should call getFixtures with correct endpoint and query params', async () => {
@@ -180,7 +182,9 @@ describe('ApiFootballClient', () => {
 
     const res = await client.getFixtures({ league: 39, season: 2024 });
     expect(res.results).toBe(1);
-    expect(fetchMock.mock.calls[0][0]).toContain('/fixtures?league=39&season=2024');
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/fixtures?league=39&season=2024',
+    );
   });
 
   it('should call getFixturePlayers with correct endpoint and query params', async () => {
@@ -198,7 +202,8 @@ describe('ApiFootballClient', () => {
 
     const res = await client.getFixturePlayers({ fixture: 1208021 });
     expect(res.results).toBe(1);
-    expect(fetchMock.mock.calls[0][0]).toContain('/fixtures/players?fixture=1208021');
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/fixtures/players?fixture=1208021',
+    );
   });
 });
-

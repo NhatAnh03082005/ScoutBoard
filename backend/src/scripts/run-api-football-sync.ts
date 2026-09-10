@@ -11,7 +11,9 @@ import { SeasonOrmEntity } from '../modules/seasons/infrastructure/persistence/t
 import { DataSource } from 'typeorm';
 
 async function main() {
-  console.log('=== STARTING VERTICAL SLICE SYNC: API-FOOTBALL -> POSTGRESQL ===\n');
+  console.log(
+    '=== STARTING VERTICAL SLICE SYNC: API-FOOTBALL -> POSTGRESQL ===\n',
+  );
 
   const app = await NestFactory.createApplicationContext(AppModule, {
     logger: ['log', 'error', 'warn'],
@@ -22,15 +24,21 @@ async function main() {
     const teamSyncService = app.get(ApiFootballTeamSyncService);
     const playerSyncService = app.get(ApiFootballPlayerSyncService);
     const matchSyncService = app.get(ApiFootballMatchSyncService);
-    const matchStatsSyncService = app.get(ApiFootballPlayerMatchStatsSyncService);
+    const matchStatsSyncService = app.get(
+      ApiFootballPlayerMatchStatsSyncService,
+    );
     const seasonAggService = app.get(PlayerSeasonStatisticsAggregationService);
     const seasonRepo = app.get(getRepositoryToken(SeasonOrmEntity));
     const dataSource = app.get(DataSource);
 
     // STEP 1: Sync Premier League (ID: 39)
-    console.log('\n>>> STEP 1: Syncing Competition & Seasons (Premier League ID 39)...');
+    console.log(
+      '\n>>> STEP 1: Syncing Competition & Seasons (Premier League ID 39)...',
+    );
     const compResult = await compSyncService.syncCompetitionById(39);
-    console.log(`Competition Synced: ${compResult.name} (ID: ${compResult.competitionId}), Total Seasons: ${compResult.totalSeasons}`);
+    console.log(
+      `Competition Synced: ${compResult.name} (ID: ${compResult.competitionId}), Total Seasons: ${compResult.totalSeasons}`,
+    );
 
     // Locate Season 2024
     const season2024 = await seasonRepo.findOne({
@@ -43,7 +51,9 @@ async function main() {
     if (!season2024) {
       throw new Error('Season 2024 not found after competition sync!');
     }
-    console.log(`Target Season: 2024 (ID: ${season2024.id}, Code: ${season2024.seasonCode})`);
+    console.log(
+      `Target Season: 2024 (ID: ${season2024.id}, Code: ${season2024.seasonCode})`,
+    );
 
     // STEP 2: Sync Teams for Season 2024
     console.log('\n>>> STEP 2: Syncing Teams for Season 2024...');
@@ -52,7 +62,9 @@ async function main() {
       2024,
       season2024.id,
     );
-    console.log(`Teams Synced: ${teamResult.successful}/${teamResult.totalRequested} teams successfully persisted & linked to season_teams`);
+    console.log(
+      `Teams Synced: ${teamResult.successful}/${teamResult.totalRequested} teams successfully persisted & linked to season_teams`,
+    );
 
     // STEP 3: Sync Squad Players for all 20 Teams
     console.log('\n>>> STEP 3: Syncing Squad Players & Positions for Teams...');
@@ -64,15 +76,22 @@ async function main() {
     const teamsToSync = teamResult.results.slice(0, 5);
     for (const t of teamsToSync) {
       console.log(`Syncing squad for ${t.teamName} (${t.externalId})...`);
-      const pRes = await playerSyncService.syncSquadForTeam(t.teamId, t.externalId);
+      const pRes = await playerSyncService.syncSquadForTeam(
+        t.teamId,
+        t.externalId,
+      );
       totalPlayers += pRes.persistedPlayers;
       totalPositions += pRes.positionsPersisted;
       totalHistory += pRes.historyPersisted;
     }
-    console.log(`Squad Sync Finished: ${totalPlayers} players, ${totalPositions} positions, ${totalHistory} history records persisted`);
+    console.log(
+      `Squad Sync Finished: ${totalPlayers} players, ${totalPositions} positions, ${totalHistory} history records persisted`,
+    );
 
     // STEP 4: Sync Fixtures (Round 1)
-    console.log('\n>>> STEP 4: Syncing Fixtures for Season 2024 (Regular Season - 1)...');
+    console.log(
+      '\n>>> STEP 4: Syncing Fixtures for Season 2024 (Regular Season - 1)...',
+    );
     const matchResult = await matchSyncService.syncMatchesByCompetition(
       compResult.competitionId,
       season2024.id,
@@ -80,22 +99,32 @@ async function main() {
       2024,
       'Regular Season - 1',
     );
-    console.log(`Matches Synced: ${matchResult.successful}/${matchResult.totalRequested} fixtures persisted`);
+    console.log(
+      `Matches Synced: ${matchResult.successful}/${matchResult.totalRequested} fixtures persisted`,
+    );
 
     // STEP 5: Sync Player Match Statistics for finished matches
     console.log('\n>>> STEP 5: Syncing Player Match Statistics...');
     let totalStatsPersisted = 0;
-    const finishedMatches = matchResult.results.filter((m) => m.status === 'FINISHED');
-    console.log(`Found ${finishedMatches.length} finished matches in Round 1. Syncing stats for first 2 matches...`);
+    const finishedMatches = matchResult.results.filter(
+      (m) => m.status === 'FINISHED',
+    );
+    console.log(
+      `Found ${finishedMatches.length} finished matches in Round 1. Syncing stats for first 2 matches...`,
+    );
 
     for (const m of finishedMatches.slice(0, 2)) {
-      console.log(`Syncing stats for fixture ${m.externalId} (Match ID: ${m.matchId})...`);
+      console.log(
+        `Syncing stats for fixture ${m.externalId} (Match ID: ${m.matchId})...`,
+      );
       const statRes = await matchStatsSyncService.syncStatisticsByFixtureId(
         m.externalId,
         m.matchId,
       );
       totalStatsPersisted += statRes.persistedCount;
-      console.log(`  Fixture ${m.externalId}: ${statRes.persistedCount} player stats persisted (unresolved: ${statRes.unresolvedPlayers})`);
+      console.log(
+        `  Fixture ${m.externalId}: ${statRes.persistedCount} player stats persisted (unresolved: ${statRes.unresolvedPlayers})`,
+      );
     }
 
     // STEP 6: Run Season Statistics Aggregation
@@ -104,7 +133,9 @@ async function main() {
       season2024.id,
       compResult.competitionId,
     );
-    console.log(`Season Aggregation Finished: ${aggResult.totalAggregated} player season statistics aggregated!`);
+    console.log(
+      `Season Aggregation Finished: ${aggResult.totalAggregated} player season statistics aggregated!`,
+    );
 
     // STEP 7: Database Verification Summary
     console.log('\n======================================================');
@@ -127,7 +158,9 @@ async function main() {
       const res = await dataSource.query(`SELECT count(*) FROM "${table}"`);
       const count = parseInt(res[0].count, 10);
       const status = count > 0 ? '✓ PASS (>0)' : '✗ FAIL (=0)';
-      console.log(`${table.padEnd(28)}: ${String(count).padStart(5)} rows  ${status}`);
+      console.log(
+        `${table.padEnd(28)}: ${String(count).padStart(5)} rows  ${status}`,
+      );
     }
 
     // Inspect Goalkeeper sample

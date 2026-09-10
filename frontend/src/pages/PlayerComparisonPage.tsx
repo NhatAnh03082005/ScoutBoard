@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type {
   PlayerDetail,
   PlayerSeasonStatisticItem,
@@ -96,7 +96,7 @@ const OUTFIELD_METRIC_SECTIONS: MetricSection[] = [
       badgeBg: '#1e293b',
       badgeText: '#ffffff',
       winnerBg: '#f1f5f9',
-      winnerColor: '#0f172a',
+      winnerColor: '#ffffff',
       winnerBorder: 'none',
     },
     metrics: [
@@ -182,7 +182,7 @@ const GOALKEEPER_METRIC_SECTIONS: MetricSection[] = [
       badgeBg: '#1e293b',
       badgeText: '#ffffff',
       winnerBg: '#f1f5f9',
-      winnerColor: '#0f172a',
+      winnerColor: '#ffffff',
       winnerBorder: 'none',
     },
     metrics: [
@@ -342,7 +342,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
   }, [playerAId, playerBId]);
 
   // Aggregate or Extract Stats for a Player based on Scope
-  const extractStats = (records: PlayerSeasonStatisticItem[]): AggregatedStats | null => {
+  const extractStats = useCallback((records: PlayerSeasonStatisticItem[]): AggregatedStats | null => {
     if (!records || records.length === 0) return null;
 
     let targetRecords: PlayerSeasonStatisticItem[] = [];
@@ -479,10 +479,10 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
       savePercentage,
       cleanSheetPercentage,
     };
-  };
+  }, [scope, seasonId, competitionId, statsA, statsB]);
 
-  const processedStatsA = useMemo(() => extractStats(statsA), [statsA, scope, seasonId, competitionId]);
-  const processedStatsB = useMemo(() => extractStats(statsB), [statsB, scope, seasonId, competitionId]);
+  const processedStatsA = useMemo(() => extractStats(statsA), [extractStats, statsA]);
+  const processedStatsB = useMemo(() => extractStats(statsB), [extractStats, statsB]);
 
   // Derive Radar Profile & Metrics strictly from selectedComparisonPosition or individual player primary positions
   const posA = selectedComparisonPosition || (commonPositions.length > 0 ? commonPositions[0] : (playerA?.primaryPosition?.trim().toUpperCase() || 'CM'));
@@ -519,7 +519,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
   // Early Returns (ONLY AFTER ALL HOOKS HAVE BEEN CALLED)
   if (loading) {
     return (
-      <div className="scout-b2b-page-container" style={{ background: 'rgba(241, 245, 249, 0.6)', minHeight: '100vh', padding: '24px 20px' }}>
+      <div className="scout-b2b-page-container" style={{ minHeight: '100vh', padding: '24px 20px' }}>
         <div
           className="scout-b2b-control-card"
           style={{
@@ -528,9 +528,9 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             color: '#64748b',
             fontSize: '14px',
             fontWeight: 600,
-            background: '#ffffff',
+            background: 'var(--scout-surface-card)',
             borderRadius: '16px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--scout-border-default)',
           }}
         >
           <div className="scout-loading-spinner" style={{ margin: '0 auto 16px' }} />
@@ -542,7 +542,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
 
   if (error || !playerA || !playerB) {
     return (
-      <div className="scout-b2b-page-container" style={{ background: 'rgba(241, 245, 249, 0.6)', minHeight: '100vh', padding: '24px 20px' }}>
+      <div className="scout-b2b-page-container" style={{ minHeight: '100vh', padding: '24px 20px' }}>
         <div
           className="scout-b2b-alert-error"
           style={{ marginBottom: '20px', fontSize: '13.5px' }}
@@ -605,14 +605,16 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
       ];
 
   return (
-    <div className="scout-b2b-page-container" style={{ background: 'rgba(241, 245, 249, 0.6)', minHeight: '100vh', padding: '24px 20px', paddingBottom: '48px' }}>
-      {/* 0. Top Navigation Topbar */}
+    <div className="scout-b2b-page-container" style={{ minHeight: '100vh', padding: '24px 20px', paddingBottom: '48px' }}>
+      {/* 0. Top Navigation Topbar with Breadcrumbs & Action Controls */}
       <div className="scout-sports-topbar" style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div className="scout-detail-breadcrumb">
           <button
             type="button"
             className="scout-sports-back-btn"
-            onClick={onBackToSetup}
+            onClick={onBackToDetail}
+            title={`Return to ${nameA}'s profile`}
+            aria-label={`Return to ${nameA}'s profile`}
           >
             <svg
               width="16"
@@ -627,17 +629,25 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
               <line x1="19" y1="12" x2="5" y2="12" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
-            <span>Change Candidate / Scope</span>
+            <span>{nameA}</span>
           </button>
+          <span style={{ color: 'var(--scout-border-default)', opacity: 0.6 }}>/</span>
+          <span style={{ color: 'var(--scout-text-primary)', fontWeight: 700, fontSize: '13px' }}>
+            Head-to-Head Comparison ({nameA} vs {nameB})
+          </span>
+        </div>
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <button
             type="button"
-            className="scout-sports-back-btn"
-            onClick={onBackToDetail}
+            className="scout-btn scout-btn-secondary"
+            onClick={onBackToSetup}
+            title="Adjust comparison scope or select a different player B"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}
           >
             <svg
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -645,22 +655,20 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
             </svg>
-            <span>Back to {nameA}</span>
+            <span>Change Candidate / Scope</span>
           </button>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
             style={{
-              background: '#eff6ff',
-              color: '#2563eb',
-              border: '1px solid #bfdbfe',
+              background: 'rgba(37, 99, 235, 0.15)',
+              color: '#60a5fa',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
               borderRadius: '999px',
-              padding: '6px 16px',
-              fontSize: '12px',
+              padding: '6px 14px',
+              fontSize: '11.5px',
               fontWeight: 900,
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
@@ -669,7 +677,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
               gap: '6px',
             }}
           >
-            ⚖️ Step 2 of 2: Head-to-Head Comparison
+            ⚖️ Step 2 of 2: Head-to-Head
           </span>
         </div>
       </div>
@@ -688,14 +696,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
           overflow: 'hidden',
         }}
       >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr auto 1fr',
-            gap: '24px',
-            alignItems: 'center',
-          }}
-        >
+        <div className="scout-matchup-hero-grid">
           {/* PLAYER A (Left Aligned) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div
@@ -739,6 +740,23 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             </div>
 
             <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                <span
+                  style={{
+                    background: 'rgba(37, 99, 235, 0.2)',
+                    color: '#93c5fd',
+                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    fontSize: '10px',
+                    fontWeight: 900,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  TARGET (PLAYER A)
+                </span>
+              </div>
               {/* Player Name */}
               <div
                 style={{
@@ -873,7 +891,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
           </div>
 
           {/* CENTER VS BADGE */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+          <div className="scout-matchup-vs-badge" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
             <div
               style={{
                 background: '#1e293b',
@@ -914,6 +932,23 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             }}
           >
             <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', marginBottom: '3px' }}>
+                <span
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.2)',
+                    color: '#fde68a',
+                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    fontSize: '10px',
+                    fontWeight: 900,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  CANDIDATE (PLAYER B)
+                </span>
+              </div>
               {/* Player Name */}
               <div
                 style={{
@@ -1120,9 +1155,39 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             height: '100%',
           }}
         >
-          <h3 className="scout-card-title scout-card-title-dark" style={{ marginBottom: '16px' }}>
+          <h3 className="scout-card-title scout-card-title-dark" style={{ marginBottom: '12px' }}>
             KEY BATTLES
           </h3>
+
+          {/* Key Battles Column Sub-Header */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '6px 12px',
+              background: 'var(--scout-bg-subtle)',
+              borderRadius: '8px',
+              border: '1px solid var(--scout-border-subtle)',
+              marginBottom: '10px',
+              fontSize: '11px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+          >
+            <span style={{ color: '#60a5fa', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#3b82f6' }} />
+              <span>{nameA} (A)</span>
+            </span>
+            <span style={{ color: 'var(--scout-text-muted)', fontSize: '10px', letterSpacing: '0.08em' }}>
+              KEY METRIC BATTLES
+            </span>
+            <span style={{ color: '#fbbf24', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <span>{nameB} (B)</span>
+              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#f59e0b' }} />
+            </span>
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, justifyContent: 'space-around' }}>
             {keyBattles.map((battle) => {
@@ -1175,8 +1240,8 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                 <div
                   key={battle.label}
                   style={{
-                    background: 'rgba(248, 250, 252, 0.8)',
-                    border: '1px solid rgba(226, 232, 240, 0.7)',
+                    background: 'var(--scout-bg-subtle)',
+                    border: '1px solid var(--scout-border-default)',
                     borderRadius: '12px',
                     padding: '10px 14px',
                     marginBottom: '8px',
@@ -1194,7 +1259,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                       textAlign: 'center',
                       fontSize: '14px',
                       fontWeight: isWinnerA ? 900 : (isWinnerB ? 500 : 700),
-                      color: isWinnerA ? '#0f172a' : (isWinnerB ? '#94a3b8' : '#475569'),
+                      color: isWinnerA ? '#ffffff' : (isWinnerB ? '#64748b' : '#cbd5e1'),
                       flexShrink: 0,
                     }}
                   >
@@ -1230,10 +1295,10 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                       style={{
                         height: '8px',
                         width: '90%',
-                        background: '#f1f5f9',
+                        background: 'rgba(255, 255, 255, 0.08)',
                         borderRadius: '999px',
                         overflow: 'hidden',
-                        border: '1px solid rgba(226, 232, 240, 0.8)',
+                        border: '1px solid var(--scout-border-subtle)',
                         display: 'flex',
                         alignItems: 'center',
                       }}
@@ -1267,7 +1332,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                       textAlign: 'center',
                       fontSize: '14px',
                       fontWeight: isWinnerB ? 900 : (isWinnerA ? 500 : 700),
-                      color: isWinnerB ? '#0f172a' : (isWinnerA ? '#94a3b8' : '#475569'),
+                      color: isWinnerB ? '#ffffff' : (isWinnerA ? '#64748b' : '#cbd5e1'),
                       flexShrink: 0,
                     }}
                   >
@@ -1315,9 +1380,14 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
             }}
           >
-            {nameA}
+            <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#3b82f6' }} />
+            <span>{nameA} (PLAYER A)</span>
           </div>
 
           {/* Center: Title */}
@@ -1329,10 +1399,10 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
               fontWeight: 900,
               textTransform: 'uppercase',
               letterSpacing: '0.12em',
-              color: '#94a3b8',
+              color: 'var(--scout-text-secondary)',
             }}
           >
-            STATISTICAL COMPARISON
+            DETAILED CATEGORY METRICS
           </div>
 
           {/* Right: Player B */}
@@ -1348,9 +1418,14 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
             }}
           >
-            {nameB}
+            <span>{nameB} (PLAYER B)</span>
+            <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#f59e0b' }} />
           </div>
         </div>
 
@@ -1359,8 +1434,8 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
           <div
             key={section.title}
             style={{
-              background: '#ffffff',
-              border: section.theme.border,
+              background: 'var(--scout-surface-card)',
+              border: '1px solid var(--scout-border-default)',
               borderRadius: '16px',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
               marginBottom: '24px',
@@ -1371,8 +1446,8 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             <div
               style={{
                 padding: '10px 16px',
-                background: 'rgba(248, 250, 252, 0.8)',
-                borderBottom: section.theme.headerBorder,
+                background: 'var(--scout-bg-subtle)',
+                borderBottom: '1px solid var(--scout-border-default)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1445,13 +1520,13 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                       gridTemplateColumns: 'repeat(12, minmax(0, 1fr))',
                       alignItems: 'center',
                       padding: '10px 24px',
-                      borderBottom: mIdx === section.metrics.length - 1 ? 'none' : '1px solid #f1f5f9',
-                      background: '#ffffff',
+                      borderBottom: mIdx === section.metrics.length - 1 ? 'none' : '1px solid var(--scout-border-subtle)',
+                      background: 'var(--scout-surface-card)',
                       transition: 'background 0.15s ease',
                     }}
                     className="scout-b2b-table-row"
                   >
-                    {/* Player A Value (col-span-3 text-center) */}
+                    {/* Player A Value (col-span-3 text-center, Blue winning semantic) */}
                     <div
                       style={{
                         gridColumn: 'span 3 / span 3',
@@ -1464,12 +1539,14 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                             display: 'inline-block',
                             padding: '3px 10px',
                             borderRadius: '8px',
-                            background: section.theme.winnerBg,
-                            color: section.theme.winnerColor,
-                            border: section.theme.winnerBorder || 'none',
+                            background: 'rgba(37, 99, 235, 0.2)',
+                            color: '#93c5fd',
+                            border: '1px solid rgba(59, 130, 246, 0.45)',
                             fontSize: '12px',
                             fontWeight: 900,
+                            boxShadow: '0 2px 6px rgba(37, 99, 235, 0.2)',
                           }}
+                          title={`${nameA} leads on ${metric.label}`}
                         >
                           {textA}
                         </span>
@@ -1477,8 +1554,8 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                         <span
                           style={{
                             fontSize: '12px',
-                            fontWeight: 600,
-                            color: '#94a3b8',
+                            fontWeight: 500,
+                            color: '#64748b',
                           }}
                         >
                           {textA}
@@ -1487,8 +1564,8 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                         <span
                           style={{
                             fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#475569',
+                            fontWeight: 600,
+                            color: 'var(--scout-text-secondary)',
                           }}
                         >
                           {textA}
@@ -1505,13 +1582,13 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         letterSpacing: '0.06em',
-                        color: '#334155',
+                        color: 'var(--scout-text-secondary)',
                       }}
                     >
                       {metric.label}
                     </div>
 
-                    {/* Player B Value (col-span-3 text-center) */}
+                    {/* Player B Value (col-span-3 text-center, Amber winning semantic) */}
                     <div
                       style={{
                         gridColumn: 'span 3 / span 3',
@@ -1524,12 +1601,14 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                             display: 'inline-block',
                             padding: '3px 10px',
                             borderRadius: '8px',
-                            background: section.theme.winnerBg,
-                            color: section.theme.winnerColor,
-                            border: section.theme.winnerBorder || 'none',
+                            background: 'rgba(245, 158, 11, 0.2)',
+                            color: '#fde68a',
+                            border: '1px solid rgba(245, 158, 11, 0.45)',
                             fontSize: '12px',
                             fontWeight: 900,
+                            boxShadow: '0 2px 6px rgba(245, 158, 11, 0.2)',
                           }}
+                          title={`${nameB} leads on ${metric.label}`}
                         >
                           {textB}
                         </span>
@@ -1537,8 +1616,8 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                         <span
                           style={{
                             fontSize: '12px',
-                            fontWeight: 600,
-                            color: '#94a3b8',
+                            fontWeight: 500,
+                            color: '#64748b',
                           }}
                         >
                           {textB}
@@ -1547,8 +1626,8 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
                         <span
                           style={{
                             fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#475569',
+                            fontWeight: 600,
+                            color: 'var(--scout-text-secondary)',
                           }}
                         >
                           {textB}
@@ -1569,6 +1648,74 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* 4. Bottom Next Actions Bar (Evaluation Handoff) */}
+      <div className="scout-compare-bottom-actions">
+        <div>
+          <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--scout-text-primary)', marginBottom: '4px' }}>
+            Evaluation Handoff & Next Steps
+          </div>
+          <div style={{ fontSize: '12.5px', color: 'var(--scout-text-secondary)' }}>
+            Finished comparing? Save promising targets to your shortlists or return to player analysis.
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="scout-btn scout-btn-secondary"
+            onClick={() => setShortlistTargetPlayer(playerA)}
+            style={{
+              border: '1px solid rgba(59, 130, 246, 0.4)',
+              color: '#60a5fa',
+              background: 'rgba(37, 99, 235, 0.1)',
+              fontWeight: 700,
+              fontSize: '12.5px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>+ Shortlist {nameA} (A)</span>
+          </button>
+
+          <button
+            type="button"
+            className="scout-btn scout-btn-secondary"
+            onClick={() => setShortlistTargetPlayer(playerB)}
+            style={{
+              border: '1px solid rgba(245, 158, 11, 0.4)',
+              color: '#fbbf24',
+              background: 'rgba(245, 158, 11, 0.1)',
+              fontWeight: 700,
+              fontSize: '12.5px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span>+ Shortlist {nameB} (B)</span>
+          </button>
+
+          <button
+            type="button"
+            className="scout-btn scout-btn-secondary"
+            onClick={onBackToSetup}
+            style={{ fontSize: '12.5px' }}
+          >
+            Compare Another Player
+          </button>
+
+          <button
+            type="button"
+            className="scout-btn scout-btn-primary"
+            onClick={onBackToDetail}
+            style={{ fontSize: '12.5px' }}
+          >
+            Back to {nameA}
+          </button>
+        </div>
+      </div>
 
       {/* Shortlist Modal */}
       <AddToShortlistModal

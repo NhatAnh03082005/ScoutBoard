@@ -68,24 +68,30 @@ describe('PersistMatchUseCase', () => {
     };
 
     mockCompWriteRepo = {
-      findByExternalIdentity: jest.fn().mockResolvedValue({ id: 'comp-uuid-1' } as any),
+      findByExternalIdentity: jest
+        .fn()
+        .mockResolvedValue({ id: 'comp-uuid-1' } as any),
       upsert: jest.fn(),
       upsertMany: jest.fn(),
     };
 
     mockSeasonWriteRepo = {
-      findByExternalIdentity: jest.fn().mockResolvedValue({ id: 'season-uuid-1' } as any),
+      findByExternalIdentity: jest
+        .fn()
+        .mockResolvedValue({ id: 'season-uuid-1' } as any),
       upsert: jest.fn(),
       upsertMany: jest.fn(),
       findActiveSeason: jest.fn(),
     };
 
     mockTeamWriteRepo = {
-      findByExternalIdentity: jest.fn().mockImplementation(async (_provider, extId) => {
-        if (extId === '66') return { id: 'team-home-uuid' } as any;
-        if (extId === '65') return { id: 'team-away-uuid' } as any;
-        return null;
-      }),
+      findByExternalIdentity: jest
+        .fn()
+        .mockImplementation(async (_provider, extId) => {
+          if (extId === '66') return { id: 'team-home-uuid' } as any;
+          if (extId === '65') return { id: 'team-away-uuid' } as any;
+          return null;
+        }),
       upsert: jest.fn(),
       upsertMany: jest.fn(),
     };
@@ -203,7 +209,10 @@ describe('PersistMatchUseCase', () => {
   it('TC-23: should batch execute multiple matches with executeMany', async () => {
     const results = await useCase.executeMany([
       { match: mockTransformedMatch, refs: mockRefs },
-      { match: { ...mockTransformedMatch, externalId: '327118' }, refs: mockRefs },
+      {
+        match: { ...mockTransformedMatch, externalId: '327118' },
+        refs: mockRefs,
+      },
     ]);
 
     expect(results).toHaveLength(2);

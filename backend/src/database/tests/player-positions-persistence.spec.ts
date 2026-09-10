@@ -27,7 +27,10 @@ describe('Player Positions Persistence Integration Test (Live DB)', () => {
     const posOrmRepo = AppDataSource.getRepository(PlayerPositionOrmEntity);
 
     playerWriteRepo = new TypeOrmPlayerWriteRepository(playerOrmRepo);
-    posWriteRepo = new TypeOrmPlayerPositionWriteRepository(posOrmRepo, playerOrmRepo);
+    posWriteRepo = new TypeOrmPlayerPositionWriteRepository(
+      posOrmRepo,
+      playerOrmRepo,
+    );
     persistPlayerUseCase = new PersistPlayerUseCase(playerWriteRepo);
     persistPlayerPositionsUseCase = new PersistPlayerPositionsUseCase(
       posWriteRepo,
@@ -179,7 +182,9 @@ describe('Player Positions Persistence Integration Test (Live DB)', () => {
     });
 
     // Delete the player
-    await AppDataSource.getRepository(PlayerOrmEntity).delete({ id: tempPlayer.id });
+    await AppDataSource.getRepository(PlayerOrmEntity).delete({
+      id: tempPlayer.id,
+    });
 
     // Verify player_positions rows were cascaded
     const orphanPositions = await AppDataSource.query(

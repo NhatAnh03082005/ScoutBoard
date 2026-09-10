@@ -45,12 +45,14 @@ export class PersistMatchUseCase {
     input: TransformedMatch,
     refs?: Partial<MatchResolvedReferences> | null,
   ): Promise<MatchOrmEntity> {
-
     if (!input) {
       throw new BadRequestException('Transformed match input is required');
     }
 
-    if (!input.externalProvider || String(input.externalProvider).trim() === '') {
+    if (
+      !input.externalProvider ||
+      String(input.externalProvider).trim() === ''
+    ) {
       throw new BadRequestException('externalProvider is required');
     }
 
@@ -61,13 +63,22 @@ export class PersistMatchUseCase {
     const provider = input.externalProvider.trim();
 
     // 1. Resolve Competition UUID
-    let competitionId = refs?.competitionId ? String(refs.competitionId).trim() : '';
+    let competitionId = refs?.competitionId
+      ? String(refs.competitionId).trim()
+      : '';
     if (!competitionId) {
-      if (!input.competitionExternalId || String(input.competitionExternalId).trim() === '') {
-        throw new BadRequestException('competitionId or valid competitionExternalId is required');
+      if (
+        !input.competitionExternalId ||
+        String(input.competitionExternalId).trim() === ''
+      ) {
+        throw new BadRequestException(
+          'competitionId or valid competitionExternalId is required',
+        );
       }
       if (!this.competitionWriteRepository) {
-        throw new BadRequestException('Competition repository is not available for resolving competition');
+        throw new BadRequestException(
+          'Competition repository is not available for resolving competition',
+        );
       }
       const comp = await this.competitionWriteRepository.findByExternalIdentity(
         provider,
@@ -84,11 +95,18 @@ export class PersistMatchUseCase {
     // 2. Resolve Season UUID
     let seasonId = refs?.seasonId ? String(refs.seasonId).trim() : '';
     if (!seasonId) {
-      if (!input.seasonExternalId || String(input.seasonExternalId).trim() === '') {
-        throw new BadRequestException('seasonId or valid seasonExternalId is required');
+      if (
+        !input.seasonExternalId ||
+        String(input.seasonExternalId).trim() === ''
+      ) {
+        throw new BadRequestException(
+          'seasonId or valid seasonExternalId is required',
+        );
       }
       if (!this.seasonWriteRepository) {
-        throw new BadRequestException('Season repository is not available for resolving season');
+        throw new BadRequestException(
+          'Season repository is not available for resolving season',
+        );
       }
       const season = await this.seasonWriteRepository.findByExternalIdentity(
         provider,
@@ -105,11 +123,18 @@ export class PersistMatchUseCase {
     // 3. Resolve Home Team UUID
     let homeTeamId = refs?.homeTeamId ? String(refs.homeTeamId).trim() : '';
     if (!homeTeamId) {
-      if (!input.homeTeamExternalId || String(input.homeTeamExternalId).trim() === '') {
-        throw new BadRequestException('homeTeamId or valid homeTeamExternalId is required');
+      if (
+        !input.homeTeamExternalId ||
+        String(input.homeTeamExternalId).trim() === ''
+      ) {
+        throw new BadRequestException(
+          'homeTeamId or valid homeTeamExternalId is required',
+        );
       }
       if (!this.teamWriteRepository) {
-        throw new BadRequestException('Team repository is not available for resolving home team');
+        throw new BadRequestException(
+          'Team repository is not available for resolving home team',
+        );
       }
       const team = await this.teamWriteRepository.findByExternalIdentity(
         provider,
@@ -126,11 +151,18 @@ export class PersistMatchUseCase {
     // 4. Resolve Away Team UUID
     let awayTeamId = refs?.awayTeamId ? String(refs.awayTeamId).trim() : '';
     if (!awayTeamId) {
-      if (!input.awayTeamExternalId || String(input.awayTeamExternalId).trim() === '') {
-        throw new BadRequestException('awayTeamId or valid awayTeamExternalId is required');
+      if (
+        !input.awayTeamExternalId ||
+        String(input.awayTeamExternalId).trim() === ''
+      ) {
+        throw new BadRequestException(
+          'awayTeamId or valid awayTeamExternalId is required',
+        );
       }
       if (!this.teamWriteRepository) {
-        throw new BadRequestException('Team repository is not available for resolving away team');
+        throw new BadRequestException(
+          'Team repository is not available for resolving away team',
+        );
       }
       const team = await this.teamWriteRepository.findByExternalIdentity(
         provider,
@@ -145,7 +177,9 @@ export class PersistMatchUseCase {
     }
 
     if (homeTeamId === awayTeamId) {
-      throw new BadRequestException('Match home team and away team cannot be the same');
+      throw new BadRequestException(
+        'Match home team and away team cannot be the same',
+      );
     }
 
     const resolvedRefs: MatchResolvedReferences = {

@@ -34,4 +34,3 @@ import { DataSyncModule } from './modules/data-sync/data-sync.module';
   ],
 })
 export class AppModule {}
-

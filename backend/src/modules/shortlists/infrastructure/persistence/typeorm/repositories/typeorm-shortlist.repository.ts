@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ShortlistRepository } from '../../../../domain/repositories/shortlist.repository';
-import { Shortlist, ShortlistVisibility } from '../../../../domain/entities/shortlist';
+import {
+  Shortlist,
+  ShortlistVisibility,
+} from '../../../../domain/entities/shortlist';
 import { ShortlistOrmEntity } from '../entities/shortlist.orm-entity';
 import { ShortlistMapper } from '../mappers/shortlist.mapper';
 

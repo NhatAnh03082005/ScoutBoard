@@ -159,7 +159,14 @@ describe('AddPlayerToSquadUseCase', () => {
     mockSquadPlayerRepository.findBySquadAndPlayer.mockResolvedValue(null);
     mockSquadPlayerRepository.findStarterBySlotCode.mockResolvedValue(null);
     mockSquadPlayerRepository.findCaptainBySquadId.mockResolvedValue(
-      new SquadPlayer('sp-captain', 'squad-1', 'player-2', 'CB-1', 'STARTER', true),
+      new SquadPlayer(
+        'sp-captain',
+        'squad-1',
+        'player-2',
+        'CB-1',
+        'STARTER',
+        true,
+      ),
     );
 
     await expect(

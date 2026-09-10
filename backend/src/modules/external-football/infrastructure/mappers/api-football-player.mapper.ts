@@ -113,9 +113,10 @@ export class ApiFootballPlayerMapper {
         ? firstStat.games.number
         : null;
 
-    const rawPosition = (firstStat?.games?.position || profile.position || null)
-      ? String(firstStat?.games?.position || profile.position).trim()
-      : null;
+    const rawPosition =
+      firstStat?.games?.position || profile.position || null
+        ? String(firstStat?.games?.position || profile.position).trim()
+        : null;
     const primaryPosition = this.normalizePosition(rawPosition);
 
     const resolvedTeamExtId =
@@ -208,12 +209,13 @@ export class ApiFootballPlayerMapper {
     squadPlayer: ApiFootballSquadPlayerDto,
     teamExternalId: string,
   ): TransformedPlayer {
-
     if (!squadPlayer?.id || !squadPlayer?.name) {
       throw new Error('Invalid squad player: missing id or name');
     }
     const rawName = squadPlayer.name.trim();
-    const rawPosition = squadPlayer.position ? squadPlayer.position.trim() : null;
+    const rawPosition = squadPlayer.position
+      ? squadPlayer.position.trim()
+      : null;
     return {
       externalProvider: this.PROVIDER,
       externalId: String(squadPlayer.id),
@@ -259,4 +261,3 @@ export class ApiFootballPlayerMapper {
     };
   }
 }
-

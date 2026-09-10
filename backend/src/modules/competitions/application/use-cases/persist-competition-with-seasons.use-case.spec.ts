@@ -7,7 +7,6 @@ import { CompetitionOrmEntity } from '../../infrastructure/persistence/typeorm/e
 import { SeasonOrmEntity } from '../../../seasons/infrastructure/persistence/typeorm/entities/season.orm-entity';
 
 describe('PersistCompetitionWithSeasonsUseCase', () => {
-
   let useCase: PersistCompetitionWithSeasonsUseCase;
   let mockPersistCompetitionUseCase: jest.Mocked<PersistCompetitionUseCase>;
   let mockPersistSeasonUseCase: jest.Mocked<PersistSeasonUseCase>;
@@ -199,7 +198,10 @@ describe('PersistCompetitionWithSeasonsUseCase', () => {
 
   // TC-06: Empty / Undefined Seasons
   it('TC-06: should handle undefined seasons array gracefully', async () => {
-    const payload = { ...validTransformedCompetition, seasons: undefined as any };
+    const payload = {
+      ...validTransformedCompetition,
+      seasons: undefined as any,
+    };
     const result = await useCase.execute(payload);
 
     expect(result.competitionId).toBe('internal-uuid-comp-123');
@@ -229,7 +231,9 @@ describe('PersistCompetitionWithSeasonsUseCase', () => {
 
   // TC-09: Input Validation
   it('TC-09: should reject invalid transformed competition payload', async () => {
-    await expect(useCase.execute(null as any)).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      BadRequestException,
+    );
     await expect(
       useCase.execute({ ...validTransformedCompetition, externalProvider: '' }),
     ).rejects.toThrow(BadRequestException);
@@ -287,5 +291,4 @@ describe('PersistCompetitionWithSeasonsUseCase', () => {
     expect(mapped.seasons[0].isCurrent).toBe(true);
     expect(mapped.seasons[1].isCurrent).toBe(false);
   });
-
 });

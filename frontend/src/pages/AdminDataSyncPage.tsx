@@ -297,7 +297,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
         return (
           <span
             className="scout-badge"
-            style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}
+            style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}
           >
             ✕ FAILED
           </span>
@@ -306,7 +306,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
         return (
           <span
             className="scout-badge"
-            style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}
+            style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)' }}
           >
             <span className="spinner-inline" style={{ marginRight: '4px' }}>🔄</span> RUNNING
           </span>
@@ -316,7 +316,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
         return (
           <span
             className="scout-badge"
-            style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
+            style={{ background: 'var(--scout-bg-subtle)', color: '#475569', border: '1px solid var(--scout-border-default)' }}
           >
             ⏱ PENDING
           </span>
@@ -331,7 +331,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
     <div className="scout-admin-container" style={{ maxWidth: '1240px', margin: '24px auto', padding: '0 16px' }}>
       {/* Top Banner & Title */}
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: '0 0 6px 0' }}>
           Data Synchronization Center
         </h2>
         <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>
@@ -355,25 +355,25 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
       <div
         className="scout-card"
         style={{
-          background: '#ffffff',
+          background: 'var(--scout-surface-card)',
           borderRadius: '16px',
           padding: '24px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--scout-border-default)',
           boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
           marginBottom: '28px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-          <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>⚡</span> Configure & Execute Sync Job
           </h3>
-          <span style={{ fontSize: '12px', color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--scout-text-secondary)', background: 'var(--scout-bg-subtle)', padding: '4px 10px', borderRadius: '6px' }}>
             Zone 4 Ingestion Pipeline
           </span>
         </div>
 
         {formError && (
-          <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px', border: '1px solid #fecaca' }}>
+          <div style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#fca5a5', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
             ⚠️ {formError}
           </div>
         )}
@@ -489,8 +489,8 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
 
           {/* Conditional Controls for Scope */}
           {scope === 'DATE' && (
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', marginBottom: '18px', border: '1px solid #e2e8f0' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+            <div style={{ background: 'var(--scout-bg-subtle)', padding: '14px', borderRadius: '10px', marginBottom: '18px', border: '1px solid var(--scout-border-default)' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#ffffff', marginBottom: '6px' }}>
                 Matchday Date (YYYY-MM-DD) *
               </label>
               <input
@@ -506,8 +506,8 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
           )}
 
           {scope === 'MATCH' && (
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', marginBottom: '18px', border: '1px solid #e2e8f0' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+            <div style={{ background: 'var(--scout-bg-subtle)', padding: '14px', borderRadius: '10px', marginBottom: '18px', border: '1px solid var(--scout-border-default)' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#ffffff', marginBottom: '6px' }}>
                 Select Match Fixture *
               </label>
               {loadingMatches ? (
@@ -571,17 +571,17 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
       <div
         className="scout-card"
         style={{
-          background: '#ffffff',
+          background: 'var(--scout-surface-card)',
           borderRadius: '16px',
           padding: '24px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--scout-border-default)',
           boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
         }}
       >
         {/* Table Header & Filters */}
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
           <div>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px 0' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', margin: '0 0 4px 0' }}>
               Execution History & Audit Trail ({totalJobs})
             </h3>
             <span style={{ fontSize: '12px', color: '#64748b' }}>
@@ -646,9 +646,9 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
             <div style={{ marginTop: '10px', fontSize: '14px' }}>Loading synchronization jobs...</div>
           </div>
         ) : jobs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b', background: '#f8fafc', borderRadius: '12px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b', background: 'var(--scout-bg-subtle)', borderRadius: '12px' }}>
             <div style={{ fontSize: '28px', marginBottom: '8px' }}>📋</div>
-            <strong style={{ display: 'block', color: '#0f172a', fontSize: '15px' }}>No synchronization jobs found</strong>
+            <strong style={{ display: 'block', color: '#ffffff', fontSize: '15px' }}>No synchronization jobs found</strong>
             <p style={{ fontSize: '13px', margin: '4px 0 0 0' }}>Configure a sync above and click "Start Synchronization".</p>
           </div>
         ) : (
@@ -676,18 +676,18 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
                     <tr key={job.id} style={{ borderBottom: '1px solid #f1f5f9', fontSize: '13px' }}>
                       <td style={{ padding: '12px 10px' }}>{renderStatusBadge(job.status)}</td>
                       <td style={{ padding: '12px 10px' }}>
-                        <strong style={{ color: '#0f172a', display: 'block' }}>{job.competitionName || 'Competition'}</strong>
+                        <strong style={{ color: '#ffffff', display: 'block' }}>{job.competitionName || 'Competition'}</strong>
                         <span style={{ fontSize: '11px', color: '#64748b' }}>{job.seasonCode || job.seasonId}</span>
                       </td>
                       <td style={{ padding: '12px 10px' }}>
-                        <span style={{ fontWeight: 600, color: '#1e293b' }}>{job.target}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--scout-text-primary)' }}>{job.target}</span>
                         <span style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>
                           Scope: {job.scope} ({job.mode})
                         </span>
                       </td>
                       <td style={{ padding: '12px 10px' }}>
                         <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>
-                          <span style={{ color: '#0f172a' }}>{job.processedCount}</span> /{' '}
+                          <span style={{ color: '#ffffff' }}>{job.processedCount}</span> /{' '}
                           <span style={{ color: '#16a34a' }}>{job.createdCount}</span> /{' '}
                           <span style={{ color: '#2563eb' }}>{job.updatedCount}</span> /{' '}
                           <span style={{ color: job.failedCount > 0 ? '#dc2626' : '#64748b', fontWeight: job.failedCount > 0 ? 700 : 400 }}>
@@ -757,7 +757,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
             >
               ← Prev
             </button>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--scout-text-secondary)' }}>
               Page {Math.floor(pageOffset / pageLimit) + 1} of {Math.max(1, Math.ceil(totalJobs / pageLimit))}
             </span>
             <button
@@ -803,7 +803,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
             <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.5, marginBottom: '16px' }}>
               You are about to trigger a <strong>FULL season backfill</strong> for <strong>{selectedCompObj?.name}</strong> ({selectedSeasonObj?.seasonCode}).
             </p>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '12px', fontSize: '12.5px', color: '#334155', marginBottom: '20px', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: 'var(--scout-bg-subtle)', padding: '14px', borderRadius: '12px', fontSize: '12.5px', color: 'var(--scout-text-secondary)', marginBottom: '20px', border: '1px solid var(--scout-border-default)' }}>
               <div>• Target: <strong>FULL (Matches → Statistics → Season Aggregation)</strong></div>
               <div>• Mode: <strong>{mode}</strong></div>
               <div>• Scope: <strong>SEASON</strong></div>
@@ -845,9 +845,9 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
             style={{ maxWidth: '920px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
           >
             {/* Modal Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--scout-border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: 0 }}>
                   Sync Job Details
                 </h3>
                 {renderStatusBadge(selectedJob.status)}
@@ -866,32 +866,32 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
               {/* Error Banner if Present */}
               {selectedJob.errorMessage && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '14px', borderRadius: '10px', fontSize: '13px', marginBottom: '20px' }}>
+                <div style={{ background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', padding: '14px', borderRadius: '10px', fontSize: '13px', marginBottom: '20px' }}>
                   <strong>Execution Error:</strong> {selectedJob.errorMessage}
                 </div>
               )}
 
               {/* Metadata Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '20px', background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '20px', background: 'var(--scout-bg-subtle)', padding: '16px', borderRadius: '12px', border: '1px solid var(--scout-border-default)' }}>
                 <div>
                   <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Job ID</span>
-                  <div style={{ fontSize: '12px', fontFamily: 'monospace', color: '#0f172a', wordBreak: 'break-all' }}>{selectedJob.id}</div>
+                  <div style={{ fontSize: '12px', fontFamily: 'monospace', color: '#ffffff', wordBreak: 'break-all' }}>{selectedJob.id}</div>
                 </div>
                 <div>
                   <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Competition & Season</span>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>
                     {selectedJob.competitionName || selectedJob.competitionId} ({selectedJob.seasonCode || selectedJob.seasonId})
                   </div>
                 </div>
                 <div>
                   <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Target & Scope</span>
-                  <div style={{ fontSize: '13px', color: '#0f172a' }}>
+                  <div style={{ fontSize: '13px', color: '#ffffff' }}>
                     <strong>{selectedJob.target}</strong> / {selectedJob.scope} ({selectedJob.mode})
                   </div>
                 </div>
                 <div>
                   <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Initiated By</span>
-                  <div style={{ fontSize: '13px', color: '#0f172a' }}>
+                  <div style={{ fontSize: '13px', color: '#ffffff' }}>
                     {selectedJob.initiatedByName || selectedJob.initiatedBy || 'System / Scheduler'}
                   </div>
                 </div>
@@ -899,21 +899,21 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
 
               {/* Execution Metrics Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '24px' }}>
-                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                <div style={{ background: 'var(--scout-bg-subtle)', padding: '12px', borderRadius: '8px', border: '1px solid var(--scout-border-default)', textAlign: 'center' }}>
                   <span style={{ fontSize: '11px', color: '#64748b' }}>Processed</span>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{selectedJob.processedCount}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff' }}>{selectedJob.processedCount}</div>
                 </div>
-                <div style={{ background: '#f0fdf4', padding: '12px', borderRadius: '8px', border: '1px solid #bbf7d0', textAlign: 'center' }}>
-                  <span style={{ fontSize: '11px', color: '#166534' }}>Created</span>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#15803d' }}>{selectedJob.createdCount}</div>
+                <div style={{ background: 'rgba(34, 197, 94, 0.12)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(34, 197, 94, 0.3)', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#4ade80' }}>Created</span>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#4ade80' }}>{selectedJob.createdCount}</div>
                 </div>
-                <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '8px', border: '1px solid #bfdbfe', textAlign: 'center' }}>
-                  <span style={{ fontSize: '11px', color: '#1e40af' }}>Updated</span>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#2563eb' }}>{selectedJob.updatedCount}</div>
+                <div style={{ background: 'rgba(59, 130, 246, 0.12)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.3)', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#60a5fa' }}>Updated</span>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#60a5fa' }}>{selectedJob.updatedCount}</div>
                 </div>
-                <div style={{ background: '#fef2f2', padding: '12px', borderRadius: '8px', border: '1px solid #fecaca', textAlign: 'center' }}>
-                  <span style={{ fontSize: '11px', color: '#991b1b' }}>Failed</span>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: selectedJob.failedCount > 0 ? '#dc2626' : '#64748b' }}>
+                <div style={{ background: 'rgba(239, 68, 68, 0.12)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#f87171' }}>Failed</span>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: selectedJob.failedCount > 0 ? '#f87171' : 'var(--scout-text-muted)' }}>
                     {selectedJob.failedCount}
                   </div>
                 </div>
@@ -921,18 +921,18 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
 
               {/* Chronological Audit Logs */}
               <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>📜</span> Pipeline Event Logs ({selectedJob.logs?.length || 0})
                 </h4>
 
                 {!selectedJob.logs || selectedJob.logs.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '24px', color: '#64748b', background: '#f8fafc', borderRadius: '8px', fontSize: '13px' }}>
+                  <div style={{ textAlign: 'center', padding: '24px', color: '#64748b', background: 'var(--scout-bg-subtle)', borderRadius: '8px', fontSize: '13px' }}>
                     No audit logs available for this job.
                   </div>
                 ) : (
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div style={{ border: '1px solid var(--scout-border-default)', borderRadius: '10px', overflow: 'hidden' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
-                      <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                      <thead style={{ background: 'var(--scout-bg-subtle)', borderBottom: '1px solid var(--scout-border-subtle)', color: '#475569' }}>
                         <tr>
                           <th style={{ padding: '8px 12px' }}>Time</th>
                           <th style={{ padding: '8px 12px' }}>Level</th>
@@ -956,9 +956,9 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
                                     fontSize: '10px',
                                     padding: '2px 6px',
                                     background:
-                                      log.level === 'ERROR' ? '#fef2f2' : log.level === 'WARN' ? '#fffbeb' : '#eff6ff',
+                                      log.level === 'ERROR' ? 'rgba(239, 68, 68, 0.15)' : log.level === 'WARN' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
                                     color:
-                                      log.level === 'ERROR' ? '#dc2626' : log.level === 'WARN' ? '#d97706' : '#2563eb',
+                                      log.level === 'ERROR' ? '#f87171' : log.level === 'WARN' ? '#fbbf24' : '#60a5fa',
                                   }}
                                 >
                                   {log.level}
@@ -967,7 +967,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
                               <td style={{ padding: '8px 12px', color: '#475569', fontWeight: 600 }}>
                                 {log.entityType || '—'}
                               </td>
-                              <td style={{ padding: '8px 12px', color: '#0f172a' }}>{log.message}</td>
+                              <td style={{ padding: '8px 12px', color: '#ffffff' }}>{log.message}</td>
                               <td style={{ padding: '8px 12px' }}>
                                 {log.details ? (
                                   <div>
@@ -1019,7 +1019,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
             </div>
 
             {/* Modal Footer */}
-            <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', background: '#f8fafc' }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--scout-border-subtle)', display: 'flex', justifyContent: 'flex-end', background: 'var(--scout-surface-card)' }}>
               <button
                 type="button"
                 className="scout-btn scout-btn-secondary"

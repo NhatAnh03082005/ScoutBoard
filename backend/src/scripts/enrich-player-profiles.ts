@@ -4,7 +4,8 @@ import * as dns from 'dns';
 
 dns.setDefaultResultOrder('ipv4first');
 
-const API_KEY = process.env.API_FOOTBALL_KEY || '02ada4bba01560e3ca554bf514f793ec';
+const API_KEY =
+  process.env.API_FOOTBALL_KEY || '02ada4bba01560e3ca554bf514f793ec';
 const BASE_HOST = 'v3.football.api-sports.io';
 const DB_URL =
   process.env.DATABASE_URL ||
@@ -185,7 +186,9 @@ async function main() {
   for (let page = 2; page <= totalPages; page++) {
     // Safety check: leave at least 3 quota for verification
     if (remainingQuota - apiCallsUsed <= 2) {
-      console.warn(`Approaching daily quota limit. Stopping safely at page ${page - 1}.`);
+      console.warn(
+        `Approaching daily quota limit. Stopping safely at page ${page - 1}.`,
+      );
       break;
     }
 
@@ -262,7 +265,9 @@ async function main() {
   console.log('\n====================================================');
   console.log('ENRICHMENT PIPELINE COMPLETED');
   console.log(`API calls used in this run: ${apiCallsUsed}`);
-  console.log(`Total API player records processed: ${totalApiPlayersProcessed}`);
+  console.log(
+    `Total API player records processed: ${totalApiPlayersProcessed}`,
+  );
   console.log(`Total player updates in DB: ${totalEnrichedInDb}`);
   console.log('====================================================');
 

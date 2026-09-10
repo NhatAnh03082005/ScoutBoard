@@ -30,7 +30,9 @@ describe('PersistPlayerMatchStatisticsUseCase', () => {
     mockStatRepo = {
       findByMatchAndPlayer: jest.fn(),
       findByMatchId: jest.fn(),
-      upsert: jest.fn((dto) => Promise.resolve({ ...dto, id: 'stat-uuid-1' } as any)),
+      upsert: jest.fn((dto) =>
+        Promise.resolve({ ...dto, id: 'stat-uuid-1' } as any),
+      ),
       upsertBatch: jest.fn(),
       deleteByMatchId: jest.fn(),
     };
@@ -63,7 +65,12 @@ describe('PersistPlayerMatchStatisticsUseCase', () => {
 
     expect(result.goals).toBe(2);
     expect(mockStatRepo.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ matchId, playerId, teamId: homeTeamId, goals: 2 }),
+      expect.objectContaining({
+        matchId,
+        playerId,
+        teamId: homeTeamId,
+        goals: 2,
+      }),
     );
   });
 

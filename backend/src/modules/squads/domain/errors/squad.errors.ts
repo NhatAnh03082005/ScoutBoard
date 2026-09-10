@@ -21,14 +21,18 @@ export class InvalidSquadOwnerError extends Error {
 
 export class InvalidFormationCodeError extends Error {
   constructor(formation: string) {
-    super(`Invalid formation code '${formation}'. Allowed formations: 4-3-3, 4-2-3-1, 4-4-2, 3-5-2, 3-4-3`);
+    super(
+      `Invalid formation code '${formation}'. Allowed formations: 4-3-3, 4-2-3-1, 4-4-2, 3-5-2, 3-4-3`,
+    );
     this.name = 'InvalidFormationCodeError';
   }
 }
 
 export class InvalidSquadPlayerRoleError extends Error {
   constructor(role: string) {
-    super(`Invalid squad player role '${role}'. Allowed roles: STARTER, SUBSTITUTE`);
+    super(
+      `Invalid squad player role '${role}'. Allowed roles: STARTER, SUBSTITUTE`,
+    );
     this.name = 'InvalidSquadPlayerRoleError';
   }
 }
@@ -56,7 +60,9 @@ export class PlayerNotInSquadError extends Error {
 
 export class SquadStarterSlotAlreadyOccupiedError extends Error {
   constructor(slotCode: string, squadId: string) {
-    super(`Slot '${slotCode}' is already occupied in starter lineup for squad '${squadId}'`);
+    super(
+      `Slot '${slotCode}' is already occupied in starter lineup for squad '${squadId}'`,
+    );
     this.name = 'SquadStarterSlotAlreadyOccupiedError';
   }
 }

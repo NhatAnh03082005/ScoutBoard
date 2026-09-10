@@ -40,8 +40,12 @@ export class CreateShortlistPlayersTable1789100000000 implements MigrationInterf
     await queryRunner.query(
       `ALTER TABLE "shortlist_players" DROP CONSTRAINT "FK_shortlist_players_shortlist_id"`,
     );
-    await queryRunner.query(`DROP INDEX "public"."IDX_shortlist_players_player_id"`);
-    await queryRunner.query(`DROP INDEX "public"."IDX_shortlist_players_shortlist_id"`);
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_shortlist_players_player_id"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_shortlist_players_shortlist_id"`,
+    );
     await queryRunner.query(`DROP TABLE "shortlist_players"`);
   }
 }

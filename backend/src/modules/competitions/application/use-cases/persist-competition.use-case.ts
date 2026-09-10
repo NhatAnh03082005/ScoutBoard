@@ -15,10 +15,15 @@ export class PersistCompetitionUseCase {
 
   async execute(input: TransformedCompetition): Promise<CompetitionOrmEntity> {
     if (!input) {
-      throw new BadRequestException('Transformed competition payload is required');
+      throw new BadRequestException(
+        'Transformed competition payload is required',
+      );
     }
 
-    if (!input.externalProvider || String(input.externalProvider).trim() === '') {
+    if (
+      !input.externalProvider ||
+      String(input.externalProvider).trim() === ''
+    ) {
       throw new BadRequestException('externalProvider is required');
     }
 

@@ -60,8 +60,12 @@ describe('TypeOrmSeasonTeamWriteRepository', () => {
 
   it('should add multiple teams to season and deduplicate teamIds', async () => {
     mockOrmRepository.findOne.mockResolvedValue(null);
-    mockOrmRepository.create.mockImplementation((e) => e as SeasonTeamOrmEntity);
-    mockOrmRepository.save.mockImplementation(async (e) => e as SeasonTeamOrmEntity);
+    mockOrmRepository.create.mockImplementation(
+      (e) => e as SeasonTeamOrmEntity,
+    );
+    mockOrmRepository.save.mockImplementation(
+      async (e) => e as SeasonTeamOrmEntity,
+    );
 
     const results = await repository.addTeamsToSeason(mockSeasonId, [
       mockTeamId1,

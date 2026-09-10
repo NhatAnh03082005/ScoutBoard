@@ -24,7 +24,10 @@ export class PersistTeamWithSquadUseCase {
       throw new BadRequestException('Transformed team input is required');
     }
 
-    if (!input.externalProvider || String(input.externalProvider).trim() === '') {
+    if (
+      !input.externalProvider ||
+      String(input.externalProvider).trim() === ''
+    ) {
       throw new BadRequestException('externalProvider is required');
     }
 
@@ -41,13 +44,18 @@ export class PersistTeamWithSquadUseCase {
 
     const teamId = team.id;
     if (!teamId) {
-      throw new Error('Team persistence succeeded but returned empty internal ID');
+      throw new Error(
+        'Team persistence succeeded but returned empty internal ID',
+      );
     }
 
     // 2. Persist Squad players linking current_team_id
     let players: PlayerOrmEntity[] = [];
     if (Array.isArray(input.squad) && input.squad.length > 0) {
-      players = await this.persistPlayerUseCase.executeMany(input.squad, teamId);
+      players = await this.persistPlayerUseCase.executeMany(
+        input.squad,
+        teamId,
+      );
     }
 
     return {

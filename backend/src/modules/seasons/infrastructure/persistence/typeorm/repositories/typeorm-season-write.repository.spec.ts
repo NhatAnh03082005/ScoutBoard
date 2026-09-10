@@ -56,7 +56,10 @@ describe('TypeOrmSeasonWriteRepository', () => {
     mockOrmRepository.create.mockReturnValue(createdEntity);
     mockOrmRepository.save.mockResolvedValue(createdEntity);
 
-    const result = await repository.upsert(mockTransformedSeason, mockCompetitionId);
+    const result = await repository.upsert(
+      mockTransformedSeason,
+      mockCompetitionId,
+    );
 
     expect(mockOrmRepository.findOne).toHaveBeenCalledWith({
       where: {
@@ -101,7 +104,9 @@ describe('TypeOrmSeasonWriteRepository', () => {
     };
 
     mockOrmRepository.findOne.mockResolvedValue(existingEntity);
-    mockOrmRepository.save.mockImplementation(async (entity) => entity as SeasonOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (entity) => entity as SeasonOrmEntity,
+    );
 
     const updatedPayload: TransformedSeason = {
       ...mockTransformedSeason,
@@ -141,7 +146,9 @@ describe('TypeOrmSeasonWriteRepository', () => {
   it('TC-05: should handle null startDate and endDate gracefully', async () => {
     mockOrmRepository.findOne.mockResolvedValue(null);
     mockOrmRepository.create.mockImplementation((e) => e as SeasonOrmEntity);
-    mockOrmRepository.save.mockImplementation(async (e) => e as SeasonOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (e) => e as SeasonOrmEntity,
+    );
 
     const payloadWithNullDates: TransformedSeason = {
       externalProvider: 'FOOTBALL_DATA_ORG',
@@ -154,7 +161,10 @@ describe('TypeOrmSeasonWriteRepository', () => {
       currentMatchday: null,
     };
 
-    const result = await repository.upsert(payloadWithNullDates, mockCompetitionId);
+    const result = await repository.upsert(
+      payloadWithNullDates,
+      mockCompetitionId,
+    );
 
     expect(mockOrmRepository.create).toHaveBeenCalledWith({
       competitionId: mockCompetitionId,
@@ -174,7 +184,9 @@ describe('TypeOrmSeasonWriteRepository', () => {
   it('TC-12: should upsert array of seasons sequentially', async () => {
     mockOrmRepository.findOne.mockResolvedValue(null);
     mockOrmRepository.create.mockImplementation((e) => e as SeasonOrmEntity);
-    mockOrmRepository.save.mockImplementation(async (e) => e as SeasonOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (e) => e as SeasonOrmEntity,
+    );
 
     const results = await repository.upsertMany(
       [

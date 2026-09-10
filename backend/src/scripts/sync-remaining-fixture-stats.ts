@@ -57,9 +57,15 @@ async function checkApiFootballQuota(
 }
 
 async function main() {
-  console.log('===============================================================');
-  console.log('=== SCOUTBOARD RESUMABLE PLAYER MATCH STATISTICS SYNC ENGINE ==');
-  console.log('===============================================================\n');
+  console.log(
+    '===============================================================',
+  );
+  console.log(
+    '=== SCOUTBOARD RESUMABLE PLAYER MATCH STATISTICS SYNC ENGINE ==',
+  );
+  console.log(
+    '===============================================================\n',
+  );
 
   const app = await NestFactory.createApplicationContext(AppModule, {
     logger: ['error', 'warn', 'log'],
@@ -68,7 +74,9 @@ async function main() {
   try {
     const dataSource = app.get(DataSource);
     const apiClient = app.get<ApiFootballClientPort>(API_FOOTBALL_CLIENT);
-    const matchStatsSyncService = app.get(ApiFootballPlayerMatchStatsSyncService);
+    const matchStatsSyncService = app.get(
+      ApiFootballPlayerMatchStatsSyncService,
+    );
     const seasonAggService = app.get(PlayerSeasonStatisticsAggregationService);
 
     const compRepo = app.get(getRepositoryToken(CompetitionOrmEntity));
@@ -91,21 +99,27 @@ async function main() {
       where: { competitionId: comp.id, seasonId: season.id },
     });
 
-    const syncedMatchesRows = await dataSource.query(`
+    const syncedMatchesRows = await dataSource.query(
+      `
       SELECT m.id, m.external_id, m.match_date
       FROM matches m
       WHERE m.competition_id = $1 AND m.season_id = $2
         AND EXISTS (SELECT 1 FROM player_match_statistics pms WHERE pms.match_id = m.id)
       ORDER BY m.match_date ASC;
-    `, [comp.id, season.id]);
+    `,
+      [comp.id, season.id],
+    );
 
-    const pendingMatchesRows = await dataSource.query(`
+    const pendingMatchesRows = await dataSource.query(
+      `
       SELECT m.id, m.external_id, m.match_date
       FROM matches m
       WHERE m.competition_id = $1 AND m.season_id = $2
         AND NOT EXISTS (SELECT 1 FROM player_match_statistics pms WHERE pms.match_id = m.id)
       ORDER BY m.match_date ASC;
-    `, [comp.id, season.id]);
+    `,
+      [comp.id, season.id],
+    );
 
     const initialStatsRows = await dataSource.query(
       `SELECT count(*) as count FROM player_match_statistics`,
@@ -118,9 +132,15 @@ async function main() {
     const initialPlayersCount = parseInt(initialPlayersRows[0].count, 10);
 
     console.log(`[AUDIT] Total Matches: ${totalMatchesCount}`);
-    console.log(`[AUDIT] Synced Matches with Stats: ${syncedMatchesRows.length}`);
-    console.log(`[AUDIT] Pending Matches without Stats: ${pendingMatchesRows.length}`);
-    console.log(`[AUDIT] Existing Player Match Statistics Rows: ${initialStatsCount}`);
+    console.log(
+      `[AUDIT] Synced Matches with Stats: ${syncedMatchesRows.length}`,
+    );
+    console.log(
+      `[AUDIT] Pending Matches without Stats: ${pendingMatchesRows.length}`,
+    );
+    console.log(
+      `[AUDIT] Existing Player Match Statistics Rows: ${initialStatsCount}`,
+    );
     console.log(`[AUDIT] Unique Players with Stats: ${initialPlayersCount}`);
     console.log(
       `[AUDIT] Current Coverage: ${((syncedMatchesRows.length / totalMatchesCount) * 100).toFixed(2)}%\n`,
@@ -145,12 +165,15 @@ async function main() {
     let successfulFixturesThisRun = 0;
     let failedFixturesThisRun = 0;
     let requestsUsedThisRun = 0;
-    let retriesCount = 0;
+    const retriesCount = 0;
     let tooManyRequestsCount = 0;
 
     // 4. If quota available, process pending fixtures up to remaining quota
     if (!quota.isExhausted && pendingMatchesRows.length > 0) {
-      const batchSize = Math.min(pendingMatchesRows.length, quota.remaining - 1);
+      const batchSize = Math.min(
+        pendingMatchesRows.length,
+        quota.remaining - 1,
+      );
       console.log(
         `>>> Starting batch of ${batchSize} pending fixtures (safe quota buffer: 1 reserve)...`,
       );
@@ -223,7 +246,10 @@ async function main() {
     `);
     const completedMatchesCount = parseInt(finalSyncedMatches[0].count, 10);
     const pendingMatchesCount = totalMatchesCount - completedMatchesCount;
-    const finalCoverage = ((completedMatchesCount / totalMatchesCount) * 100).toFixed(2);
+    const finalCoverage = (
+      (completedMatchesCount / totalMatchesCount) *
+      100
+    ).toFixed(2);
 
     // Integrity checks
     const orphanPlayerStats = await dataSource.query(`
@@ -250,17 +276,27 @@ async function main() {
     console.log(`Stats failed:         ${failedFixturesThisRun}`);
     console.log(`Player Match Stat Rows: ${finalStatsCount}`);
     console.log(`Players With Stats:   ${finalPlayersCount}`);
-    console.log(`Coverage:             ${completedMatchesCount}/${totalMatchesCount} (${finalCoverage}%)`);
+    console.log(
+      `Coverage:             ${completedMatchesCount}/${totalMatchesCount} (${finalCoverage}%)`,
+    );
     console.log(`Requests used:        ${requestsUsedThisRun}`);
-    console.log(`Requests remaining:   ${quota.remaining - requestsUsedThisRun}`);
+    console.log(
+      `Requests remaining:   ${quota.remaining - requestsUsedThisRun}`,
+    );
     console.log(`429:                  ${tooManyRequestsCount}`);
     console.log(`Retries:              ${retriesCount}`);
-    console.log(`Next fixture:         ${pendingMatchesRows[successfulFixturesThisRun]?.external_id || 'N/A'}`);
+    console.log(
+      `Next fixture:         ${pendingMatchesRows[successfulFixturesThisRun]?.external_id || 'N/A'}`,
+    );
     console.log('==================================\n');
 
     console.log('--- INTEGRITY VERIFICATION ---');
-    console.log(`Orphan Player Stats:  ${orphanPlayerStats[0].count} (MUST BE 0)`);
-    console.log(`Orphan Match Stats:   ${orphanMatchStats[0].count} (MUST BE 0)`);
+    console.log(
+      `Orphan Player Stats:  ${orphanPlayerStats[0].count} (MUST BE 0)`,
+    );
+    console.log(
+      `Orphan Match Stats:   ${orphanMatchStats[0].count} (MUST BE 0)`,
+    );
     console.log(`Duplicate Combos:     ${duplicateStats.length} (MUST BE 0)`);
 
     // Top Goalkeepers check

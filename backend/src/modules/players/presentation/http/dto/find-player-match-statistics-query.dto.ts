@@ -13,12 +13,17 @@ export class FindPlayerMatchStatisticsQueryDto {
   @IsUUID()
   competitionId?: string;
 
-  @ApiPropertyOptional({ description: 'Lọc theo ID đội bóng cầu thủ đại diện trong trận' })
+  @ApiPropertyOptional({
+    description: 'Lọc theo ID đội bóng cầu thủ đại diện trong trận',
+  })
   @IsOptional()
   @IsUUID()
   teamId?: string;
 
-  @ApiPropertyOptional({ description: 'Số bản ghi tối đa (Mặc định: 10)', default: 10 })
+  @ApiPropertyOptional({
+    description: 'Số bản ghi tối đa (Mặc định: 10)',
+    default: 10,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -26,7 +31,10 @@ export class FindPlayerMatchStatisticsQueryDto {
   @Max(100)
   limit?: number = 10;
 
-  @ApiPropertyOptional({ description: 'Vị trí bắt đầu (Mặc định: 0)', default: 0 })
+  @ApiPropertyOptional({
+    description: 'Vị trí bắt đầu (Mặc định: 0)',
+    default: 0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

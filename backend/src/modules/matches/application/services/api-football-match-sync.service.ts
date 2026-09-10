@@ -1,4 +1,9 @@
-import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   API_FOOTBALL_CLIENT,
   ApiFootballClientPort,
@@ -83,9 +88,7 @@ export class ApiFootballMatchSyncService {
           awayTeamExternalId: transformed.awayTeamExternalId,
         });
       } catch (err: any) {
-        this.logger.error(
-          `Failed to sync fixture ${extId}: ${err.message}`,
-        );
+        this.logger.error(`Failed to sync fixture ${extId}: ${err.message}`);
         errors.push({
           externalId: extId,
           error: err.message,

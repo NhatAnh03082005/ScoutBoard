@@ -54,15 +54,19 @@ export class PersistPlayerPositionsUseCase {
     }
 
     const posCode = String(input.positionCode).trim().toUpperCase();
-    const isPrimary = input.isPrimary !== undefined ? Boolean(input.isPrimary) : true;
+    const isPrimary =
+      input.isPrimary !== undefined ? Boolean(input.isPrimary) : true;
 
     // 1. Resolve internal Player UUID
-    let internalPlayerId: string | null = (input as PersistPlayerPositionInput).playerId || null;
+    let internalPlayerId: string | null =
+      (input as PersistPlayerPositionInput).playerId || null;
 
     if (!internalPlayerId) {
-      const externalId = (input as TransformedPlayerPosition).playerExternalId ||
+      const externalId =
+        (input as TransformedPlayerPosition).playerExternalId ||
         (input as PersistPlayerPositionInput).playerExternalId;
-      const provider = (input as TransformedPlayerPosition).externalProvider ||
+      const provider =
+        (input as TransformedPlayerPosition).externalProvider ||
         (input as PersistPlayerPositionInput).externalProvider ||
         'FOOTBALL_DATA_ORG';
 
@@ -72,10 +76,11 @@ export class PersistPlayerPositionsUseCase {
         );
       }
 
-      const playerEntity = await this.playerWriteRepository.findByExternalIdentity(
-        provider,
-        String(externalId).trim(),
-      );
+      const playerEntity =
+        await this.playerWriteRepository.findByExternalIdentity(
+          provider,
+          String(externalId).trim(),
+        );
 
       if (!playerEntity) {
         throw new NotFoundException(

@@ -3,6 +3,10 @@ import { PlayerTeamHistoryOrmEntity } from '../../infrastructure/persistence/typ
 import { PlayerSeasonStatisticOrmEntity } from '../../infrastructure/persistence/typeorm/entities/player-season-statistic.orm-entity';
 import { PlayerMatchStatisticOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/player-match-statistic.orm-entity';
 import { ComparisonScope } from '../../domain/enums/comparison-scope.enum';
+import type {
+  QueryNode,
+  PlayerAdvancedQueryScope,
+} from '../../domain/query/player-query.types';
 
 export const PLAYER_READ_REPOSITORY = Symbol('PLAYER_READ_REPOSITORY');
 
@@ -73,4 +77,14 @@ export interface PlayerReadRepository {
     query: FindComparisonCandidatesQuery,
   ): Promise<{ items: PlayerOrmEntity[]; total: number }>;
   getDistinctPositions(): Promise<string[]>;
+
+  /**
+   * Executes an advanced Boolean query tree against the player dataset.
+   * Added for QUERY /players — does not affect GET /players.
+   */
+  queryPlayers(
+    queryNode: QueryNode,
+    pagination: { limit: number; offset: number },
+    scope?: PlayerAdvancedQueryScope,
+  ): Promise<{ items: PlayerOrmEntity[]; total: number }>;
 }

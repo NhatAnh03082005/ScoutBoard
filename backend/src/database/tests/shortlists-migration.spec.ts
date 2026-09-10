@@ -24,11 +24,15 @@ describe('CreateShortlistsTable1789000000000 (Migration)', () => {
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         2,
-        expect.stringContaining('CREATE INDEX "idx_shortlists_owner" ON "shortlists" ("owner_id", "updated_at" DESC)'),
+        expect.stringContaining(
+          'CREATE INDEX "idx_shortlists_owner" ON "shortlists" ("owner_id", "updated_at" DESC)',
+        ),
       );
       expect(mockQueryRunner.query).toHaveBeenNthCalledWith(
         3,
-        expect.stringContaining('ALTER TABLE "shortlists" ADD CONSTRAINT "FK_shortlists_owner_id" FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE CASCADE'),
+        expect.stringContaining(
+          'ALTER TABLE "shortlists" ADD CONSTRAINT "FK_shortlists_owner_id" FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE CASCADE',
+        ),
       );
     });
 
@@ -70,7 +74,11 @@ describe('CreateShortlistsTable1789000000000 (Migration)', () => {
       // Create a test user for foreign key verification
       const userRes = await AppDataSource.query(
         `INSERT INTO "users" ("email", "password_hash", "full_name") VALUES ($1, $2, $3) RETURNING "id"`,
-        [`test-owner-${Date.now()}-${Math.random()}@example.com`, 'hash', 'Test Owner'],
+        [
+          `test-owner-${Date.now()}-${Math.random()}@example.com`,
+          'hash',
+          'Test Owner',
+        ],
       );
       testUserId = userRes[0].id;
     });
@@ -78,7 +86,9 @@ describe('CreateShortlistsTable1789000000000 (Migration)', () => {
     afterEach(async () => {
       // Clean up test user (will cascade delete shortlists if any remain)
       if (testUserId) {
-        await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [testUserId]);
+        await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [
+          testUserId,
+        ]);
       }
     });
 
@@ -109,16 +119,24 @@ describe('CreateShortlistsTable1789000000000 (Migration)', () => {
       expect((colMap.get('description') as any).is_nullable).toBe('YES');
 
       expect(colMap.has('visibility')).toBe(true);
-      expect((colMap.get('visibility') as any).data_type).toBe('character varying');
+      expect((colMap.get('visibility') as any).data_type).toBe(
+        'character varying',
+      );
       expect((colMap.get('visibility') as any).is_nullable).toBe('NO');
-      expect((colMap.get('visibility') as any).column_default).toContain('PRIVATE');
+      expect((colMap.get('visibility') as any).column_default).toContain(
+        'PRIVATE',
+      );
 
       expect(colMap.has('created_at')).toBe(true);
-      expect((colMap.get('created_at') as any).data_type).toBe('timestamp with time zone');
+      expect((colMap.get('created_at') as any).data_type).toBe(
+        'timestamp with time zone',
+      );
       expect((colMap.get('created_at') as any).is_nullable).toBe('NO');
 
       expect(colMap.has('updated_at')).toBe(true);
-      expect((colMap.get('updated_at') as any).data_type).toBe('timestamp with time zone');
+      expect((colMap.get('updated_at') as any).data_type).toBe(
+        'timestamp with time zone',
+      );
       expect((colMap.get('updated_at') as any).is_nullable).toBe('NO');
     });
 
@@ -156,7 +174,9 @@ describe('CreateShortlistsTable1789000000000 (Migration)', () => {
       const shortlistId = res[0].id;
 
       // Delete user
-      await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [testUserId]);
+      await AppDataSource.query(`DELETE FROM "users" WHERE "id" = $1`, [
+        testUserId,
+      ]);
 
       // Check shortlist is deleted
       const check = await AppDataSource.query(
@@ -184,8 +204,12 @@ describe('CreateShortlistsTable1789000000000 (Migration)', () => {
 
       expect(res[0].created_at).toBeDefined();
       expect(res[0].updated_at).toBeDefined();
-      expect(new Date(res[0].created_at).getTime()).toBeLessThanOrEqual(Date.now() + 5000);
-      expect(new Date(res[0].updated_at).getTime()).toBeLessThanOrEqual(Date.now() + 5000);
+      expect(new Date(res[0].created_at).getTime()).toBeLessThanOrEqual(
+        Date.now() + 5000,
+      );
+      expect(new Date(res[0].updated_at).getTime()).toBeLessThanOrEqual(
+        Date.now() + 5000,
+      );
     });
 
     it('TC-08: Owner Index - idx_shortlists_owner(owner_id, updated_at DESC) must exist', async () => {

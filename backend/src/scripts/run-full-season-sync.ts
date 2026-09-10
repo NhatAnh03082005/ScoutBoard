@@ -16,9 +16,15 @@ import { DataSource } from 'typeorm';
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function main() {
-  console.log('===============================================================');
-  console.log('=== STARTING FULL-SEASON DATA BACKFILL: PREMIER LEAGUE 2024 ===');
-  console.log('===============================================================\n');
+  console.log(
+    '===============================================================',
+  );
+  console.log(
+    '=== STARTING FULL-SEASON DATA BACKFILL: PREMIER LEAGUE 2024 ===',
+  );
+  console.log(
+    '===============================================================\n',
+  );
 
   const app = await NestFactory.createApplicationContext(AppModule, {
     logger: ['error', 'warn', 'log'],
@@ -29,7 +35,9 @@ async function main() {
     const teamSyncService = app.get(ApiFootballTeamSyncService);
     const playerSyncService = app.get(ApiFootballPlayerSyncService);
     const matchSyncService = app.get(ApiFootballMatchSyncService);
-    const matchStatsSyncService = app.get(ApiFootballPlayerMatchStatsSyncService);
+    const matchStatsSyncService = app.get(
+      ApiFootballPlayerMatchStatsSyncService,
+    );
     const seasonAggService = app.get(PlayerSeasonStatisticsAggregationService);
 
     const compRepo = app.get(getRepositoryToken(CompetitionOrmEntity));
@@ -39,8 +47,12 @@ async function main() {
     const dataSource = app.get(DataSource);
 
     // 0. Clean up any test records so only real data remains
-    await dataSource.query("DELETE FROM seasons WHERE competition_id IN (SELECT id FROM competitions WHERE name = 'Test Competition')");
-    await dataSource.query("DELETE FROM competitions WHERE name = 'Test Competition'");
+    await dataSource.query(
+      "DELETE FROM seasons WHERE competition_id IN (SELECT id FROM competitions WHERE name = 'Test Competition')",
+    );
+    await dataSource.query(
+      "DELETE FROM competitions WHERE name = 'Test Competition'",
+    );
 
     // 1. Verify Competition & Season
     console.log('>>> STAGE 1: Confirming Target Competition & Season...');
@@ -69,7 +81,9 @@ async function main() {
     }
 
     console.log(`✓ Competition: ${comp.name} (UUID: ${comp.id})`);
-    console.log(`✓ Season: ${season.seasonCode || season.name} (UUID: ${season.id}, Year: ${season.externalId})\n`);
+    console.log(
+      `✓ Season: ${season.seasonCode || season.name} (UUID: ${season.id}, Year: ${season.externalId})\n`,
+    );
 
     // 2. Verify all 20 teams & season_teams
     console.log('>>> STAGE 2: Verifying 20 Teams & Season-Team links...');
@@ -87,7 +101,9 @@ async function main() {
       where: { externalProvider: 'API_FOOTBALL' },
       order: { name: 'ASC' },
     });
-    console.log(`✓ Verified ${verifiedTeams.length} Premier League teams in database.\n`);
+    console.log(
+      `✓ Verified ${verifiedTeams.length} Premier League teams in database.\n`,
+    );
 
     // 3. Full Player Sync across all 20 teams
     console.log('>>> STAGE 3: Backfilling Squad Players for All Teams...');
@@ -105,38 +121,55 @@ async function main() {
 
       const count = parseInt(existingPlayersCount[0].count, 10);
       if (count > 0) {
-        console.log(`[${i + 1}/${verifiedTeams.length}] ${t.name}: Already has ${count} squad players. Skipping API call.`);
+        console.log(
+          `[${i + 1}/${verifiedTeams.length}] ${t.name}: Already has ${count} squad players. Skipping API call.`,
+        );
         continue;
       }
 
-      console.log(`[${i + 1}/${verifiedTeams.length}] Syncing squad for ${t.name} (ext ID: ${t.externalId})...`);
-      const squadRes = await playerSyncService.syncSquadForTeam(t.id, t.externalId);
+      console.log(
+        `[${i + 1}/${verifiedTeams.length}] Syncing squad for ${t.name} (ext ID: ${t.externalId})...`,
+      );
+      const squadRes = await playerSyncService.syncSquadForTeam(
+        t.id,
+        t.externalId,
+      );
       totalPlayersAdded += squadRes.persistedPlayers;
       totalPositionsAdded += squadRes.positionsPersisted;
       totalHistoryAdded += squadRes.historyPersisted;
-      console.log(`  -> ${squadRes.persistedPlayers} players, ${squadRes.positionsPersisted} positions persisted.`);
+      console.log(
+        `  -> ${squadRes.persistedPlayers} players, ${squadRes.positionsPersisted} positions persisted.`,
+      );
 
       // Throttle 6.5s to respect 10 req/min rate limit
       console.log('  Waiting 6.5s throttle...');
       await sleep(6500);
     }
 
-    const totalDbPlayers = await dataSource.query(`SELECT count(*) FROM "players"`);
+    const totalDbPlayers = await dataSource.query(
+      `SELECT count(*) FROM "players"`,
+    );
     console.log(`✓ Total Players in Database: ${totalDbPlayers[0].count}\n`);
 
     // 4. Full Matches Sync (All 380 Fixtures)
-    console.log('>>> STAGE 4: Backfilling All 380 Fixtures for Premier League 2024...');
+    console.log(
+      '>>> STAGE 4: Backfilling All 380 Fixtures for Premier League 2024...',
+    );
     const matchSyncRes = await matchSyncService.syncMatchesByCompetition(
       comp.id,
       season.id,
       39,
       2024,
     );
-    console.log(`✓ Fixtures Sync: ${matchSyncRes.successful}/${matchSyncRes.totalRequested} fixtures persisted in database.\n`);
+    console.log(
+      `✓ Fixtures Sync: ${matchSyncRes.successful}/${matchSyncRes.totalRequested} fixtures persisted in database.\n`,
+    );
 
     // 5. Backfill Player Match Statistics for diverse finished matches
-    console.log('>>> STAGE 5: Backfilling Player Match Statistics for Top Matches...');
-    
+    console.log(
+      '>>> STAGE 5: Backfilling Player Match Statistics for Top Matches...',
+    );
+
     // Select diverse finished matches featuring key teams and top goalkeepers
     const targetFixtures = [
       1208021, // Man Utd vs Fulham (Leno 4 saves, Onana)
@@ -159,14 +192,23 @@ async function main() {
       });
 
       if (!match) {
-        console.warn(`Match with fixture ID ${fixId} not found in database. Skipping.`);
+        console.warn(
+          `Match with fixture ID ${fixId} not found in database. Skipping.`,
+        );
         continue;
       }
 
-      console.log(`[${i + 1}/${targetFixtures.length}] Syncing player stats for fixture ${fixId} (Match UUID: ${match.id})...`);
-      const statRes = await matchStatsSyncService.syncStatisticsByFixtureId(fixId, match.id);
+      console.log(
+        `[${i + 1}/${targetFixtures.length}] Syncing player stats for fixture ${fixId} (Match UUID: ${match.id})...`,
+      );
+      const statRes = await matchStatsSyncService.syncStatisticsByFixtureId(
+        fixId,
+        match.id,
+      );
       statsPersistedTotal += statRes.persistedCount;
-      console.log(`  -> ${statRes.persistedCount} player stats persisted (unresolved: ${statRes.unresolvedPlayers}).`);
+      console.log(
+        `  -> ${statRes.persistedCount} player stats persisted (unresolved: ${statRes.unresolvedPlayers}).`,
+      );
 
       if (i < targetFixtures.length - 1) {
         console.log('  Waiting 6.5s throttle...');
@@ -174,13 +216,22 @@ async function main() {
       }
     }
 
-    const totalDbMatchStats = await dataSource.query(`SELECT count(*) FROM "player_match_statistics"`);
-    console.log(`✓ Total Player Match Statistics in Database: ${totalDbMatchStats[0].count}\n`);
+    const totalDbMatchStats = await dataSource.query(
+      `SELECT count(*) FROM "player_match_statistics"`,
+    );
+    console.log(
+      `✓ Total Player Match Statistics in Database: ${totalDbMatchStats[0].count}\n`,
+    );
 
     // 6. Full Season Aggregation
     console.log('>>> STAGE 6: Running Full-Season Statistics Aggregation...');
-    const aggResult = await seasonAggService.aggregateAllForSeason(season.id, comp.id);
-    console.log(`✓ Aggregation Finished: ${aggResult.totalAggregated} player season statistics calculated.\n`);
+    const aggResult = await seasonAggService.aggregateAllForSeason(
+      season.id,
+      comp.id,
+    );
+    console.log(
+      `✓ Aggregation Finished: ${aggResult.totalAggregated} player season statistics calculated.\n`,
+    );
 
     // 7. Multi-Goalkeeper Verification (at least 3)
     console.log('>>> STAGE 7: Multi-Goalkeeper Verification...');
@@ -206,12 +257,19 @@ async function main() {
     console.table(gkResults);
 
     // 8. Idempotency Test
-    console.log('\n>>> STAGE 8: Idempotency Test (Re-running sync on key entities)...');
+    console.log(
+      '\n>>> STAGE 8: Idempotency Test (Re-running sync on key entities)...',
+    );
     const beforeCounts = {
-      competitions: (await dataSource.query(`SELECT count(*) FROM "competitions"`))[0].count,
+      competitions: (
+        await dataSource.query(`SELECT count(*) FROM "competitions"`)
+      )[0].count,
       teams: (await dataSource.query(`SELECT count(*) FROM "teams"`))[0].count,
-      matches: (await dataSource.query(`SELECT count(*) FROM "matches"`))[0].count,
-      matchStats: (await dataSource.query(`SELECT count(*) FROM "player_match_statistics"`))[0].count,
+      matches: (await dataSource.query(`SELECT count(*) FROM "matches"`))[0]
+        .count,
+      matchStats: (
+        await dataSource.query(`SELECT count(*) FROM "player_match_statistics"`)
+      )[0].count,
     };
 
     // Re-sync teams & 1 fixture stats
@@ -219,10 +277,15 @@ async function main() {
     await matchStatsSyncService.syncStatisticsByFixtureId(1208021);
 
     const afterCounts = {
-      competitions: (await dataSource.query(`SELECT count(*) FROM "competitions"`))[0].count,
+      competitions: (
+        await dataSource.query(`SELECT count(*) FROM "competitions"`)
+      )[0].count,
       teams: (await dataSource.query(`SELECT count(*) FROM "teams"`))[0].count,
-      matches: (await dataSource.query(`SELECT count(*) FROM "matches"`))[0].count,
-      matchStats: (await dataSource.query(`SELECT count(*) FROM "player_match_statistics"`))[0].count,
+      matches: (await dataSource.query(`SELECT count(*) FROM "matches"`))[0]
+        .count,
+      matchStats: (
+        await dataSource.query(`SELECT count(*) FROM "player_match_statistics"`)
+      )[0].count,
     };
 
     const isIdempotent =
@@ -232,33 +295,67 @@ async function main() {
       beforeCounts.matchStats === afterCounts.matchStats;
 
     console.log('Idempotency Comparison:');
-    console.log(`  competitions : before = ${beforeCounts.competitions}, after = ${afterCounts.competitions} (${beforeCounts.competitions === afterCounts.competitions ? 'PASS' : 'FAIL'})`);
-    console.log(`  teams        : before = ${beforeCounts.teams}, after = ${afterCounts.teams} (${beforeCounts.teams === afterCounts.teams ? 'PASS' : 'FAIL'})`);
-    console.log(`  matches      : before = ${beforeCounts.matches}, after = ${afterCounts.matches} (${beforeCounts.matches === afterCounts.matches ? 'PASS' : 'FAIL'})`);
-    console.log(`  matchStats   : before = ${beforeCounts.matchStats}, after = ${afterCounts.matchStats} (${beforeCounts.matchStats === afterCounts.matchStats ? 'PASS' : 'FAIL'})`);
-    console.log(`✓ Idempotency Status: ${isIdempotent ? 'VERIFIED IDEMPOTENT (Zero Duplicate Rows)' : 'IDEMPOTENCY FAILED'}\n`);
+    console.log(
+      `  competitions : before = ${beforeCounts.competitions}, after = ${afterCounts.competitions} (${beforeCounts.competitions === afterCounts.competitions ? 'PASS' : 'FAIL'})`,
+    );
+    console.log(
+      `  teams        : before = ${beforeCounts.teams}, after = ${afterCounts.teams} (${beforeCounts.teams === afterCounts.teams ? 'PASS' : 'FAIL'})`,
+    );
+    console.log(
+      `  matches      : before = ${beforeCounts.matches}, after = ${afterCounts.matches} (${beforeCounts.matches === afterCounts.matches ? 'PASS' : 'FAIL'})`,
+    );
+    console.log(
+      `  matchStats   : before = ${beforeCounts.matchStats}, after = ${afterCounts.matchStats} (${beforeCounts.matchStats === afterCounts.matchStats ? 'PASS' : 'FAIL'})`,
+    );
+    console.log(
+      `✓ Idempotency Status: ${isIdempotent ? 'VERIFIED IDEMPOTENT (Zero Duplicate Rows)' : 'IDEMPOTENCY FAILED'}\n`,
+    );
 
     // 9. Data Quality & Referential Integrity Check
     console.log('>>> STAGE 9: Data Quality & Referential Integrity Audit...');
-    const orphanTeams = await dataSource.query(`SELECT count(*) FROM season_teams WHERE team_id NOT IN (SELECT id FROM teams)`);
-    const orphanPlayers = await dataSource.query(`SELECT count(*) FROM player_positions WHERE player_id NOT IN (SELECT id FROM players)`);
-    const orphanMatches = await dataSource.query(`SELECT count(*) FROM matches WHERE home_team_id NOT IN (SELECT id FROM teams) OR away_team_id NOT IN (SELECT id FROM teams)`);
-    const orphanStats = await dataSource.query(`SELECT count(*) FROM player_match_statistics WHERE player_id NOT IN (SELECT id FROM players) OR match_id NOT IN (SELECT id FROM matches)`);
-    const duplicatePlayers = await dataSource.query(`SELECT external_id, count(*) FROM players GROUP BY external_id HAVING count(*) > 1`);
-    const duplicateMatches = await dataSource.query(`SELECT external_id, count(*) FROM matches GROUP BY external_id HAVING count(*) > 1`);
+    const orphanTeams = await dataSource.query(
+      `SELECT count(*) FROM season_teams WHERE team_id NOT IN (SELECT id FROM teams)`,
+    );
+    const orphanPlayers = await dataSource.query(
+      `SELECT count(*) FROM player_positions WHERE player_id NOT IN (SELECT id FROM players)`,
+    );
+    const orphanMatches = await dataSource.query(
+      `SELECT count(*) FROM matches WHERE home_team_id NOT IN (SELECT id FROM teams) OR away_team_id NOT IN (SELECT id FROM teams)`,
+    );
+    const orphanStats = await dataSource.query(
+      `SELECT count(*) FROM player_match_statistics WHERE player_id NOT IN (SELECT id FROM players) OR match_id NOT IN (SELECT id FROM matches)`,
+    );
+    const duplicatePlayers = await dataSource.query(
+      `SELECT external_id, count(*) FROM players GROUP BY external_id HAVING count(*) > 1`,
+    );
+    const duplicateMatches = await dataSource.query(
+      `SELECT external_id, count(*) FROM matches GROUP BY external_id HAVING count(*) > 1`,
+    );
 
     console.log(`  Orphan season_teams: ${orphanTeams[0].count} (Expected: 0)`);
-    console.log(`  Orphan player_positions: ${orphanPlayers[0].count} (Expected: 0)`);
+    console.log(
+      `  Orphan player_positions: ${orphanPlayers[0].count} (Expected: 0)`,
+    );
     console.log(`  Orphan matches: ${orphanMatches[0].count} (Expected: 0)`);
-    console.log(`  Orphan player_match_statistics: ${orphanStats[0].count} (Expected: 0)`);
-    console.log(`  Duplicate player external_ids: ${duplicatePlayers.length} (Expected: 0)`);
-    console.log(`  Duplicate match external_ids: ${duplicateMatches.length} (Expected: 0)`);
+    console.log(
+      `  Orphan player_match_statistics: ${orphanStats[0].count} (Expected: 0)`,
+    );
+    console.log(
+      `  Duplicate player external_ids: ${duplicatePlayers.length} (Expected: 0)`,
+    );
+    console.log(
+      `  Duplicate match external_ids: ${duplicateMatches.length} (Expected: 0)`,
+    );
     console.log('✓ All Referential Integrity Checks Passed!\n');
 
     // 10. Final Table Row Counts
-    console.log('===============================================================');
+    console.log(
+      '===============================================================',
+    );
     console.log('=== FINAL LIVE POSTGRESQL ROW COUNTS ===');
-    console.log('===============================================================');
+    console.log(
+      '===============================================================',
+    );
     const tables = [
       'competitions',
       'seasons',
@@ -275,10 +372,14 @@ async function main() {
     for (const table of tables) {
       const res = await dataSource.query(`SELECT count(*) FROM "${table}"`);
       const count = parseInt(res[0].count, 10);
-      console.log(`${table.padEnd(28)}: ${String(count).padStart(5)} rows  ✓ PASS`);
+      console.log(
+        `${table.padEnd(28)}: ${String(count).padStart(5)} rows  ✓ PASS`,
+      );
     }
 
-    console.log('\n=== FULL-SEASON DATA BACKFILL COMPLETED SUCCESSFULLY! ===\n');
+    console.log(
+      '\n=== FULL-SEASON DATA BACKFILL COMPLETED SUCCESSFULLY! ===\n',
+    );
   } finally {
     await app.close();
   }

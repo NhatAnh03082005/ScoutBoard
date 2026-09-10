@@ -50,7 +50,10 @@ describe('PersistSeasonUseCase', () => {
   });
 
   it('TC-01: should successfully persist valid single transformed season', async () => {
-    const result = await useCase.execute(validTransformedSeason, validCompetitionId);
+    const result = await useCase.execute(
+      validTransformedSeason,
+      validCompetitionId,
+    );
 
     expect(result).toBeDefined();
     expect(result.id).toBe('season-uuid-1');
@@ -62,7 +65,10 @@ describe('PersistSeasonUseCase', () => {
   });
 
   it('TC-02: should successfully persist array of transformed seasons with executeMany', async () => {
-    const result = await useCase.executeMany([validTransformedSeason], validCompetitionId);
+    const result = await useCase.executeMany(
+      [validTransformedSeason],
+      validCompetitionId,
+    );
 
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe('season-uuid-1');
@@ -73,9 +79,9 @@ describe('PersistSeasonUseCase', () => {
   });
 
   it('TC-07: should reject invalid or missing inputs', async () => {
-    await expect(useCase.execute(null as any, validCompetitionId)).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(
+      useCase.execute(null as any, validCompetitionId),
+    ).rejects.toThrow(BadRequestException);
 
     await expect(useCase.execute(validTransformedSeason, '')).rejects.toThrow(
       BadRequestException,

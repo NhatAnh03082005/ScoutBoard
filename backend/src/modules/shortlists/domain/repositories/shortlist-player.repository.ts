@@ -1,6 +1,8 @@
 import { ShortlistPlayer } from '../entities/shortlist-player';
 
-export const SHORTLIST_PLAYER_REPOSITORY = Symbol('SHORTLIST_PLAYER_REPOSITORY');
+export const SHORTLIST_PLAYER_REPOSITORY = Symbol(
+  'SHORTLIST_PLAYER_REPOSITORY',
+);
 
 export interface ShortlistPlayerRepository {
   findByShortlistAndPlayer(

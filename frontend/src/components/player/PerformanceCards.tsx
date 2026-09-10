@@ -25,9 +25,9 @@ export const PerformanceCards: React.FC<PerformanceCardsProps> = ({
           fontStyle: 'italic',
           padding: '24px',
           textAlign: 'center',
-          background: '#ffffff',
+          background: 'var(--scout-surface-card)',
           borderRadius: '16px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--scout-border-default)',
         }}
       >
         No performance metrics available for the selected season.

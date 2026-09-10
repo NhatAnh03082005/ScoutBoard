@@ -1,5 +1,13 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { USER_REPOSITORY, UserRepository } from '../../../users/domain/repositories/user.repository';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import {
+  USER_REPOSITORY,
+  UserRepository,
+} from '../../../users/domain/repositories/user.repository';
 import { EmailService } from '../../infrastructure/services/email.service';
 
 export interface ResendVerificationOtpInput {

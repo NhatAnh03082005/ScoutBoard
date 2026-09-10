@@ -18,9 +18,8 @@ export class GetPlayerTeamHistoryUseCase {
       throw new NotFoundException('Cầu thủ không tồn tại');
     }
 
-    const history = await this.playerReadRepository.findTeamHistoryByPlayerId(
-      playerId,
-    );
+    const history =
+      await this.playerReadRepository.findTeamHistoryByPlayerId(playerId);
 
     return history.map((h) => ({
       id: h.id,

@@ -103,7 +103,9 @@ describe('TypeOrmPlayerWriteRepository', () => {
     };
 
     mockOrmRepository.findOne.mockResolvedValue(existingEntity);
-    mockOrmRepository.save.mockImplementation(async (entity) => entity as PlayerOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (entity) => entity as PlayerOrmEntity,
+    );
 
     const result = await repository.upsert(mockTransformedPlayer, mockTeamId);
 
@@ -119,7 +121,9 @@ describe('TypeOrmPlayerWriteRepository', () => {
   it('should upsert array of players sequentially', async () => {
     mockOrmRepository.findOne.mockResolvedValue(null);
     mockOrmRepository.create.mockImplementation((e) => e as PlayerOrmEntity);
-    mockOrmRepository.save.mockImplementation(async (e) => e as PlayerOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (e) => e as PlayerOrmEntity,
+    );
 
     const results = await repository.upsertMany(
       [

@@ -42,10 +42,17 @@ describe('UpdateShortlistPlayerNoteUseCase (Unit)', () => {
 
   it('TC-06: should update note on shortlist_players record', async () => {
     const shortlist = new Shortlist(shortlistId, ownerId, 'Targets');
-    const shortlistPlayer = new ShortlistPlayer('rel-1', shortlistId, playerId, 'Old note');
+    const shortlistPlayer = new ShortlistPlayer(
+      'rel-1',
+      shortlistId,
+      playerId,
+      'Old note',
+    );
 
     mockShortlistRepo.findById.mockResolvedValue(shortlist);
-    mockShortlistPlayerRepo.findByShortlistAndPlayer.mockResolvedValue(shortlistPlayer);
+    mockShortlistPlayerRepo.findByShortlistAndPlayer.mockResolvedValue(
+      shortlistPlayer,
+    );
     mockShortlistPlayerRepo.save.mockImplementation(async (sp) => sp);
 
     const result = await useCase.execute({
@@ -61,10 +68,17 @@ describe('UpdateShortlistPlayerNoteUseCase (Unit)', () => {
 
   it('should allow clearing the note by passing null', async () => {
     const shortlist = new Shortlist(shortlistId, ownerId, 'Targets');
-    const shortlistPlayer = new ShortlistPlayer('rel-1', shortlistId, playerId, 'Old note');
+    const shortlistPlayer = new ShortlistPlayer(
+      'rel-1',
+      shortlistId,
+      playerId,
+      'Old note',
+    );
 
     mockShortlistRepo.findById.mockResolvedValue(shortlist);
-    mockShortlistPlayerRepo.findByShortlistAndPlayer.mockResolvedValue(shortlistPlayer);
+    mockShortlistPlayerRepo.findByShortlistAndPlayer.mockResolvedValue(
+      shortlistPlayer,
+    );
     mockShortlistPlayerRepo.save.mockImplementation(async (sp) => sp);
 
     const result = await useCase.execute({

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddEmailVerificationAndPasswordResetColumnsToUsers1787135000000
-  implements MigrationInterface
-{
+export class AddEmailVerificationAndPasswordResetColumnsToUsers1787135000000 implements MigrationInterface {
   name = 'AddEmailVerificationAndPasswordResetColumnsToUsers1787135000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

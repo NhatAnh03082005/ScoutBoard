@@ -23,7 +23,9 @@ export class PersistSeasonTeamsUseCase {
     private readonly seasonTeamWriteRepository: SeasonTeamWriteRepository,
   ) {}
 
-  async execute(input: PersistSeasonTeamsInput): Promise<PersistSeasonTeamsResult> {
+  async execute(
+    input: PersistSeasonTeamsInput,
+  ): Promise<PersistSeasonTeamsResult> {
     if (!input) {
       throw new BadRequestException('Input is required');
     }

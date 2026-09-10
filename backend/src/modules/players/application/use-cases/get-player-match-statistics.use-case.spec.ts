@@ -15,6 +15,8 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
       findSeasonStatisticsByCompetitionAndSeason: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
+      getDistinctPositions: jest.fn(),
+      queryPlayers: jest.fn(),
     };
 
     useCase = new GetPlayerMatchStatisticsUseCase(mockPlayerRepo);
@@ -30,8 +32,14 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
   });
 
   it('should return empty list with total=0 if player exists but has no match statistics', async () => {
-    mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Saka' } as any);
-    mockPlayerRepo.findMatchStatisticsByPlayerId.mockResolvedValue({ items: [], total: 0 });
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'player-1',
+      name: 'Saka',
+    } as any);
+    mockPlayerRepo.findMatchStatisticsByPlayerId.mockResolvedValue({
+      items: [],
+      total: 0,
+    });
 
     const result = await useCase.execute('player-1', { limit: 10, offset: 0 });
 
@@ -40,22 +48,40 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
   });
 
   it('should pass teamId to repository when teamId filter is provided', async () => {
-    mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Kane' } as any);
-    mockPlayerRepo.findMatchStatisticsByPlayerId.mockResolvedValue({ items: [], total: 0 });
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'player-1',
+      name: 'Kane',
+    } as any);
+    mockPlayerRepo.findMatchStatisticsByPlayerId.mockResolvedValue({
+      items: [],
+      total: 0,
+    });
 
-    await useCase.execute('player-1', { seasonId: 's-1', competitionId: 'c-1', teamId: 't-99', limit: 10, offset: 0 });
-
-    expect(mockPlayerRepo.findMatchStatisticsByPlayerId).toHaveBeenCalledWith('player-1', {
+    await useCase.execute('player-1', {
       seasonId: 's-1',
       competitionId: 'c-1',
       teamId: 't-99',
       limit: 10,
       offset: 0,
     });
+
+    expect(mockPlayerRepo.findMatchStatisticsByPlayerId).toHaveBeenCalledWith(
+      'player-1',
+      {
+        seasonId: 's-1',
+        competitionId: 'c-1',
+        teamId: 't-99',
+        limit: 10,
+        offset: 0,
+      },
+    );
   });
 
   it('should return formatted match statistics with full match context and derived passAccuracy', async () => {
-    mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Saka' } as any);
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'player-1',
+      name: 'Saka',
+    } as any);
     mockPlayerRepo.findMatchStatisticsByPlayerId.mockResolvedValue({
       items: [
         {
@@ -74,17 +100,36 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
           yellowCards: 0,
           redCards: 0,
           statistics: null,
-          team: { id: 'team-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
+          team: {
+            id: 'team-1',
+            name: 'Arsenal FC',
+            shortName: 'Arsenal',
+            logoUrl: null,
+          },
           match: {
             id: 'match-101',
             matchDate: new Date('2025-10-15T20:00:00Z'),
             status: 'FINISHED',
             homeScore: 2,
             awayScore: 1,
-            competition: { id: 'comp-1', name: 'Premier League', country: 'England' },
+            competition: {
+              id: 'comp-1',
+              name: 'Premier League',
+              country: 'England',
+            },
             season: { id: 'season-1', seasonCode: '2025-2026' },
-            homeTeam: { id: 'team-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
-            awayTeam: { id: 'team-2', name: 'Chelsea FC', shortName: 'Chelsea', logoUrl: null },
+            homeTeam: {
+              id: 'team-1',
+              name: 'Arsenal FC',
+              shortName: 'Arsenal',
+              logoUrl: null,
+            },
+            awayTeam: {
+              id: 'team-2',
+              name: 'Chelsea FC',
+              shortName: 'Chelsea',
+              logoUrl: null,
+            },
           },
         } as any,
       ],
@@ -105,7 +150,11 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
   });
 
   it('should return goalkeeper match statistics (saves, cleanSheets, etc.)', async () => {
-    mockPlayerRepo.findById.mockResolvedValue({ id: 'gk-1', name: 'David Raya', primaryPosition: 'GK' } as any);
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'gk-1',
+      name: 'David Raya',
+      primaryPosition: 'GK',
+    } as any);
     mockPlayerRepo.findMatchStatisticsByPlayerId.mockResolvedValue({
       items: [
         {
@@ -128,17 +177,36 @@ describe('GetPlayerMatchStatisticsUseCase', () => {
           cleanSheets: 1,
           penaltiesSaved: 0,
           statistics: null,
-          team: { id: 'team-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
+          team: {
+            id: 'team-1',
+            name: 'Arsenal FC',
+            shortName: 'Arsenal',
+            logoUrl: null,
+          },
           match: {
             id: 'match-101',
             matchDate: new Date('2025-10-15T20:00:00Z'),
             status: 'FINISHED',
             homeScore: 2,
             awayScore: 0,
-            competition: { id: 'comp-1', name: 'Premier League', country: 'England' },
+            competition: {
+              id: 'comp-1',
+              name: 'Premier League',
+              country: 'England',
+            },
             season: { id: 'season-1', seasonCode: '2025-2026' },
-            homeTeam: { id: 'team-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
-            awayTeam: { id: 'team-2', name: 'Chelsea FC', shortName: 'Chelsea', logoUrl: null },
+            homeTeam: {
+              id: 'team-1',
+              name: 'Arsenal FC',
+              shortName: 'Arsenal',
+              logoUrl: null,
+            },
+            awayTeam: {
+              id: 'team-2',
+              name: 'Chelsea FC',
+              shortName: 'Chelsea',
+              logoUrl: null,
+            },
           },
         } as any,
       ],

@@ -54,11 +54,15 @@ describe('PersistCompetitionUseCase', () => {
     expect(result.externalProvider).toBe('FOOTBALL_DATA_ORG');
     expect(result.externalId).toBe('2021');
     expect(mockCompetitionWriteRepository.upsert).toHaveBeenCalledTimes(1);
-    expect(mockCompetitionWriteRepository.upsert).toHaveBeenCalledWith(validTransformedCompetition);
+    expect(mockCompetitionWriteRepository.upsert).toHaveBeenCalledWith(
+      validTransformedCompetition,
+    );
   });
 
   it('TC-04: should reject when payload is missing or invalid', async () => {
-    await expect(useCase.execute(null as any)).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      BadRequestException,
+    );
 
     await expect(
       useCase.execute({

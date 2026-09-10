@@ -32,15 +32,15 @@ describe('ApiFootballPlayerMatchStatsSyncService', () => {
     };
 
     mockTeamRepo = {
-      find: jest.fn().mockResolvedValue([
-        { id: 'team-uuid-33', externalId: '33' },
-      ]),
+      find: jest
+        .fn()
+        .mockResolvedValue([{ id: 'team-uuid-33', externalId: '33' }]),
     };
 
     mockPlayerRepo = {
-      find: jest.fn().mockResolvedValue([
-        { id: 'player-uuid-545', externalId: '545' },
-      ]),
+      find: jest
+        .fn()
+        .mockResolvedValue([{ id: 'player-uuid-545', externalId: '545' }]),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -51,9 +51,15 @@ describe('ApiFootballPlayerMatchStatsSyncService', () => {
           provide: PersistPlayerMatchStatisticsUseCase,
           useValue: mockPersistStatsUseCase,
         },
-        { provide: getRepositoryToken(MatchOrmEntity), useValue: mockMatchRepo },
+        {
+          provide: getRepositoryToken(MatchOrmEntity),
+          useValue: mockMatchRepo,
+        },
         { provide: getRepositoryToken(TeamOrmEntity), useValue: mockTeamRepo },
-        { provide: getRepositoryToken(PlayerOrmEntity), useValue: mockPlayerRepo },
+        {
+          provide: getRepositoryToken(PlayerOrmEntity),
+          useValue: mockPlayerRepo,
+        },
       ],
     }).compile();
 
@@ -77,7 +83,14 @@ describe('ApiFootballPlayerMatchStatsSyncService', () => {
               player: { id: 545, name: 'Noussair Mazraoui', photo: null },
               statistics: [
                 {
-                  games: { minutes: 81, number: 3, position: 'D', rating: '7.5', captain: false, substitute: false },
+                  games: {
+                    minutes: 81,
+                    number: 3,
+                    position: 'D',
+                    rating: '7.5',
+                    captain: false,
+                    substitute: false,
+                  },
                   offsides: null,
                   shots: { total: 1, on: 1 },
                   goals: { total: 0, conceded: 0, assists: 1, saves: null },
@@ -87,7 +100,13 @@ describe('ApiFootballPlayerMatchStatsSyncService', () => {
                   dribbles: { attempts: 2, success: 1, past: null },
                   fouls: { drawn: 1, committed: 0 },
                   cards: { yellow: 0, red: 0 },
-                  penalty: { won: null, commited: null, scored: 0, missed: 0, saved: null },
+                  penalty: {
+                    won: null,
+                    commited: null,
+                    scored: 0,
+                    missed: 0,
+                    saved: null,
+                  },
                 },
               ],
             },
@@ -104,13 +123,18 @@ describe('ApiFootballPlayerMatchStatsSyncService', () => {
       errors: [],
     });
 
-    const summary = await service.syncStatisticsByFixtureId(1208021, 'match-uuid-1');
+    const summary = await service.syncStatisticsByFixtureId(
+      1208021,
+      'match-uuid-1',
+    );
 
     expect(summary.totalPlayersInFixture).toBe(1);
     expect(summary.persistedCount).toBe(1);
     expect(summary.skippedCount).toBe(0);
     expect(summary.unresolvedPlayers).toBe(0);
-    expect(mockApiClient.getFixturePlayers).toHaveBeenCalledWith({ fixture: 1208021 });
+    expect(mockApiClient.getFixturePlayers).toHaveBeenCalledWith({
+      fixture: 1208021,
+    });
     expect(mockPersistStatsUseCase.executeBatch).toHaveBeenCalledWith(
       'match-uuid-1',
       expect.arrayContaining([

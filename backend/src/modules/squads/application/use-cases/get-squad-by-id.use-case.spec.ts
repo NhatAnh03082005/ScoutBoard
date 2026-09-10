@@ -19,12 +19,7 @@ describe('GetSquadByIdUseCase', () => {
   });
 
   it('should return squad if it exists and belongs to owner', async () => {
-    const squad = new Squad(
-      'squad-1',
-      'owner-1',
-      'My Squad',
-      '4-3-3',
-    );
+    const squad = new Squad('squad-1', 'owner-1', 'My Squad', '4-3-3');
     mockSquadRepository.findById.mockResolvedValue(squad);
 
     const result = await useCase.execute({ id: 'squad-1', ownerId: 'owner-1' });

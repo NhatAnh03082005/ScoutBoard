@@ -212,7 +212,7 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({
                   x={pos.x}
                   y={pos.y - 4}
                   textAnchor={pos.textAnchor}
-                  fill={isHovered ? '#0f172a' : '#334155'}
+                  fill={isHovered ? '#ffffff' : 'var(--scout-text-secondary)'}
                   fontSize="11.5"
                   fontWeight="900"
                   letterSpacing="0.05em"
@@ -226,7 +226,7 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({
                   x={pos.x}
                   y={pos.y + 11}
                   textAnchor={pos.textAnchor}
-                  fill={isHovered ? roleHexColor : '#0f172a'}
+                  fill={isHovered ? roleHexColor : '#ffffff'}
                   fontSize="13.5"
                   fontWeight="900"
                   className="transition-colors duration-150"
@@ -274,7 +274,7 @@ export const PlayerRadarChart: React.FC<PlayerRadarChartProps> = ({
             <span style={{ color: roleHexColor, fontWeight: 900 }}>
               {metrics[hoveredIdx].label}:
             </span>
-            <span style={{ color: '#0f172a', fontWeight: 900 }}>
+            <span style={{ color: '#ffffff', fontWeight: 900 }}>
               {metrics[hoveredIdx].rawValue}
             </span>
             <span style={{ color: '#64748b', fontSize: '11.5px', fontWeight: 700 }}>

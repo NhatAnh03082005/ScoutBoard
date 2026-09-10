@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type {
   PlayerDetail,
   PlayerSeasonStatisticItem,
@@ -108,14 +108,15 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
     }
   }, [competitionId]);
 
-  const fetchCandidates = (
-    targetPage: number,
-    scopeOverride?: ComparisonScopeType,
-    seasonIdOverride?: string,
-    compIdOverride?: string,
-    filterOverrides?: Partial<PlayerFilterParams>,
-    searchKeywordOverride?: string,
-  ) => {
+  const fetchCandidates = useCallback(
+    (
+      targetPage: number,
+      scopeOverride?: ComparisonScopeType,
+      seasonIdOverride?: string,
+      compIdOverride?: string,
+      filterOverrides?: Partial<PlayerFilterParams>,
+      searchKeywordOverride?: string,
+    ) => {
     const currentScope = scopeOverride !== undefined ? scopeOverride : scope;
     const currentSeasonId = seasonIdOverride !== undefined ? seasonIdOverride : seasonId;
     const currentCompId = compIdOverride !== undefined ? compIdOverride : competitionId;
@@ -196,11 +197,13 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
           setLoading(false);
         }
       });
-  };
+    },
+    [playerA.id, scope, seasonId, competitionId, filters, appliedSearch]
+  );
 
   useEffect(() => {
     fetchCandidates(1, scope, seasonId, competitionId);
-  }, [scope, seasonId, competitionId]);
+  }, [fetchCandidates, scope, seasonId, competitionId]);
 
   const handleScopeChange = (newScope: ComparisonScopeType) => {
     let newCompId = competitionId;
@@ -363,35 +366,43 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
 
   return (
     <div className="scout-b2b-page-container" style={{ paddingBottom: selectedCandidate ? '100px' : '32px' }}>
-      {/* 1. Top Header Navigation Bar (Synchronized with PlayerDetailPage) */}
+      {/* 1. Top Header Navigation Bar with Breadcrumbs & Step Indicator */}
       <div className="scout-sports-topbar">
-        <button
-          type="button"
-          className="scout-sports-back-btn"
-          onClick={onBack}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="scout-detail-breadcrumb">
+          <button
+            type="button"
+            className="scout-sports-back-btn"
+            onClick={onBack}
+            title={`Return to ${playerAName}'s detail`}
+            aria-label={`Return to ${playerAName}'s detail`}
           >
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          <span>Back to Player Detail</span>
-        </button>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>{playerAName}</span>
+          </button>
+          <span style={{ color: 'var(--scout-border-default)', opacity: 0.6 }}>/</span>
+          <span style={{ color: 'var(--scout-text-primary)', fontWeight: 700, fontSize: '13px' }}>
+            Compare Setup (Select Player B)
+          </span>
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
             style={{
-              background: '#eff6ff',
-              color: '#2563eb',
-              border: '1px solid #bfdbfe',
+              background: 'rgba(37, 99, 235, 0.15)',
+              color: '#60a5fa',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
               borderRadius: '999px',
               padding: '6px 16px',
               fontSize: '12px',
@@ -401,7 +412,6 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
             }}
           >
             ⚖️ Step 1 of 2: Candidate Search & Scope Setup
@@ -455,8 +465,8 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
                 width: '60px',
                 height: '60px',
                 borderRadius: '18px',
-                background: '#eff6ff',
-                border: '1.5px solid #bfdbfe',
+                background: 'rgba(59, 130, 246, 0.12)',
+                border: '1.5px solid rgba(59, 130, 246, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -608,19 +618,24 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span
               style={{
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-                background: 'rgba(255, 255, 255, 0.08)',
-                color: '#ffffff',
+                border: '1.5px solid rgba(59, 130, 246, 0.5)',
+                background: 'rgba(37, 99, 235, 0.22)',
+                color: '#93c5fd',
                 fontWeight: 900,
                 fontSize: '11px',
-                letterSpacing: '0.1em',
+                letterSpacing: '0.08em',
                 padding: '6px 14px',
                 borderRadius: '12px',
                 textTransform: 'uppercase',
-                backdropFilter: 'blur(4px)',
+                backdropFilter: 'blur(6px)',
+                boxShadow: '0 0 16px rgba(37, 99, 235, 0.25)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              TARGET PLAYER (A)
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#3b82f6' }} />
+              <span>TARGET PLAYER (A)</span>
             </span>
           </div>
         </div>
@@ -724,6 +739,7 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
                 <button
                   type="button"
                   onClick={() => handleScopeChange('COMPETITION')}
+                  title="Compare performance specifically within the selected league/competition"
                   style={{
                     flex: 1,
                     height: '100%',
@@ -745,12 +761,13 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  Specific Competition
+                  🏆 Same Competition
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleScopeChange('ALL')}
+                  title="Compare full-season statistics aggregated across all competitions"
                   style={{
                     flex: 1,
                     height: '100%',
@@ -772,7 +789,7 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  All Competitions
+                  🌐 Whole Season
                 </button>
               </div>
             </div>
@@ -887,15 +904,31 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
         onResetFilters={handleResetFilters}
       />
 
-      {/* 4. Results Section Header (Count + Page Indicator) */}
+      {/* 4. Results Section Header with Step Instruction & Count */}
       <div className="scout-b2b-results-header">
         <div className="scout-b2b-results-title-group">
-          {pagination && (
-            <div className="scout-b2b-results-count">
-              <span className="scout-b2b-count-number">{pagination.total}</span>
-              <span className="scout-b2b-count-label">compatible candidates found</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--scout-text-primary)' }}>
+              {selectedCandidate ? (
+                <span style={{ color: '#fbbf24', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <span>✓</span>
+                  <span>{selectedCandidate.fullName} selected as Candidate (Player B)</span>
+                </span>
+              ) : (
+                <span style={{ color: 'var(--scout-text-secondary)' }}>
+                  Step 2: Select a candidate player below to compare head-to-head with {playerAName}
+                </span>
+              )}
             </div>
-          )}
+            {pagination && (
+              <div className="scout-b2b-results-count" style={{ marginTop: '2px' }}>
+                <span className="scout-b2b-count-number">{pagination.total}</span>
+                <span className="scout-b2b-count-label">
+                  compatible {compatiblePositions.join('/')} candidates
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {pagination && pagination.total > 0 && (
@@ -951,34 +984,17 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
             return (
               <div
                 key={player.id}
+                className={isSelected ? 'scout-candidate-card-b-selected' : undefined}
                 style={{
                   position: 'relative',
                   borderRadius: '16px',
                   transition: 'all 0.2s ease',
-                  outline: isSelected ? '3px solid #2563eb' : 'none',
-                  outlineOffset: '2px',
-                  transform: isSelected ? 'translateY(-4px)' : undefined,
                 }}
               >
                 {isSelected && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-10px',
-                      right: '-6px',
-                      background: '#2563eb',
-                      color: '#ffffff',
-                      fontSize: '11px',
-                      fontWeight: 900,
-                      padding: '3px 10px',
-                      borderRadius: '999px',
-                      boxShadow: '0 4px 8px rgba(37, 99, 235, 0.4)',
-                      zIndex: 20,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    ✓ Selected
+                  <div className="scout-candidate-b-badge">
+                    <span>✓</span>
+                    <span>Player B Selected</span>
                   </div>
                 )}
                 <PlayerCard
@@ -997,45 +1013,37 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
         onPageChange={handlePageChange}
       />
 
-      {/* 7. Sticky Floating Action Bar when a candidate is selected */}
+      {/* 7. Sticky Floating Action Bar when candidate B is selected */}
       {selectedCandidate && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 'calc(100% - 48px)',
-            maxWidth: '1200px',
-            padding: '14px 24px',
-            background: '#ffffff',
-            border: '2px solid #2563eb',
-            borderRadius: '16px',
-            boxShadow: '0 12px 30px -4px rgba(0, 0, 0, 0.15), 0 0 15px rgba(37, 99, 235, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '16px',
-            flexWrap: 'wrap',
-            zIndex: 50,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Selected Candidate:
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '16px' }}>
+        <div className="scout-compare-sticky-bar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                background: 'rgba(245, 158, 11, 0.18)',
+                color: '#fbbf24',
+                border: '1px solid rgba(245, 158, 11, 0.4)',
+                borderRadius: '6px',
+                padding: '3px 8px',
+                fontSize: '11px',
+                fontWeight: 900,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Player B (Candidate)
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontWeight: 900, color: '#ffffff', fontSize: '16px' }}>
                 {selectedCandidate.fullName}
               </span>
               {selectedCandidate.primaryPosition && (
                 <span
                   style={{
-                    background: '#10b981',
-                    color: '#ffffff',
+                    background: '#f59e0b',
+                    color: '#0f172a',
                     fontWeight: 900,
                     fontSize: '11px',
-                    padding: '2px 8px',
+                    padding: '2px 7px',
                     borderRadius: '4px',
                     textTransform: 'uppercase',
                   }}
@@ -1043,24 +1051,30 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
                   {selectedCandidate.primaryPosition}
                 </span>
               )}
-              <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
+              <span style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 600 }}>
                 ({selectedCandidate.currentTeam?.name || 'Free Agent'})
               </span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               type="button"
               className="scout-btn scout-btn-secondary"
               onClick={() => setSelectedCandidate(null)}
+              title="Deselect this candidate"
             >
-              Deselect
+              Change Player B
             </button>
             <button
               type="button"
               className="scout-sports-compare-btn"
               onClick={handleProceed}
+              style={{
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                fontWeight: 800,
+              }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 3h5v5" />
@@ -1069,7 +1083,7 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
                 <path d="M15 15l6 6" />
                 <path d="M4 4l5 5" />
               </svg>
-              <span>Compare {playerAName} vs {selectedCandidate.fullName}</span>
+              <span>Compare {playerAName} (A) vs {selectedCandidate.fullName} (B)</span>
             </button>
           </div>
         </div>

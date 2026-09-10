@@ -26,7 +26,8 @@ export class ApiFootballCompetitionMapper {
       };
     });
 
-    const currentSeason = seasons.find((s) => s.isCurrent) || seasons[seasons.length - 1] || null;
+    const currentSeason =
+      seasons.find((s) => s.isCurrent) || seasons[seasons.length - 1] || null;
 
     return {
       externalProvider: 'API_FOOTBALL',

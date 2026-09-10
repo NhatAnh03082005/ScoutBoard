@@ -34,9 +34,7 @@ export interface PlayerMatchStatisticWriteRepository {
     playerId: string,
   ): Promise<PlayerMatchStatisticOrmEntity | null>;
 
-  findByMatchId(
-    matchId: string,
-  ): Promise<PlayerMatchStatisticOrmEntity[]>;
+  findByMatchId(matchId: string): Promise<PlayerMatchStatisticOrmEntity[]>;
 
   upsert(
     input: PersistPlayerMatchStatisticInput,

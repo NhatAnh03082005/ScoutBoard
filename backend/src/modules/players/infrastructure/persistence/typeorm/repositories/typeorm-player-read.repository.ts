@@ -12,6 +12,14 @@ import { PlayerOrmEntity } from '../entities/player.orm-entity';
 import { PlayerTeamHistoryOrmEntity } from '../entities/player-team-history.orm-entity';
 import { PlayerSeasonStatisticOrmEntity } from '../entities/player-season-statistic.orm-entity';
 import { PlayerMatchStatisticOrmEntity } from 'src/modules/matches/infrastructure/persistence/typeorm/entities/player-match-statistic.orm-entity';
+import type {
+  QueryNode,
+  PlayerAdvancedQueryScope,
+} from 'src/modules/players/domain/query/player-query.types';
+import {
+  buildWhereClause,
+  createBuildContext,
+} from 'src/modules/players/infrastructure/query/player-query.builder';
 
 @Injectable()
 export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
@@ -154,7 +162,8 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       // Canonical mapping for tactical slot roles (LCM/RCM -> CM, LDM/RDM -> CDM, LAM/RAM -> CAM, etc.)
       if (['LCM', 'RCM'].includes(posCode)) posCode = 'CM';
       else if (['LDM', 'RDM'].includes(posCode)) posCode = 'CDM';
-      else if (['LAM', 'RAM', 'LCAM', 'RCAM'].includes(posCode)) posCode = 'CAM';
+      else if (['LAM', 'RAM', 'LCAM', 'RCAM'].includes(posCode))
+        posCode = 'CAM';
       else if (['LCB', 'RCB'].includes(posCode)) posCode = 'CB';
       else if (['LS', 'RS'].includes(posCode)) posCode = 'ST';
       else if (posCode === 'LWB') posCode = 'LB';
@@ -409,5 +418,53 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       'CF',
       'ST',
     ];
+  }
+
+  /**
+   * Executes a dynamic Boolean query tree against players + season statistics.
+   * Added for QUERY /players — completely separate from the GET /players search() method.
+   */
+  async queryPlayers(
+    queryNode: QueryNode,
+    pagination: { limit: number; offset: number },
+    scope?: PlayerAdvancedQueryScope,
+  ): Promise<{ items: PlayerOrmEntity[]; total: number }> {
+    const qb = this.repository
+      .createQueryBuilder('player')
+      .leftJoinAndSelect('player.currentTeam', 'currentTeam')
+      .leftJoinAndSelect('player.positions', 'positions');
+
+    // Optional scope filter: restrict season stats to a specific competition/season
+    // Applied as a pre-filter on the pss join if scope is provided.
+    // The stat join itself is added by buildWhereClause when metrics require it.
+    const context = createBuildContext();
+
+    // Apply the Boolean query tree
+    buildWhereClause(queryNode, qb, context);
+
+    // If scope is provided and the stat join was added, filter by scope
+    if (scope && context.statJoinAdded) {
+      if (scope.seasonId) {
+        qb.andWhere('pss.season_id = :scopeSeasonId', {
+          scopeSeasonId: scope.seasonId,
+        });
+      }
+      if (scope.competitionId) {
+        qb.andWhere('pss.competition_id = :scopeCompetitionId', {
+          scopeCompetitionId: scope.competitionId,
+        });
+      }
+    }
+
+    const limit = pagination.limit ?? 20;
+    const offset = pagination.offset ?? 0;
+
+    qb.orderBy('player.name', 'ASC')
+      .addOrderBy('player.id', 'ASC')
+      .take(limit)
+      .skip(offset);
+
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total };
   }
 }

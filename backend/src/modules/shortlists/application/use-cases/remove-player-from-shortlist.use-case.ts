@@ -28,19 +28,25 @@ export class RemovePlayerFromShortlistUseCase {
   ) {}
 
   async execute(input: RemovePlayerFromShortlistInput): Promise<void> {
-    const shortlist = await this.shortlistRepository.findById(input.shortlistId);
+    const shortlist = await this.shortlistRepository.findById(
+      input.shortlistId,
+    );
     if (!shortlist || shortlist.getOwnerId() !== input.ownerId) {
       throw new ShortlistNotFoundError(input.shortlistId);
     }
 
-    const existing = await this.shortlistPlayerRepository.findByShortlistAndPlayer(
-      input.shortlistId,
-      input.playerId,
-    );
+    const existing =
+      await this.shortlistPlayerRepository.findByShortlistAndPlayer(
+        input.shortlistId,
+        input.playerId,
+      );
     if (!existing) {
       throw new PlayerNotInShortlistError(input.playerId, input.shortlistId);
     }
 
-    await this.shortlistPlayerRepository.removePlayer(input.shortlistId, input.playerId);
+    await this.shortlistPlayerRepository.removePlayer(
+      input.shortlistId,
+      input.playerId,
+    );
   }
 }

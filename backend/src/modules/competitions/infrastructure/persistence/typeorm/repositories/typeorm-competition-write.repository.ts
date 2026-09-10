@@ -24,7 +24,9 @@ export class TypeOrmCompetitionWriteRepository implements CompetitionWriteReposi
     });
   }
 
-  async upsert(competition: TransformedCompetition): Promise<CompetitionOrmEntity> {
+  async upsert(
+    competition: TransformedCompetition,
+  ): Promise<CompetitionOrmEntity> {
     const existing = await this.findByExternalIdentity(
       competition.externalProvider,
       competition.externalId,

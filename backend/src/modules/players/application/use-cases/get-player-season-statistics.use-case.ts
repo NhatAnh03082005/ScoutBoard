@@ -3,12 +3,13 @@ import {
   PLAYER_READ_REPOSITORY,
   PlayerReadRepository,
 } from '../ports/player-read.repository';
-import {
-  PlayerSeasonStatisticResponseDto,
-} from '../../presentation/http/dto/player-season-statistic-response.dto';
+import { PlayerSeasonStatisticResponseDto } from '../../presentation/http/dto/player-season-statistic-response.dto';
 
 // Helper function to calculate per-90 metrics safely (returns null if minutesPlayed <= 0)
-export function calculatePer90(metric: number | null | undefined, minutesPlayed: number): number | null {
+export function calculatePer90(
+  metric: number | null | undefined,
+  minutesPlayed: number,
+): number | null {
   if (metric === null || metric === undefined) return null;
   if (!minutesPlayed || minutesPlayed <= 0) return null;
   const val = (metric * 90) / minutesPlayed;
@@ -33,9 +34,7 @@ export class GetPlayerSeasonStatisticsUseCase {
     private readonly playerReadRepository: PlayerReadRepository,
   ) {}
 
-  async execute(
-    playerId: string,
-  ): Promise<PlayerSeasonStatisticResponseDto[]> {
+  async execute(playerId: string): Promise<PlayerSeasonStatisticResponseDto[]> {
     const player = await this.playerReadRepository.findById(playerId);
     if (!player) {
       throw new NotFoundException('Cầu thủ không tồn tại');
@@ -68,15 +67,32 @@ export class GetPlayerSeasonStatisticsUseCase {
       const passAcc = calculatePassAccuracy(cmp, att);
 
       // Goalkeeper Derived Metrics
-      const savesP90 = stat.saves !== null && stat.saves !== undefined ? calculatePer90(stat.saves, minutes) : null;
-      const goalsConcededP90 = stat.goalsConceded !== null && stat.goalsConceded !== undefined ? calculatePer90(stat.goalsConceded, minutes) : null;
-      const savePct = stat.savePercentage !== null && stat.savePercentage !== undefined ? Number(stat.savePercentage) : null;
-      const cleanSheetPct = stat.matchesPlayed > 0 && stat.cleanSheets !== null && stat.cleanSheets !== undefined
-        ? Number(((stat.cleanSheets / stat.matchesPlayed) * 100).toFixed(2))
-        : null;
-      const penaltySavePct = (stat.penaltiesFaced ?? 0) > 0 && stat.penaltiesSaved !== null && stat.penaltiesSaved !== undefined
-        ? Number(((stat.penaltiesSaved / stat.penaltiesFaced!) * 100).toFixed(2))
-        : null;
+      const savesP90 =
+        stat.saves !== null && stat.saves !== undefined
+          ? calculatePer90(stat.saves, minutes)
+          : null;
+      const goalsConcededP90 =
+        stat.goalsConceded !== null && stat.goalsConceded !== undefined
+          ? calculatePer90(stat.goalsConceded, minutes)
+          : null;
+      const savePct =
+        stat.savePercentage !== null && stat.savePercentage !== undefined
+          ? Number(stat.savePercentage)
+          : null;
+      const cleanSheetPct =
+        stat.matchesPlayed > 0 &&
+        stat.cleanSheets !== null &&
+        stat.cleanSheets !== undefined
+          ? Number(((stat.cleanSheets / stat.matchesPlayed) * 100).toFixed(2))
+          : null;
+      const penaltySavePct =
+        (stat.penaltiesFaced ?? 0) > 0 &&
+        stat.penaltiesSaved !== null &&
+        stat.penaltiesSaved !== undefined
+          ? Number(
+              ((stat.penaltiesSaved / stat.penaltiesFaced!) * 100).toFixed(2),
+            )
+          : null;
 
       results.push({
         id: stat.id,

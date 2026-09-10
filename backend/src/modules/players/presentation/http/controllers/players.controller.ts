@@ -52,7 +52,9 @@ export class PlayersController {
     return this.searchPlayersUseCase.execute(query);
   }
 
-  @ApiOperation({ summary: 'Lấy danh sách các vị trí thực tế có trong hệ thống' })
+  @ApiOperation({
+    summary: 'Lấy danh sách các vị trí thực tế có trong hệ thống',
+  })
   @ApiResponse({
     status: 200,
     description: 'Danh sách các vị trí có trong dataset',

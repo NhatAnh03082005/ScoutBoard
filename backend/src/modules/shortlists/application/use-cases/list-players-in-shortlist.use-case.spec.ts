@@ -39,11 +39,18 @@ describe('ListPlayersInShortlistUseCase (Unit)', () => {
   it('should return players in owned shortlist', async () => {
     const shortlist = new Shortlist(shortlistId, ownerId, 'Targets');
     const players = [
-      { id: 'sp-1', shortlistId, playerId: 'p-1', player: { name: 'Player 1' } },
+      {
+        id: 'sp-1',
+        shortlistId,
+        playerId: 'p-1',
+        player: { name: 'Player 1' },
+      },
     ];
 
     mockShortlistRepo.findById.mockResolvedValue(shortlist);
-    mockShortlistPlayerRepo.findPlayersWithDetailsByShortlistId.mockResolvedValue(players);
+    mockShortlistPlayerRepo.findPlayersWithDetailsByShortlistId.mockResolvedValue(
+      players,
+    );
 
     const result = await useCase.execute({ shortlistId, ownerId });
     expect(result).toBe(players);
@@ -53,8 +60,8 @@ describe('ListPlayersInShortlistUseCase (Unit)', () => {
     const shortlist = new Shortlist(shortlistId, 'other-user', 'Targets');
     mockShortlistRepo.findById.mockResolvedValue(shortlist);
 
-    await expect(
-      useCase.execute({ shortlistId, ownerId }),
-    ).rejects.toThrow(ShortlistNotFoundError);
+    await expect(useCase.execute({ shortlistId, ownerId })).rejects.toThrow(
+      ShortlistNotFoundError,
+    );
   });
 });

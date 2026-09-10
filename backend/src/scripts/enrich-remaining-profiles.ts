@@ -11,7 +11,8 @@ import * as dns from 'dns';
 
 dns.setDefaultResultOrder('ipv4first');
 
-const API_KEY = process.env.API_FOOTBALL_KEY || '09b395257421d95a43fa4fd945df43b7';
+const API_KEY =
+  process.env.API_FOOTBALL_KEY || '09b395257421d95a43fa4fd945df43b7';
 const BASE_HOST = 'v3.football.api-sports.io';
 const DELAY_BETWEEN_CALLS_MS = 6200; // Strictly adhere to 10 requests / minute max (6.2s delay)
 const SAFETY_RESERVE_REQUESTS = 5; // Never spend below this threshold
@@ -76,7 +77,9 @@ async function callApiWithRetry(path: string, maxRetries = 3): Promise<any> {
 async function main() {
   console.log('====================================================');
   console.log('API-FOOTBALL PLAYER PROFILE ENRICHMENT PIPELINE');
-  console.log('Pipeline: API-Football -> DTO -> Mapper -> UseCase -> Repository -> PostgreSQL');
+  console.log(
+    'Pipeline: API-Football -> DTO -> Mapper -> UseCase -> Repository -> PostgreSQL',
+  );
   console.log('====================================================\n');
 
   const app = await NestFactory.createApplicationContext(AppModule, {
@@ -130,7 +133,9 @@ async function main() {
       );
     } else {
       // 3. Find Players Where Required Profile Fields Are Missing (Prioritizing Active Match Players)
-      console.log('--- 3. FINDING INCOMPLETE PLAYERS (ACTIVE MATCH PLAYERS FIRST) ---');
+      console.log(
+        '--- 3. FINDING INCOMPLETE PLAYERS (ACTIVE MATCH PLAYERS FIRST) ---',
+      );
       const incompletePlayers = await dataSource.query(`
         SELECT p.id, p.name, p.external_id, t.name as team_name, COUNT(pms.id) as match_count
         FROM players p

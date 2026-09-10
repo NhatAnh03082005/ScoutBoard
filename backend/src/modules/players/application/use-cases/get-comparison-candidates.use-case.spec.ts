@@ -45,6 +45,8 @@ describe('GetComparisonCandidatesUseCase', () => {
       findSeasonStatisticsByCompetitionAndSeason: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
+      getDistinctPositions: jest.fn(),
+      queryPlayers: jest.fn(),
     };
 
     useCase = new GetComparisonCandidatesUseCase(mockPlayerRepo);

@@ -24,7 +24,9 @@ export class ListPlayersInShortlistUseCase {
   ) {}
 
   async execute(input: ListPlayersInShortlistInput): Promise<any[]> {
-    const shortlist = await this.shortlistRepository.findById(input.shortlistId);
+    const shortlist = await this.shortlistRepository.findById(
+      input.shortlistId,
+    );
     if (!shortlist || shortlist.getOwnerId() !== input.ownerId) {
       throw new ShortlistNotFoundError(input.shortlistId);
     }

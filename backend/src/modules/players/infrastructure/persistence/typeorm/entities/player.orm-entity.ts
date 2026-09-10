@@ -161,4 +161,3 @@ export class PlayerOrmEntity {
     this.nationalityFlagUrl = resolveNationalityFlagUrl(this.nationality);
   }
 }
-

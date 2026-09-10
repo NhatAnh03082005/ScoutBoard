@@ -3,7 +3,6 @@ import { validate } from 'class-validator';
 import { SearchPlayersQueryDto } from './search-players-query.dto';
 
 describe('SearchPlayersQueryDto (Validation Unit)', () => {
-
   it('should trim nationality string and convert empty string to undefined', async () => {
     const dto = plainToInstance(SearchPlayersQueryDto, {
       nationality: '  Brazil  ',

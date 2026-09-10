@@ -105,7 +105,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
       <div
         style={{
           paddingBottom: '14px',
-          borderBottom: '1px solid #f1f5f9',
+          borderBottom: '1px solid var(--scout-border-default)',
           marginBottom: '12px',
         }}
       >
@@ -126,7 +126,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
                 fontWeight: 900,
                 textTransform: 'uppercase',
                 letterSpacing: '-0.02em',
-                color: '#0f172a',
+                color: '#ffffff',
                 margin: 0,
                 lineHeight: 1.2,
               }}
@@ -149,7 +149,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
               <div
                 style={{
                   display: 'inline-flex',
-                  background: '#f1f5f9',
+                  background: 'var(--scout-bg-subtle)',
                   padding: '2px',
                   borderRadius: '8px',
                   gap: '2px',
@@ -164,8 +164,8 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
                       onClick={() => onSelectPosition(pos)}
                       style={{
                         border: 'none',
-                        background: isActive ? '#0f172a' : 'transparent',
-                        color: isActive ? '#ffffff' : '#64748b',
+                        background: isActive ? 'var(--scout-surface-card)' : 'transparent',
+                        color: isActive ? '#ffffff' : 'var(--scout-text-muted)',
                         fontWeight: 800,
                         fontSize: '11px',
                         padding: '3px 10px',
@@ -183,9 +183,9 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
           ) : (
             <span
               style={{
-                background: '#f1f5f9',
-                color: '#334155',
-                border: '1px solid #e2e8f0',
+                background: 'var(--scout-bg-subtle)',
+                color: 'var(--scout-text-secondary)',
+                border: '1px solid var(--scout-border-default)',
                 padding: '2px 8px',
                 borderRadius: '6px',
                 fontSize: '11px',
@@ -218,7 +218,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
                 display: 'inline-block',
               }}
             />
-            <span style={{ color: '#1e3a8a' }}>{playerAName}</span>
+            <span style={{ color: '#93c5fd' }}>{playerAName}</span>
           </div>
 
           <span style={{ color: '#cbd5e1' }}>•</span>
@@ -233,7 +233,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
                 display: 'inline-block',
               }}
             />
-            <span style={{ color: '#78350f' }}>{playerBName}</span>
+            <span style={{ color: '#fde68a' }}>{playerBName}</span>
           </div>
         </div>
       </div>
@@ -286,11 +286,11 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
             <polygon
               key={lvlIdx}
               points={getGridPoints(level)}
-              fill={lvlIdx === gridLevels.length - 1 ? '#f8fafc' : 'transparent'}
-              stroke="#94a3b8"
-              strokeWidth={lvlIdx === gridLevels.length - 1 ? '1.8' : '1.2'}
+              fill={lvlIdx === gridLevels.length - 1 ? 'rgba(255, 255, 255, 0.02)' : 'transparent'}
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth={lvlIdx === gridLevels.length - 1 ? '1.5' : '1'}
               strokeDasharray={lvlIdx === gridLevels.length - 1 ? 'none' : '4 3'}
-              opacity={lvlIdx === gridLevels.length - 1 ? 1 : 0.7}
+              opacity={lvlIdx === gridLevels.length - 1 ? 1 : 0.6}
             />
           ))}
 
@@ -306,7 +306,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
                 y1={center}
                 x2={outer.x}
                 y2={outer.y}
-                stroke={isHovered ? '#0f172a' : '#cbd5e1'}
+                stroke={isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.2)'}
                 strokeWidth={isHovered ? '2' : '1'}
                 strokeDasharray="3 3"
                 opacity={isHovered ? 1 : 0.8}
@@ -396,17 +396,23 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
             return (
               <g
                 key={i}
+                role="graphics-symbol"
+                tabIndex={0}
+                aria-label={`${mA.label}: ${playerAName} ${valA}, ${playerBName} ${valB}`}
                 onMouseEnter={() => setHoveredIdx(i)}
                 onMouseLeave={() => setHoveredIdx(null)}
-                style={{ cursor: 'pointer' }}
+                onFocus={() => setHoveredIdx(i)}
+                onBlur={() => setHoveredIdx(null)}
+                style={{ cursor: 'pointer', outline: 'none' }}
               >
+                <title>{`${mA.label}: ${playerAName} (${valA}) vs ${playerBName} (${valB}) ${isWinnerA ? `— ${playerAName} leads` : isWinnerB ? `— ${playerBName} leads` : '— Tied'}`}</title>
                 {/* Metric Title */}
                 {!mB || mA.label === mB.label ? (
                   <text
                     x={pos.x}
                     y={pos.y - 6}
                     textAnchor={pos.textAnchor}
-                    fill={isHovered ? '#0f172a' : '#334155'}
+                    fill={isHovered ? '#ffffff' : 'var(--scout-text-secondary)'}
                     fontSize="11"
                     fontWeight="900"
                     letterSpacing="0.04em"
@@ -469,15 +475,15 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
           gap: '12px',
           marginTop: 'auto',
           paddingTop: '16px',
-          borderTop: '1px solid #f1f5f9',
+          borderTop: '1px solid var(--scout-border-subtle)',
           width: '100%',
         }}
       >
         {/* Player A Box */}
         <div
           style={{
-            background: 'rgba(239, 246, 255, 0.8)',
-            border: '1px solid #bfdbfe',
+            background: 'rgba(37, 99, 235, 0.15)',
+            border: '1px solid rgba(59, 130, 246, 0.35)',
             borderRadius: '12px',
             padding: '12px',
             display: 'flex',
@@ -493,7 +499,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
               fontWeight: 900,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
-              color: '#1e3a8a',
+              color: '#93c5fd',
               maxWidth: '100%',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -508,7 +514,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
               fontWeight: 800,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              color: '#1d4ed8',
+              color: '#60a5fa',
               marginTop: '3px',
             }}
           >
@@ -519,8 +525,8 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
         {/* Player B Box */}
         <div
           style={{
-            background: 'rgba(254, 243, 199, 0.8)',
-            border: '1px solid #fde68a',
+            background: 'rgba(245, 158, 11, 0.15)',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
             borderRadius: '12px',
             padding: '12px',
             display: 'flex',
@@ -536,7 +542,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
               fontWeight: 900,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
-              color: '#78350f',
+              color: '#fde68a',
               maxWidth: '100%',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -551,7 +557,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
               fontWeight: 800,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              color: '#b45309',
+              color: '#fbbf24',
               marginTop: '3px',
             }}
           >

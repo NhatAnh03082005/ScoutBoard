@@ -32,7 +32,8 @@ export function isCanonicalPlayerPosition(pos: unknown): pos is PlayerPosition {
   );
 }
 
-export type PositionGroup = 'GOALKEEPER' | 'DEFENDER' | 'MIDFIELDER' | 'FORWARD';
+export type PositionGroup =
+  'GOALKEEPER' | 'DEFENDER' | 'MIDFIELDER' | 'FORWARD';
 
 /**
  * Maps any position code into its corresponding high-level Position Group
@@ -43,9 +44,38 @@ export function getPositionGroup(pos?: string | null): PositionGroup | null {
   if (!pos) return null;
   const p = pos.trim().toUpperCase();
   if (['GK', 'GOALKEEPER', 'G'].includes(p)) return 'GOALKEEPER';
-  if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF', 'DEFENDER', 'D'].includes(p)) return 'DEFENDER';
-  if (['CDM', 'DM', 'CM', 'CAM', 'AM', 'LM', 'RM', 'MID', 'MIDFIELDER', 'M'].includes(p)) return 'MIDFIELDER';
-  if (['LW', 'RW', 'ST', 'CF', 'SS', 'FWD', 'ATT', 'ATTACKER', 'FORWARD', 'F'].includes(p)) return 'FORWARD';
+  if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF', 'DEFENDER', 'D'].includes(p))
+    return 'DEFENDER';
+  if (
+    [
+      'CDM',
+      'DM',
+      'CM',
+      'CAM',
+      'AM',
+      'LM',
+      'RM',
+      'MID',
+      'MIDFIELDER',
+      'M',
+    ].includes(p)
+  )
+    return 'MIDFIELDER';
+  if (
+    [
+      'LW',
+      'RW',
+      'ST',
+      'CF',
+      'SS',
+      'FWD',
+      'ATT',
+      'ATTACKER',
+      'FORWARD',
+      'F',
+    ].includes(p)
+  )
+    return 'FORWARD';
   return null;
 }
 
@@ -79,7 +109,10 @@ export function normalizeToCanonicalPosition(
   if (clean === 'AM') return 'CAM';
   if (clean === 'SS') return 'CF';
 
-  if (isCanonicalPlayerPosition(clean) && !['DEF', 'MID', 'FWD'].includes(clean)) {
+  if (
+    isCanonicalPlayerPosition(clean) &&
+    !['DEF', 'MID', 'FWD'].includes(clean)
+  ) {
     return clean;
   }
 
@@ -177,7 +210,8 @@ export function normalizeToCanonicalPosition(
   ) {
     const isLeft =
       context?.side === 'LEFT' ||
-      (context?.grid && (context.grid.endsWith(':1') || context.grid.endsWith(':2')));
+      (context?.grid &&
+        (context.grid.endsWith(':1') || context.grid.endsWith(':2')));
     return isLeft ? 'LWB' : 'RWB';
   }
 
@@ -224,13 +258,19 @@ export function normalizeToCanonicalPosition(
   if (context?.side === 'LEFT') {
     if (['DEFENCE', 'DEFENDER', 'DEF', 'D'].includes(clean)) return 'LB';
     if (['MIDFIELD', 'MIDFIELDER', 'MID', 'M'].includes(clean)) return 'LM';
-    if (['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'F'].includes(clean)) return 'LW';
+    if (
+      ['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'F'].includes(clean)
+    )
+      return 'LW';
   }
 
   if (context?.side === 'RIGHT') {
     if (['DEFENCE', 'DEFENDER', 'DEF', 'D'].includes(clean)) return 'RB';
     if (['MIDFIELD', 'MIDFIELDER', 'MID', 'M'].includes(clean)) return 'RM';
-    if (['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'F'].includes(clean)) return 'RW';
+    if (
+      ['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'F'].includes(clean)
+    )
+      return 'RW';
   }
 
   // Broad category preservation: DO NOT FORCE TO CB/CM/ST
@@ -243,7 +283,11 @@ export function normalizeToCanonicalPosition(
     return 'MID';
   }
 
-  if (['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'ATT', 'F'].includes(clean)) {
+  if (
+    ['OFFENCE', 'ATTACK', 'ATTACKER', 'FORWARD', 'FWD', 'ATT', 'F'].includes(
+      clean,
+    )
+  ) {
     // PRESERVE broad category: DO NOT FORCE TO ST
     return 'FWD';
   }

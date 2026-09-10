@@ -276,7 +276,9 @@ describe('Match Persistence Integration Test (Live DB)', () => {
       awayTeamExternalId: testAwayTeamExtId,
     };
 
-    await expect(persistMatchUseCase.execute(invalidCompMatch)).rejects.toThrow();
+    await expect(
+      persistMatchUseCase.execute(invalidCompMatch),
+    ).rejects.toThrow();
   });
 
   it('TC-35 & TC-36: should preserve created_at and update updated_at on state change', async () => {

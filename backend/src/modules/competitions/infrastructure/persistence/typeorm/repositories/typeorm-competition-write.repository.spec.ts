@@ -95,7 +95,9 @@ describe('TypeOrmCompetitionWriteRepository', () => {
     };
 
     mockOrmRepository.findOne.mockResolvedValue(existingEntity);
-    mockOrmRepository.save.mockImplementation(async (entity) => entity as CompetitionOrmEntity);
+    mockOrmRepository.save.mockImplementation(
+      async (entity) => entity as CompetitionOrmEntity,
+    );
 
     const updatedPayload: TransformedCompetition = {
       ...mockTransformedCompetition,
@@ -118,8 +120,12 @@ describe('TypeOrmCompetitionWriteRepository', () => {
   // TC-04: External Identity Differentiation
   it('TC-04: should query with exact external_provider and external_id pair', async () => {
     mockOrmRepository.findOne.mockResolvedValue(null);
-    mockOrmRepository.create.mockImplementation((e) => e as CompetitionOrmEntity);
-    mockOrmRepository.save.mockImplementation(async (e) => e as CompetitionOrmEntity);
+    mockOrmRepository.create.mockImplementation(
+      (e) => e as CompetitionOrmEntity,
+    );
+    mockOrmRepository.save.mockImplementation(
+      async (e) => e as CompetitionOrmEntity,
+    );
 
     await repository.findByExternalIdentity('OTHER_PROVIDER', '2021');
 
@@ -134,8 +140,12 @@ describe('TypeOrmCompetitionWriteRepository', () => {
   // TC-06: Nullable Fields
   it('TC-06: should handle null optional fields gracefully', async () => {
     mockOrmRepository.findOne.mockResolvedValue(null);
-    mockOrmRepository.create.mockImplementation((e) => e as CompetitionOrmEntity);
-    mockOrmRepository.save.mockImplementation(async (e) => e as CompetitionOrmEntity);
+    mockOrmRepository.create.mockImplementation(
+      (e) => e as CompetitionOrmEntity,
+    );
+    mockOrmRepository.save.mockImplementation(
+      async (e) => e as CompetitionOrmEntity,
+    );
 
     const payloadWithNulls: TransformedCompetition = {
       externalProvider: 'FOOTBALL_DATA_ORG',

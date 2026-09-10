@@ -2289,7 +2289,9 @@ export function generateAllPlayersData(): SeedPlayerData[] {
         const sh = isGK ? 0 : Math.max(gl * 3, 10);
         const sot = isGK ? 0 : Math.round(sh * 0.45);
         const pass = isGK ? mp * 28 : mp * 45;
-        const acc = isGK ? Number((68 + (mp % 12)).toFixed(1)) : Number((75 + (mp % 15)).toFixed(1));
+        const acc = isGK
+          ? Number((68 + (mp % 12)).toFixed(1))
+          : Number((75 + (mp % 15)).toFixed(1));
         const kp = isGK ? (ast > 0 ? ast : 0) : Math.max(ast * 4, 12);
         const tk = isGK ? 2 : Math.round(mp * 1.2);
         const int = isGK ? 2 : Math.round(mp * 0.8);
@@ -2302,7 +2304,10 @@ export function generateAllPlayersData(): SeedPlayerData[] {
         const cs = isGK ? Math.round(mp * 0.38) : undefined;
         const ps = isGK ? Math.round(mp * 0.05) : undefined;
         const pf = isGK ? Math.round(mp * 0.12) : undefined;
-        const savePct = isGK && saves && gc ? Number(((saves / (saves + gc)) * 100).toFixed(1)) : undefined;
+        const savePct =
+          isGK && saves && gc
+            ? Number(((saves / (saves + gc)) * 100).toFixed(1))
+            : undefined;
 
         return {
           mp,

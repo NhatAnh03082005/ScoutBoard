@@ -19,7 +19,13 @@ describe('UpdateShortlistUseCase (Unit)', () => {
   });
 
   it('should update name, description and visibility for owned shortlist', async () => {
-    const shortlist = new Shortlist('sl-1', 'user-1', 'Old Name', 'Old Desc', 'PRIVATE');
+    const shortlist = new Shortlist(
+      'sl-1',
+      'user-1',
+      'Old Name',
+      'Old Desc',
+      'PRIVATE',
+    );
     mockRepository.findById.mockResolvedValue(shortlist);
     mockRepository.save.mockImplementation(async (s) => s);
 

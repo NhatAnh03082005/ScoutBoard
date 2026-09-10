@@ -45,6 +45,8 @@ describe('AddPlayerToShortlistUseCase (Unit)', () => {
       findSeasonStatisticsByCompetitionAndSeason: jest.fn(),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
+      getDistinctPositions: jest.fn(),
+      queryPlayers: jest.fn(),
     };
 
     useCase = new AddPlayerToShortlistUseCase(
@@ -57,7 +59,12 @@ describe('AddPlayerToShortlistUseCase (Unit)', () => {
   it('TC-01: should add existing player to owned shortlist successfully', async () => {
     const shortlist = new Shortlist(shortlistId, ownerId, 'Targets');
     const player = { id: playerId, name: 'Bukayo Saka' } as any;
-    const shortlistPlayer = new ShortlistPlayer('rel-1', shortlistId, playerId, 'Great winger');
+    const shortlistPlayer = new ShortlistPlayer(
+      'rel-1',
+      shortlistId,
+      playerId,
+      'Great winger',
+    );
 
     mockShortlistRepo.findById.mockResolvedValue(shortlist);
     mockPlayerReadRepo.findById.mockResolvedValue(player);
@@ -82,11 +89,17 @@ describe('AddPlayerToShortlistUseCase (Unit)', () => {
   it('TC-02: should reject adding the same player twice to the same shortlist', async () => {
     const shortlist = new Shortlist(shortlistId, ownerId, 'Targets');
     const player = { id: playerId, name: 'Bukayo Saka' } as any;
-    const existingShortlistPlayer = new ShortlistPlayer('rel-1', shortlistId, playerId);
+    const existingShortlistPlayer = new ShortlistPlayer(
+      'rel-1',
+      shortlistId,
+      playerId,
+    );
 
     mockShortlistRepo.findById.mockResolvedValue(shortlist);
     mockPlayerReadRepo.findById.mockResolvedValue(player);
-    mockShortlistPlayerRepo.findByShortlistAndPlayer.mockResolvedValue(existingShortlistPlayer);
+    mockShortlistPlayerRepo.findByShortlistAndPlayer.mockResolvedValue(
+      existingShortlistPlayer,
+    );
 
     await expect(
       useCase.execute({

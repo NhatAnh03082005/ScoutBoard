@@ -15,7 +15,8 @@ describe('Squad & SquadPlayer Domain Entities (Unit)', () => {
   const validSeasonId = '33333333-3333-3333-3333-333333333333';
   const validName = 'Dream Team EPL 2026';
   const validFormation = '4-3-3';
-  const validDescription = 'Attacking tactic focused on high pressing and wing play';
+  const validDescription =
+    'Attacking tactic focused on high pressing and wing play';
   const createdAt = new Date();
   const updatedAt = new Date();
 
@@ -100,12 +101,7 @@ describe('Squad & SquadPlayer Domain Entities (Unit)', () => {
     });
 
     it('should support updating name, formation, season, description, and visibility', () => {
-      const squad = new Squad(
-        validId,
-        validOwnerId,
-        validName,
-        '4-3-3',
-      );
+      const squad = new Squad(validId, validOwnerId, validName, '4-3-3');
 
       squad.updateName('New Tactical Squad');
       expect(squad.getName()).toBe('New Tactical Squad');
@@ -115,7 +111,9 @@ describe('Squad & SquadPlayer Domain Entities (Unit)', () => {
       squad.updateFormationCode('4-2-3-1');
       expect(squad.getFormationCode()).toBe('4-2-3-1');
 
-      expect(() => squad.updateFormationCode('9-0-1')).toThrow(InvalidFormationCodeError);
+      expect(() => squad.updateFormationCode('9-0-1')).toThrow(
+        InvalidFormationCodeError,
+      );
 
       squad.updateSeasonId(validSeasonId);
       expect(squad.getSeasonId()).toBe(validSeasonId);
@@ -227,7 +225,7 @@ describe('Squad & SquadPlayer Domain Entities (Unit)', () => {
           validSquadId,
           validPlayerId,
           'GK',
-          'RESERVE' as any,
+          'RESERVE',
         );
       }).toThrow(InvalidSquadPlayerRoleError);
     });
@@ -286,19 +284,31 @@ describe('Squad & SquadPlayer Domain Entities (Unit)', () => {
       expect(squadEntityCode).not.toContain('Entity(');
       expect(squadEntityCode).not.toContain('Column(');
 
-      const squadPlayerEntityPath = path.resolve(__dirname, './squad-player.ts');
-      const squadPlayerEntityCode = fs.readFileSync(squadPlayerEntityPath, 'utf8');
+      const squadPlayerEntityPath = path.resolve(
+        __dirname,
+        './squad-player.ts',
+      );
+      const squadPlayerEntityCode = fs.readFileSync(
+        squadPlayerEntityPath,
+        'utf8',
+      );
 
       expect(squadPlayerEntityCode).not.toContain('typeorm');
       expect(squadPlayerEntityCode).not.toContain('@nestjs');
 
-      const squadRepoPath = path.resolve(__dirname, '../repositories/squad.repository.ts');
+      const squadRepoPath = path.resolve(
+        __dirname,
+        '../repositories/squad.repository.ts',
+      );
       const squadRepoCode = fs.readFileSync(squadRepoPath, 'utf8');
 
       expect(squadRepoCode).not.toContain('typeorm');
       expect(squadRepoCode).not.toContain('@nestjs');
 
-      const squadPlayerRepoPath = path.resolve(__dirname, '../repositories/squad-player.repository.ts');
+      const squadPlayerRepoPath = path.resolve(
+        __dirname,
+        '../repositories/squad-player.repository.ts',
+      );
       const squadPlayerRepoCode = fs.readFileSync(squadPlayerRepoPath, 'utf8');
 
       expect(squadPlayerRepoCode).not.toContain('typeorm');

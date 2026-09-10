@@ -261,7 +261,18 @@ describe('PlayersController', () => {
 
   describe('getPositions', () => {
     it('should delegate to GetAvailablePositionsUseCase', async () => {
-      const positions = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
+      const positions = [
+        'GK',
+        'LB',
+        'CB',
+        'RB',
+        'CDM',
+        'CM',
+        'CAM',
+        'LW',
+        'RW',
+        'ST',
+      ];
       mockGetAvailablePositionsUseCase.execute.mockResolvedValue(positions);
 
       const result = await controller.getPositions();

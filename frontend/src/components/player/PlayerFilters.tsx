@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { PlayerFilterParams } from '../../types/player.types';
 import type { CompetitionItem, CompetitionTeamItem } from '../../types/competition.types';
 
@@ -16,6 +16,7 @@ interface PlayerFiltersProps {
   onCompetitionChange: (competitionId: string) => void;
   onTeamChange: (teamId: string) => void;
   onResetFilters: () => void;
+  onClearSearch?: () => void;
 }
 
 const POSITION_LABELS: Record<string, string> = {
@@ -82,12 +83,46 @@ export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
   onCompetitionChange,
   onTeamChange,
   onResetFilters,
+  onClearSearch,
 }) => {
+  const [isAdvancedManualOpen, setIsAdvancedManualOpen] = useState<boolean>(false);
+
+  // Check if any advanced filters are active
+  const hasActiveAdvanced = Boolean(
+    filters.minAge ||
+    filters.maxAge ||
+    filters.minHeightCm ||
+    filters.maxHeightCm ||
+    filters.minWeightKg ||
+    filters.maxWeightKg
+  );
+
+  const isAdvancedVisible = isAdvancedManualOpen || hasActiveAdvanced;
+
+  // Active filter count for badge
+  const advancedFilterCount = [
+    Boolean(filters.minAge || filters.maxAge),
+    Boolean(filters.minHeightCm || filters.maxHeightCm),
+    Boolean(filters.minWeightKg || filters.maxWeightKg),
+  ].filter(Boolean).length;
+
+  // Check which competition & club are selected for readable chips
+  const selectedComp = competitions.find((c) => c.id === filters.competitionId);
+  const selectedTeam = teams.find((t) => t.id === filters.currentTeamId);
+
+  const hasAnyFilterActive = Boolean(
+    filters.competitionId ||
+    filters.currentTeamId ||
+    filters.position ||
+    (filters.nationality && filters.nationality.trim()) ||
+    hasActiveAdvanced
+  );
+
   return (
     <div className="scout-b2b-control-card">
-      {/* 1. TOP ROW: Search Input + Icon Action Buttons */}
+      {/* 1. TOP ROW: Search Input with Inline Clear + Search & Reset Actions */}
       <form onSubmit={onSearchSubmit} className="scout-b2b-search-row">
-        <div className="scout-b2b-search-input-wrapper">
+        <div className="scout-b2b-search-input-wrapper scout-search-input-box">
           <span className="scout-b2b-search-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
@@ -101,11 +136,26 @@ export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
             value={searchInput}
             onChange={(e) => onSearchInputChange(e.target.value)}
           />
+          {searchInput && (
+            <button
+              type="button"
+              className="scout-search-clear-inline"
+              onClick={() => {
+                onSearchInputChange('');
+                if (onClearSearch) {
+                  onClearSearch();
+                }
+              }}
+              title="Clear search query"
+              aria-label="Clear search query"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
-        {/* Action Icon Buttons */}
+        {/* Action Buttons */}
         <div className="scout-b2b-search-actions">
-          {/* Search Button (Turns Blue on Hover/Normal) */}
           <button
             type="submit"
             className="scout-b2b-icon-btn scout-b2b-btn-search"
@@ -120,25 +170,24 @@ export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
             <span>Search</span>
           </button>
 
-          {/* Clear Button (Turns Red on Hover) */}
           <button
             type="button"
             className="scout-b2b-icon-btn scout-b2b-btn-clear"
             onClick={onResetFilters}
-            title="Clear all filters and search input"
-            aria-label="Clear filters"
+            title="Reset all filters and search input"
+            aria-label="Reset all filters"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
             </svg>
-            <span>Clear</span>
+            <span>Reset All</span>
           </button>
         </div>
       </form>
 
-      {/* 2. BOTTOM ROW: High-Density 7-Column Filter Grid */}
-      <div className="scout-b2b-filters-grid">
+      {/* 2. PRIMARY FILTERS TIER (Competition, Club, Position, Nationality + Advanced Toggle) */}
+      <div className="scout-filter-tier-primary" style={{ marginTop: '14px' }}>
         {/* 1. Competition Dropdown */}
         <div className="scout-b2b-filter-group">
           <label className="scout-b2b-label">Competition</label>
@@ -169,7 +218,7 @@ export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
               {!filters.competitionId
                 ? 'Select competition first'
                 : loadingTeams
-                ? 'Loading...'
+                ? 'Loading clubs...'
                 : 'All Clubs'}
             </option>
             {teams.map((team) => (
@@ -211,84 +260,236 @@ export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
           />
         </div>
 
-        {/* 5. Age Range (Grouped Dual Input) */}
-        <div className="scout-b2b-filter-group">
-          <label className="scout-b2b-label">Age</label>
-          <div className="scout-b2b-grouped-input">
-            <input
-              type="number"
-              placeholder="Min"
-              min={14}
-              max={50}
-              value={filters.minAge || ''}
-              onChange={(e) => onFilterChange('minAge', e.target.value)}
-              className="scout-b2b-inner-input"
-            />
-            <span className="scout-b2b-input-divider">-</span>
-            <input
-              type="number"
-              placeholder="Max"
-              min={14}
-              max={50}
-              value={filters.maxAge || ''}
-              onChange={(e) => onFilterChange('maxAge', e.target.value)}
-              className="scout-b2b-inner-input"
-            />
-          </div>
-        </div>
-
-        {/* 6. Height Range (Grouped Dual Input) */}
-        <div className="scout-b2b-filter-group">
-          <label className="scout-b2b-label">Height (cm)</label>
-          <div className="scout-b2b-grouped-input">
-            <input
-              type="number"
-              placeholder="Min"
-              min={150}
-              max={220}
-              value={filters.minHeightCm || ''}
-              onChange={(e) => onFilterChange('minHeightCm', e.target.value)}
-              className="scout-b2b-inner-input"
-            />
-            <span className="scout-b2b-input-divider">-</span>
-            <input
-              type="number"
-              placeholder="Max"
-              min={150}
-              max={220}
-              value={filters.maxHeightCm || ''}
-              onChange={(e) => onFilterChange('maxHeightCm', e.target.value)}
-              className="scout-b2b-inner-input"
-            />
-          </div>
-        </div>
-
-        {/* 7. Weight Range (Grouped Dual Input) */}
-        <div className="scout-b2b-filter-group">
-          <label className="scout-b2b-label">Weight (kg)</label>
-          <div className="scout-b2b-grouped-input">
-            <input
-              type="number"
-              placeholder="Min"
-              min={40}
-              max={150}
-              value={filters.minWeightKg || ''}
-              onChange={(e) => onFilterChange('minWeightKg', e.target.value)}
-              className="scout-b2b-inner-input"
-            />
-            <span className="scout-b2b-input-divider">-</span>
-            <input
-              type="number"
-              placeholder="Max"
-              min={40}
-              max={150}
-              value={filters.maxWeightKg || ''}
-              onChange={(e) => onFilterChange('maxWeightKg', e.target.value)}
-              className="scout-b2b-inner-input"
-            />
-          </div>
+        {/* 5. Advanced Filters Toggle Button */}
+        <div className="scout-b2b-filter-group" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            className={`scout-advanced-toggle-btn ${hasActiveAdvanced ? 'has-active' : ''}`}
+            onClick={() => setIsAdvancedManualOpen((prev) => !prev)}
+            aria-expanded={isAdvancedVisible}
+            title="Toggle Age, Height, Weight filters"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14" />
+              <line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" />
+              <line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
+            </svg>
+            <span>Physical Filters {advancedFilterCount > 0 ? `(${advancedFilterCount})` : ''}</span>
+            <span>{isAdvancedVisible ? '▴' : '▾'}</span>
+          </button>
         </div>
       </div>
+
+      {/* 3. ADVANCED SECONDARY FILTERS (Progressive Disclosure: Age, Height, Weight) */}
+      {isAdvancedVisible && (
+        <div className="scout-filter-tier-advanced">
+          {/* Age Range */}
+          <div className="scout-b2b-filter-group">
+            <label className="scout-b2b-label">Age Range (years)</label>
+            <div className="scout-b2b-grouped-input">
+              <input
+                type="number"
+                placeholder="Min"
+                min={14}
+                max={50}
+                value={filters.minAge || ''}
+                onChange={(e) => onFilterChange('minAge', e.target.value)}
+                className="scout-b2b-inner-input"
+              />
+              <span className="scout-b2b-input-divider">-</span>
+              <input
+                type="number"
+                placeholder="Max"
+                min={14}
+                max={50}
+                value={filters.maxAge || ''}
+                onChange={(e) => onFilterChange('maxAge', e.target.value)}
+                className="scout-b2b-inner-input"
+              />
+            </div>
+          </div>
+
+          {/* Height Range */}
+          <div className="scout-b2b-filter-group">
+            <label className="scout-b2b-label">Height (cm)</label>
+            <div className="scout-b2b-grouped-input">
+              <input
+                type="number"
+                placeholder="Min (150)"
+                min={150}
+                max={220}
+                value={filters.minHeightCm || ''}
+                onChange={(e) => onFilterChange('minHeightCm', e.target.value)}
+                className="scout-b2b-inner-input"
+              />
+              <span className="scout-b2b-input-divider">-</span>
+              <input
+                type="number"
+                placeholder="Max (220)"
+                min={150}
+                max={220}
+                value={filters.maxHeightCm || ''}
+                onChange={(e) => onFilterChange('maxHeightCm', e.target.value)}
+                className="scout-b2b-inner-input"
+              />
+            </div>
+          </div>
+
+          {/* Weight Range */}
+          <div className="scout-b2b-filter-group">
+            <label className="scout-b2b-label">Weight (kg)</label>
+            <div className="scout-b2b-grouped-input">
+              <input
+                type="number"
+                placeholder="Min (40)"
+                min={40}
+                max={150}
+                value={filters.minWeightKg || ''}
+                onChange={(e) => onFilterChange('minWeightKg', e.target.value)}
+                className="scout-b2b-inner-input"
+              />
+              <span className="scout-b2b-input-divider">-</span>
+              <input
+                type="number"
+                placeholder="Max (150)"
+                min={40}
+                max={150}
+                value={filters.maxWeightKg || ''}
+                onChange={(e) => onFilterChange('maxWeightKg', e.target.value)}
+                className="scout-b2b-inner-input"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. ACTIVE FILTER CHIPS ROW (Contextual Feedback) */}
+      {hasAnyFilterActive && (
+        <div className="scout-active-chips-bar">
+          <span className="scout-chips-label">Active Filters:</span>
+
+          {selectedComp && (
+            <span className="scout-filter-chip">
+              <span>{selectedComp.name}</span>
+              <button
+                type="button"
+                className="scout-filter-chip-remove"
+                onClick={() => onCompetitionChange('')}
+                title="Remove competition filter"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+
+          {selectedTeam && (
+            <span className="scout-filter-chip">
+              <span>{selectedTeam.name}</span>
+              <button
+                type="button"
+                className="scout-filter-chip-remove"
+                onClick={() => onTeamChange('')}
+                title="Remove club filter"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+
+          {filters.position && (
+            <span className="scout-filter-chip">
+              <span>{filters.position}</span>
+              <button
+                type="button"
+                className="scout-filter-chip-remove"
+                onClick={() => onFilterChange('position', '')}
+                title="Remove position filter"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+
+          {filters.nationality && filters.nationality.trim() && (
+            <span className="scout-filter-chip">
+              <span>{filters.nationality.trim()}</span>
+              <button
+                type="button"
+                className="scout-filter-chip-remove"
+                onClick={() => onFilterChange('nationality', '')}
+                title="Remove nationality filter"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+
+          {(filters.minAge || filters.maxAge) && (
+            <span className="scout-filter-chip">
+              <span>Age: {filters.minAge || '14'} - {filters.maxAge || '50'}</span>
+              <button
+                type="button"
+                className="scout-filter-chip-remove"
+                onClick={() => {
+                  onFilterChange('minAge', '');
+                  onFilterChange('maxAge', '');
+                }}
+                title="Remove age range filter"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+
+          {(filters.minHeightCm || filters.maxHeightCm) && (
+            <span className="scout-filter-chip">
+              <span>Height: {filters.minHeightCm || '150'} - {filters.maxHeightCm || '220'}cm</span>
+              <button
+                type="button"
+                className="scout-filter-chip-remove"
+                onClick={() => {
+                  onFilterChange('minHeightCm', '');
+                  onFilterChange('maxHeightCm', '');
+                }}
+                title="Remove height filter"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+
+          {(filters.minWeightKg || filters.maxWeightKg) && (
+            <span className="scout-filter-chip">
+              <span>Weight: {filters.minWeightKg || '40'} - {filters.maxWeightKg || '150'}kg</span>
+              <button
+                type="button"
+                className="scout-filter-chip-remove"
+                onClick={() => {
+                  onFilterChange('minWeightKg', '');
+                  onFilterChange('maxWeightKg', '');
+                }}
+                title="Remove weight filter"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+
+          <button
+            type="button"
+            className="scout-chips-clear-all"
+            onClick={onResetFilters}
+          >
+            Clear all
+          </button>
+        </div>
+      )}
     </div>
   );
 };

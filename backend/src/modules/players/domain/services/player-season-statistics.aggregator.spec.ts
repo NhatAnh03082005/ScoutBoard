@@ -141,7 +141,10 @@ describe('PlayerSeasonStatisticsAggregator (Pure Domain & Metric Invariants)', (
       penaltiesSaved: 0,
     } as any;
 
-    const result = PlayerSeasonStatisticsAggregator.aggregate([gkMatch1, gkMatch2]);
+    const result = PlayerSeasonStatisticsAggregator.aggregate([
+      gkMatch1,
+      gkMatch2,
+    ]);
 
     expect(result.matchesPlayed).toBe(2);
     expect(result.starts).toBe(2);

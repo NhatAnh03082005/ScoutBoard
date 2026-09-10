@@ -3,7 +3,10 @@ import {
   SHORTLIST_REPOSITORY,
   ShortlistRepository,
 } from '../../domain/repositories/shortlist.repository';
-import { Shortlist, ShortlistVisibility } from '../../domain/entities/shortlist';
+import {
+  Shortlist,
+  ShortlistVisibility,
+} from '../../domain/entities/shortlist';
 import { ShortlistNotFoundError } from '../../domain/errors/shortlist.errors';
 
 export interface UpdateShortlistInput {

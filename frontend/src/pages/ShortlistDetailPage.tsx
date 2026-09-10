@@ -21,6 +21,8 @@ import { getNationalityFlagUrl } from '../utils/nationality-flag.util';
 interface ShortlistDetailPageProps {
   shortlistId: string;
   onBack: () => void;
+  onSelectPlayer?: (playerId: string) => void;
+  onNavigateToSearch?: () => void;
   onNavigateToLogin?: () => void;
   isAuthenticated?: boolean;
 }
@@ -64,6 +66,8 @@ function getPositionBadgeClass(posCode?: string | null): string {
 export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
   shortlistId,
   onBack,
+  onSelectPlayer,
+  onNavigateToSearch,
   onNavigateToLogin,
   isAuthenticated = true,
 }) => {
@@ -373,9 +377,9 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
   if (error === 'UNAUTHORIZED' || !isAuthenticated) {
     return (
       <div style={{ maxWidth: '600px', margin: '60px auto', padding: '0 16px', textAlign: 'center' }}>
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '40px 24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+        <div style={{ background: 'var(--scout-surface-card)', border: '1px solid var(--scout-border-default)', borderRadius: '16px', padding: '40px 24px', boxShadow: 'var(--scout-shadow-subtle)' }}>
           <div style={{ fontSize: '42px', marginBottom: '12px' }}>🔒</div>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0' }}>
             Authentication Required
           </h2>
           <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
@@ -404,25 +408,38 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
         </div>
       )}
 
-      {/* 1. Header Navigation */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-        <button
-          type="button"
-          onClick={onBack}
-          className="scout-sports-back-btn"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          <span>My Shortlists</span>
-        </button>
+      {/* 1. Header Navigation with Breadcrumbs & Edit Shortlist Action */}
+      <div className="scout-sports-topbar" style={{ marginBottom: '20px' }}>
+        <div className="scout-detail-breadcrumb">
+          <button
+            type="button"
+            onClick={onBack}
+            className="scout-sports-back-btn"
+            title="Return to My Shortlists overview"
+            aria-label="Return to My Shortlists overview"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>My Shortlists</span>
+          </button>
+          {shortlist && (
+            <>
+              <span style={{ color: 'var(--scout-border-default)', opacity: 0.6 }}>/</span>
+              <span style={{ color: 'var(--scout-text-primary)', fontWeight: 700, fontSize: '13px' }}>
+                {shortlist.name}
+              </span>
+            </>
+          )}
+        </div>
 
         {shortlist && (
           <button
             type="button"
             onClick={handleOpenEditShortlistModal}
             className="scout-btn scout-btn-secondary"
+            title="Edit shortlist name, description, and visibility"
           >
             <span>✏️</span>
             <span>Edit Shortlist</span>
@@ -432,7 +449,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
 
       {/* 2. Error State */}
       {error && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', maxWidth: '540px', margin: '20px auto' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', maxWidth: '540px', margin: '20px auto' }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>⛔</div>
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#991b1b', margin: '0 0 8px 0' }}>
             Shortlist Unavailable
@@ -462,18 +479,18 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
       {/* 3. Loading State */}
       {loading && !error && (
         <div>
-          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '32px', marginBottom: '24px' }}>
+          <div style={{ background: 'var(--scout-surface-card)', border: '1px solid var(--scout-border-default)', borderRadius: '20px', padding: '32px', marginBottom: '24px' }}>
             <div style={{ height: '32px', width: '35%', background: '#e2e8f0', borderRadius: '8px', marginBottom: '12px' }} />
-            <div style={{ height: '16px', width: '55%', background: '#e2e8f0', borderRadius: '4px', marginBottom: '16px' }} />
+            <div style={{ height: '16px', width: '55%', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '4px', marginBottom: '16px' }} />
             <div style={{ display: 'flex', gap: '12px' }}>
-              <div style={{ height: '36px', width: '130px', background: '#f1f5f9', borderRadius: '10px' }} />
-              <div style={{ height: '36px', width: '130px', background: '#f1f5f9', borderRadius: '10px' }} />
-              <div style={{ height: '36px', width: '180px', background: '#f1f5f9', borderRadius: '10px' }} />
+              <div style={{ height: '36px', width: '130px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px' }} />
+              <div style={{ height: '36px', width: '130px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px' }} />
+              <div style={{ height: '36px', width: '180px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '10px' }} />
             </div>
           </div>
           <div className="scout-shortlist-grid">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="scout-trading-card" style={{ height: '240px', background: '#f8fafc' }} />
+              <div key={n} className="scout-trading-card" style={{ height: '240px', background: 'var(--scout-surface-card)' }} />
             ))}
           </div>
         </div>
@@ -640,10 +657,10 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                   style={{
                     padding: '6px 10px',
                     borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--scout-border-default)',
                     fontSize: '12.5px',
-                    background: '#ffffff',
-                    color: '#334155',
+                    background: 'var(--scout-surface-card)',
+                    color: 'var(--scout-text-primary)',
                     fontWeight: 600,
                     outline: 'none',
                     cursor: 'pointer',
@@ -693,6 +710,14 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
               <p className="scout-empty-state-desc">
                 Add players directly from the Player Search card grid, Player Detail page, or Head-to-Head Comparison.
               </p>
+              <button
+                type="button"
+                onClick={onNavigateToSearch || onBack}
+                className="scout-btn scout-btn-primary"
+                style={{ marginTop: '16px' }}
+              >
+                Find Players to Shortlist
+              </button>
             </div>
           )}
 
@@ -731,7 +756,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                 const flagUrl = getNationalityFlagUrl(player?.nationality);
 
                 return (
-                  <div key={item.id} className="scout-trading-card">
+                  <div key={item.id} className="scout-trading-card scout-trading-card-interactive">
                     {/* Top Row: Cutout & Core Badges */}
                     <div>
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' }}>
@@ -772,13 +797,13 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                             {age && (
                               <span
                                 style={{
-                                  background: '#f1f5f9',
-                                  color: '#334155',
+                                  background: 'var(--scout-bg-subtle)',
+                                  color: 'var(--scout-text-secondary)',
                                   fontSize: '10.5px',
                                   fontWeight: 800,
                                   padding: '1px 6px',
                                   borderRadius: '5px',
-                                  border: '1px solid #e2e8f0',
+                                  border: '1px solid var(--scout-border-default)',
                                 }}
                               >
                                 {age} yrs
@@ -787,16 +812,18 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                           </div>
 
                           <h3
+                            onClick={() => player?.id && onSelectPlayer && onSelectPlayer(player.id)}
                             style={{
                               fontSize: '15.5px',
                               fontWeight: 800,
-                              color: '#0f172a',
+                              color: '#ffffff',
                               margin: '0 0 4px 0',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
+                              cursor: onSelectPlayer ? 'pointer' : 'default',
                             }}
-                            title={player?.name}
+                            title={onSelectPlayer ? `View ${player?.name}'s scouting profile` : player?.name}
                           >
                             {player?.name || 'Unknown Player'}
                           </h3>
@@ -804,7 +831,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                           {/* Club & Country */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
                             {player?.currentTeam && (
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: '#334155' }}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: 'var(--scout-text-primary)' }}>
                                 {player.currentTeam.logoUrl && (
                                   <img
                                     src={player.currentTeam.logoUrl}
@@ -864,8 +891,8 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                                 top: '100%',
                                 right: 0,
                                 marginTop: '4px',
-                                background: '#ffffff',
-                                border: '1px solid #e2e8f0',
+                                background: 'var(--scout-surface-card)',
+                                border: '1px solid var(--scout-border-default)',
                                 borderRadius: '10px',
                                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                                 minWidth: '150px',
@@ -888,13 +915,13 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                                   border: 'none',
                                   fontSize: '12.5px',
                                   fontWeight: 600,
-                                  color: '#334155',
+                                  color: 'var(--scout-text-primary)',
                                   cursor: 'pointer',
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: '8px',
                                 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
                                 onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                               >
                                 <span>✏️</span>
@@ -919,9 +946,9 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: '8px',
-                                  borderTop: '1px solid #f1f5f9',
+                                  borderTop: '1px solid var(--scout-border-default)',
                                 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)')}
                                 onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                               >
                                 <span>🗑️</span>
@@ -967,8 +994,8 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                             justifyContent: 'space-between',
                             width: '100%',
                             gap: '8px',
-                            background: '#f8fafc',
-                            border: '1px solid #e2e8f0',
+                            background: 'var(--scout-bg-subtle)',
+                            border: '1px solid var(--scout-border-default)',
                             borderRadius: '8px',
                             padding: '6px 10px',
                           }}
@@ -976,7 +1003,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                           <span
                             style={{
                               fontSize: '11.5px',
-                              color: '#334155',
+                              color: 'var(--scout-text-secondary)',
                               fontStyle: 'italic',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -1026,8 +1053,8 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                               borderRadius: '4px',
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.color = '#2563eb';
-                              e.currentTarget.style.background = '#eff6ff';
+                              e.currentTarget.style.color = '#60a5fa';
+                              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.color = '#64748b';
@@ -1072,7 +1099,12 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                     const flagUrl = getNationalityFlagUrl(player?.nationality);
 
                     return (
-                      <tr key={item.id}>
+                      <tr
+                        key={item.id}
+                        className="scout-shortlist-interactive-row"
+                        onClick={() => player?.id && onSelectPlayer && onSelectPlayer(player.id)}
+                        title={onSelectPlayer ? `Click to view ${player?.name}'s scouting profile` : undefined}
+                      >
                         <td style={{ color: '#94a3b8', fontWeight: 700, fontSize: '12px' }}>
                           {index + 1}
                         </td>
@@ -1083,8 +1115,8 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                                 width: '38px',
                                 height: '38px',
                                 borderRadius: '8px',
-                                background: '#f1f5f9',
-                                border: '1px solid #e2e8f0',
+                                background: 'var(--scout-bg-subtle)',
+                                border: '1px solid var(--scout-border-default)',
                                 overflow: 'hidden',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -1106,7 +1138,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                               )}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '13.5px' }}>
+                              <div style={{ fontWeight: 800, color: '#ffffff', fontSize: '13.5px' }}>
                                 {player?.name || 'Unknown'}
                               </div>
                               {player?.shirtNumber && (
@@ -1158,7 +1190,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                           </div>
                         </td>
                         <td>
-                          <div style={{ fontSize: '12px', color: '#334155' }}>
+                          <div style={{ fontSize: '12px', color: 'var(--scout-text-secondary)' }}>
                             {player?.heightCm ? `${player.heightCm} cm` : '—'}
                             {player?.weightKg ? ` • ${player.weightKg} kg` : ''}
                           </div>
@@ -1185,9 +1217,26 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            {onSelectPlayer && player?.id && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onSelectPlayer(player.id);
+                                }}
+                                className="scout-btn scout-btn-sm scout-btn-secondary"
+                                title="Open Player Profile"
+                                style={{ padding: '4px 8px', fontSize: '11.5px', color: '#60a5fa' }}
+                              >
+                                View
+                              </button>
+                            )}
                             <button
                               type="button"
-                              onClick={() => handleOpenNoteModal(item)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenNoteModal(item);
+                              }}
                               className="scout-btn scout-btn-sm scout-btn-secondary"
                               title={item.note ? 'Edit Note' : 'Add Note'}
                               style={{ padding: '4px 8px', fontSize: '11.5px' }}
@@ -1196,7 +1245,10 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleOpenRemoveModal(item)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenRemoveModal(item);
+                              }}
                               className="scout-btn scout-btn-sm scout-btn-secondary"
                               title="Remove Target"
                               style={{ padding: '4px 8px', fontSize: '11.5px', color: '#ef4444' }}
@@ -1335,8 +1387,8 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: 'var(--scout-bg-subtle)',
+                border: '1px solid var(--scout-border-default)',
                 borderRadius: '12px',
                 padding: '12px 14px',
                 marginBottom: '16px',
@@ -1369,7 +1421,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                 )}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>
                   {editingPlayerNote.player?.name || 'Player'}
                 </h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
@@ -1387,7 +1439,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                     </span>
                   )}
                   {editingPlayerNote.player?.currentTeam && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: '#334155' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: 'var(--scout-text-primary)' }}>
                       {editingPlayerNote.player.currentTeam.logoUrl && (
                         <img
                           src={editingPlayerNote.player.currentTeam.logoUrl}
@@ -1436,8 +1488,8 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                     padding: '10px 12px 28px 12px',
                     borderRadius: '10px',
                     border: '1px solid #cbd5e1',
-                    background: '#ffffff',
-                    color: '#0f172a',
+                    background: 'var(--scout-surface-card)',
+                    color: '#ffffff',
                     outline: 'none',
                   }}
                   autoFocus
@@ -1490,7 +1542,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
               Remove Player?
             </h3>
             <p style={{ fontSize: '13.5px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
-              Remove <strong style={{ color: '#0f172a' }}>"{removingPlayer.player?.name || 'Player'}"</strong> from <strong style={{ color: '#0f172a' }}>"{shortlist?.name || 'this shortlist'}"</strong>?
+              Remove <strong style={{ color: '#ffffff' }}>"{removingPlayer.player?.name || 'Player'}"</strong> from <strong style={{ color: '#ffffff' }}>"{shortlist?.name || 'this shortlist'}"</strong>?
             </p>
 
             {removeError && (

@@ -283,7 +283,6 @@ describe('ExecuteAdminSyncUseCase (Comprehensive Unit Tests)', () => {
     );
   });
 
-
   // --- 3. LIFECYCLE STATES (TC-13 through TC-17) ---
   it('TC-13: should transition from PENDING -> RUNNING -> SUCCESS', async () => {
     const res = await useCase.execute({
@@ -378,4 +377,3 @@ describe('ExecuteAdminSyncUseCase (Comprehensive Unit Tests)', () => {
     );
   });
 });
-

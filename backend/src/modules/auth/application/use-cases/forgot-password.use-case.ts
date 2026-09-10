@@ -1,5 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { USER_REPOSITORY, UserRepository } from '../../../users/domain/repositories/user.repository';
+import {
+  USER_REPOSITORY,
+  UserRepository,
+} from '../../../users/domain/repositories/user.repository';
 import { EmailService } from '../../infrastructure/services/email.service';
 
 export interface ForgotPasswordInput {
@@ -19,7 +22,9 @@ export class ForgotPasswordUseCase {
   ) {}
 
   async execute(input: ForgotPasswordInput): Promise<ForgotPasswordOutput> {
-    const user = await this.userRepository.findByEmail(input.email.trim().toLowerCase());
+    const user = await this.userRepository.findByEmail(
+      input.email.trim().toLowerCase(),
+    );
 
     // Nếu user tồn tại, tạo OTP và gửi email
     if (user) {

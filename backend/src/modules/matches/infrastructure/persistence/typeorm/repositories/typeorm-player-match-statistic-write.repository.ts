@@ -9,9 +9,7 @@ import { PlayerMatchStatisticOrmEntity } from '../entities/player-match-statisti
 import { PlayerMatchStatisticsQualityValidator } from '../../../../domain/services/player-match-statistics-quality.validator';
 
 @Injectable()
-export class TypeOrmPlayerMatchStatisticWriteRepository
-  implements PlayerMatchStatisticWriteRepository
-{
+export class TypeOrmPlayerMatchStatisticWriteRepository implements PlayerMatchStatisticWriteRepository {
   constructor(
     @InjectRepository(PlayerMatchStatisticOrmEntity)
     private readonly repository: Repository<PlayerMatchStatisticOrmEntity>,
@@ -29,7 +27,9 @@ export class TypeOrmPlayerMatchStatisticWriteRepository
     });
   }
 
-  async findByMatchId(matchId: string): Promise<PlayerMatchStatisticOrmEntity[]> {
+  async findByMatchId(
+    matchId: string,
+  ): Promise<PlayerMatchStatisticOrmEntity[]> {
     return this.repository.find({
       where: { matchId },
     });
@@ -64,32 +64,76 @@ export class TypeOrmPlayerMatchStatisticWriteRepository
       );
     }
 
-    const existing = await this.findByMatchAndPlayer(input.matchId, input.playerId);
+    const existing = await this.findByMatchAndPlayer(
+      input.matchId,
+      input.playerId,
+    );
 
     if (existing) {
       existing.teamId = input.teamId;
       existing.minutesPlayed = input.minutesPlayed ?? existing.minutesPlayed;
       existing.isStarter = input.isStarter ?? existing.isStarter;
-      existing.rating = input.rating !== undefined ? input.rating : existing.rating;
-      existing.goals = input.goals !== undefined && input.goals !== null ? input.goals : existing.goals;
-      existing.assists = input.assists !== undefined && input.assists !== null ? input.assists : existing.assists;
-      existing.shots = input.shots !== undefined && input.shots !== null ? input.shots : existing.shots;
-      existing.keyPasses = input.keyPasses !== undefined && input.keyPasses !== null ? input.keyPasses : existing.keyPasses;
-      existing.passesAttempted = input.passesAttempted !== undefined && input.passesAttempted !== null ? input.passesAttempted : existing.passesAttempted;
-      existing.passesCompleted = input.passesCompleted !== undefined && input.passesCompleted !== null ? input.passesCompleted : existing.passesCompleted;
-      existing.tackles = input.tackles !== undefined && input.tackles !== null ? input.tackles : existing.tackles;
-      existing.interceptions = input.interceptions !== undefined && input.interceptions !== null ? input.interceptions : existing.interceptions;
-      existing.yellowCards = input.yellowCards !== undefined && input.yellowCards !== null ? input.yellowCards : existing.yellowCards;
-      existing.redCards = input.redCards !== undefined && input.redCards !== null ? input.redCards : existing.redCards;
+      existing.rating =
+        input.rating !== undefined ? input.rating : existing.rating;
+      existing.goals =
+        input.goals !== undefined && input.goals !== null
+          ? input.goals
+          : existing.goals;
+      existing.assists =
+        input.assists !== undefined && input.assists !== null
+          ? input.assists
+          : existing.assists;
+      existing.shots =
+        input.shots !== undefined && input.shots !== null
+          ? input.shots
+          : existing.shots;
+      existing.keyPasses =
+        input.keyPasses !== undefined && input.keyPasses !== null
+          ? input.keyPasses
+          : existing.keyPasses;
+      existing.passesAttempted =
+        input.passesAttempted !== undefined && input.passesAttempted !== null
+          ? input.passesAttempted
+          : existing.passesAttempted;
+      existing.passesCompleted =
+        input.passesCompleted !== undefined && input.passesCompleted !== null
+          ? input.passesCompleted
+          : existing.passesCompleted;
+      existing.tackles =
+        input.tackles !== undefined && input.tackles !== null
+          ? input.tackles
+          : existing.tackles;
+      existing.interceptions =
+        input.interceptions !== undefined && input.interceptions !== null
+          ? input.interceptions
+          : existing.interceptions;
+      existing.yellowCards =
+        input.yellowCards !== undefined && input.yellowCards !== null
+          ? input.yellowCards
+          : existing.yellowCards;
+      existing.redCards =
+        input.redCards !== undefined && input.redCards !== null
+          ? input.redCards
+          : existing.redCards;
       existing.saves = input.saves !== undefined ? input.saves : existing.saves;
-      existing.goalsConceded = input.goalsConceded !== undefined ? input.goalsConceded : existing.goalsConceded;
-      existing.cleanSheets = input.cleanSheets !== undefined ? input.cleanSheets : existing.cleanSheets;
-      existing.penaltiesSaved = input.penaltiesSaved !== undefined ? input.penaltiesSaved : existing.penaltiesSaved;
+      existing.goalsConceded =
+        input.goalsConceded !== undefined
+          ? input.goalsConceded
+          : existing.goalsConceded;
+      existing.cleanSheets =
+        input.cleanSheets !== undefined
+          ? input.cleanSheets
+          : existing.cleanSheets;
+      existing.penaltiesSaved =
+        input.penaltiesSaved !== undefined
+          ? input.penaltiesSaved
+          : existing.penaltiesSaved;
 
       if (input.statistics !== undefined) {
-        existing.statistics = input.statistics && existing.statistics
-          ? { ...existing.statistics, ...input.statistics }
-          : (input.statistics ?? existing.statistics);
+        existing.statistics =
+          input.statistics && existing.statistics
+            ? { ...existing.statistics, ...input.statistics }
+            : (input.statistics ?? existing.statistics);
       }
 
       return this.repository.save(existing);

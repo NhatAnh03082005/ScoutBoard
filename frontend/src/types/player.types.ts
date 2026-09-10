@@ -231,3 +231,80 @@ export interface ComparisonCandidateParams {
   limit?: number;
   offset?: number;
 }
+
+// =============================================================================
+// Advanced Query Types (QUERY /players)
+// Added additively — do not modify types above this line.
+// =============================================================================
+
+export type BooleanOperator = 'AND' | 'OR';
+
+export type ConditionOperator =
+  | 'EQ'
+  | 'NE'
+  | 'GT'
+  | 'GTE'
+  | 'LT'
+  | 'LTE'
+  | 'IN'
+  | 'NOT_IN'
+  | 'BETWEEN';
+
+export type ConditionValue =
+  | number
+  | string
+  | number[]
+  | string[]
+  | [number, number];
+
+/** Leaf condition: field + operator + scalar/array/range value. */
+export interface FieldCondition {
+  kind: 'CONDITION';
+  field: string;
+  operator: ConditionOperator;
+  value: ConditionValue;
+}
+
+/**
+ * Group node: a boolean operator + one or more children (conditions or nested groups).
+ * OR is represented as an explicit GroupNode(operator:'OR'), not implicit precedence.
+ */
+export interface GroupNode {
+  kind: 'GROUP';
+  operator: BooleanOperator;
+  conditions: QueryNode[];
+}
+
+/** Discriminated union — the `kind` field distinguishes leaf from group. */
+export type QueryNode = FieldCondition | GroupNode;
+
+export interface PlayerQueryScope {
+  competitionId?: string;
+  seasonId?: string;
+}
+
+/** The full request body for QUERY /players. Root must always be a GroupNode. */
+export interface PlayerAdvancedQueryRequest {
+  scope?: PlayerQueryScope;
+  query: GroupNode;
+  pagination?: {
+    limit?: number;
+    offset?: number;
+  };
+}
+
+/** Data type for a queryable metric — controls operators and input rendering. */
+export type MetricDataType = 'NUMBER' | 'ENUM' | 'STRING';
+
+/** Self-describing metric definition (mirrors backend registry, single source of truth for UI). */
+export interface QueryMetricDefinition {
+  key: string;
+  label: string;
+  dataType: MetricDataType;
+  allowedOperators: ConditionOperator[];
+  /** For ENUM metrics: the set of valid string values. */
+  enumValues?: string[];
+  /** For position-specific metrics (e.g. GK-only) — informs UI hints. */
+  applicablePositions?: string[];
+}
+

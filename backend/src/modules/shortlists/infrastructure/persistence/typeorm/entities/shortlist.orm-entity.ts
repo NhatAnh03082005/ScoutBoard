@@ -27,7 +27,12 @@ export class ShortlistOrmEntity {
   @Column({ name: 'description', type: 'text', nullable: true })
   description: string | null;
 
-  @Column({ name: 'visibility', type: 'varchar', length: 30, default: 'PRIVATE' })
+  @Column({
+    name: 'visibility',
+    type: 'varchar',
+    length: 30,
+    default: 'PRIVATE',
+  })
   visibility: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })

@@ -16,9 +16,13 @@ describe('GetPlayerSeasonStatisticsUseCase & Metric Helpers', () => {
       search: jest.fn(),
       findTeamHistoryByPlayerId: jest.fn(),
       findSeasonStatisticsByPlayerId: jest.fn(),
-      findSeasonStatisticsByCompetitionAndSeason: jest.fn().mockResolvedValue([]),
+      findSeasonStatisticsByCompetitionAndSeason: jest
+        .fn()
+        .mockResolvedValue([]),
       findMatchStatisticsByPlayerId: jest.fn(),
       findComparisonCandidates: jest.fn(),
+      getDistinctPositions: jest.fn(),
+      queryPlayers: jest.fn(),
     };
 
     useCase = new GetPlayerSeasonStatisticsUseCase(mockPlayerRepo);
@@ -72,17 +76,25 @@ describe('GetPlayerSeasonStatisticsUseCase & Metric Helpers', () => {
   });
 
   it('should return empty array if player exists but has no statistics', async () => {
-    mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Saka' } as any);
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'player-1',
+      name: 'Saka',
+    } as any);
     mockPlayerRepo.findSeasonStatisticsByPlayerId.mockResolvedValue([]);
 
     const result = await useCase.execute('player-1');
 
     expect(result).toEqual([]);
-    expect(mockPlayerRepo.findSeasonStatisticsByPlayerId).toHaveBeenCalledWith('player-1');
+    expect(mockPlayerRepo.findSeasonStatisticsByPlayerId).toHaveBeenCalledWith(
+      'player-1',
+    );
   });
 
   it('should calculate goalsPer90 = 1 and passAccuracy = 80 for outfield player', async () => {
-    mockPlayerRepo.findById.mockResolvedValue({ id: 'player-1', name: 'Saka' } as any);
+    mockPlayerRepo.findById.mockResolvedValue({
+      id: 'player-1',
+      name: 'Saka',
+    } as any);
     mockPlayerRepo.findSeasonStatisticsByPlayerId.mockResolvedValue([
       {
         id: 'stat-1',
@@ -103,7 +115,12 @@ describe('GetPlayerSeasonStatisticsUseCase & Metric Helpers', () => {
         duelsWon: 40,
         season: { id: 's-1', seasonCode: '2025-2026', isCurrent: true },
         competition: { id: 'c-1', name: 'Premier League', country: 'England' },
-        team: { id: 't-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
+        team: {
+          id: 't-1',
+          name: 'Arsenal FC',
+          shortName: 'Arsenal',
+          logoUrl: null,
+        },
       } as any,
     ]);
 
@@ -162,7 +179,12 @@ describe('GetPlayerSeasonStatisticsUseCase & Metric Helpers', () => {
         savePercentage: 78.9,
         season: { id: 's-1', seasonCode: '2025-2026', isCurrent: true },
         competition: { id: 'c-1', name: 'Premier League', country: 'England' },
-        team: { id: 't-1', name: 'Arsenal FC', shortName: 'Arsenal', logoUrl: null },
+        team: {
+          id: 't-1',
+          name: 'Arsenal FC',
+          shortName: 'Arsenal',
+          logoUrl: null,
+        },
       } as any,
     ]);
 

@@ -14,12 +14,21 @@ describe('TypeOrmPlayerMatchStatisticWriteRepository', () => {
     mockTypeOrmRepo = {
       findOne: jest.fn(),
       find: jest.fn(),
-      create: jest.fn((dto) => ({ ...dto, id: 'stat-uuid-1', createdAt: new Date(), updatedAt: new Date() })),
-      save: jest.fn((entity) => Promise.resolve({ ...entity, id: entity.id || 'stat-uuid-1' })),
+      create: jest.fn((dto) => ({
+        ...dto,
+        id: 'stat-uuid-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })),
+      save: jest.fn((entity) =>
+        Promise.resolve({ ...entity, id: entity.id || 'stat-uuid-1' }),
+      ),
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
 
-    repository = new TypeOrmPlayerMatchStatisticWriteRepository(mockTypeOrmRepo);
+    repository = new TypeOrmPlayerMatchStatisticWriteRepository(
+      mockTypeOrmRepo,
+    );
   });
 
   it('should insert outfield statistics with strict null GK fields', async () => {

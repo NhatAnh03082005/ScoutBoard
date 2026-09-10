@@ -23,7 +23,9 @@ describe('Competition & Seasons Persistence Orchestration Integration Test (Live
 
     const compOrmRepo = AppDataSource.getRepository(CompetitionOrmEntity);
     const compWriteRepo = new TypeOrmCompetitionWriteRepository(compOrmRepo);
-    const persistCompetitionUseCase = new PersistCompetitionUseCase(compWriteRepo);
+    const persistCompetitionUseCase = new PersistCompetitionUseCase(
+      compWriteRepo,
+    );
 
     const seasonOrmRepo = AppDataSource.getRepository(SeasonOrmEntity);
     const seasonWriteRepo = new TypeOrmSeasonWriteRepository(seasonOrmRepo);

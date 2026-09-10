@@ -39,14 +39,18 @@ export class TypeOrmPlayerWriteRepository implements PlayerWriteRepository {
         externalProvider: player.externalProvider.trim(),
         externalId: player.externalId.trim(),
         name: player.name.trim(),
-        normalizedName: player.normalizedName ? player.normalizedName.trim() : null,
+        normalizedName: player.normalizedName
+          ? player.normalizedName.trim()
+          : null,
         shortName: player.shortName ? player.shortName.trim() : null,
         dateOfBirth: player.dateOfBirth || null,
         nationality: player.nationality ? player.nationality.trim() : null,
         heightCm: player.heightCm ?? null,
         weightKg: player.weightKg ?? null,
         rawPosition: player.rawPosition ? player.rawPosition.trim() : null,
-        primaryPosition: player.primaryPosition ? player.primaryPosition.trim() : null,
+        primaryPosition: player.primaryPosition
+          ? player.primaryPosition.trim()
+          : null,
         shirtNumber: player.shirtNumber ?? null,
         imageUrl: player.imageUrl ?? null,
         status: player.status || 'ACTIVE',

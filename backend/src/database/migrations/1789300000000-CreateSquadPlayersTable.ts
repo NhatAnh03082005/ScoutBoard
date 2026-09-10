@@ -53,7 +53,9 @@ export class CreateSquadPlayersTable1789300000000 implements MigrationInterface 
     );
     await queryRunner.query(`DROP INDEX "public"."uq_squad_captain"`);
     await queryRunner.query(`DROP INDEX "public"."uq_squad_starter_slot"`);
-    await queryRunner.query(`DROP INDEX "public"."IDX_squad_players_player_id"`);
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_squad_players_player_id"`,
+    );
     await queryRunner.query(`DROP INDEX "public"."IDX_squad_players_squad_id"`);
     await queryRunner.query(`DROP TABLE "squad_players"`);
   }

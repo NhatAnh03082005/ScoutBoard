@@ -26,10 +26,10 @@ interface MyShortlistsPageProps {
 
 
 const getPositionBadgeStyle = (pos?: string | null) => {
-  if (!pos) return { bg: '#f1f5f9', text: '#475569', border: '#e2e8f0' };
+  if (!pos) return { bg: 'rgba(255, 255, 255, 0.08)', text: 'var(--scout-text-secondary)', border: 'var(--scout-border-default)' };
   const p = pos.toUpperCase();
   if (['ST', 'CF', 'LW', 'RW', 'SS', 'FW'].includes(p)) {
-    return { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' }; // Attacker
+    return { bg: 'rgba(239, 68, 68, 0.16)', text: '#f87171', border: 'rgba(239, 68, 68, 0.3)' }; // Attacker
   }
   if (['CM', 'CAM', 'CDM', 'LM', 'RM', 'AM', 'MF'].includes(p)) {
     return { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe' }; // Midfield
@@ -40,7 +40,7 @@ const getPositionBadgeStyle = (pos?: string | null) => {
   if (p === 'GK') {
     return { bg: '#fffbeb', text: '#d97706', border: '#fde68a' }; // Goalkeeper
   }
-  return { bg: '#f1f5f9', text: '#475569', border: '#e2e8f0' };
+  return { bg: 'rgba(255, 255, 255, 0.08)', text: 'var(--scout-text-secondary)', border: 'var(--scout-border-default)' };
 };
 
 export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
@@ -285,12 +285,12 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
   if (error === 'UNAUTHORIZED' || !isAuthenticated) {
     return (
       <div style={{ maxWidth: '600px', margin: '60px auto', padding: '0 16px', textAlign: 'center' }}>
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '40px 24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+        <div style={{ background: 'var(--scout-surface-card)', border: '1px solid var(--scout-border-default)', borderRadius: '16px', padding: '40px 24px', boxShadow: 'var(--scout-shadow-subtle)' }}>
           <div style={{ fontSize: '42px', marginBottom: '12px' }}>🔒</div>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0' }}>
             Authentication Required
           </h2>
-          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '14px', color: 'var(--scout-text-secondary)', marginBottom: '24px', lineHeight: 1.5 }}>
             Please log in to view and manage your scouting shortlists.
           </p>
           <button
@@ -319,10 +319,10 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <div>
-            <h1 className="scout-title-page" style={{ margin: 0, textTransform: 'uppercase' }}>
+            <h1 className="scout-b2b-title" style={{ margin: 0, textTransform: 'uppercase' }}>
               My Shortlists
             </h1>
-            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0', fontWeight: 500 }}>
+            <p className="scout-b2b-subtitle" style={{ margin: '4px 0 0 0', fontWeight: 500 }}>
               Your scouting watchlists
             </p>
           </div>
@@ -333,13 +333,13 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
+                background: 'var(--scout-surface-control)',
+                border: '1px solid var(--scout-border-default)',
                 borderRadius: '999px',
                 padding: '6px 14px',
                 fontSize: '12.5px',
                 fontWeight: 700,
-                color: '#334155',
+                color: 'var(--scout-text-primary)',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
               }}
             >
@@ -372,10 +372,10 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
           </p>
           <div className="scout-shortlist-grid">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="scout-shortlist-card" style={{ height: '180px', pointerEvents: 'none', background: '#f8fafc' }}>
-                <div style={{ height: '20px', width: '60%', background: '#e2e8f0', borderRadius: '6px', marginBottom: '10px' }} />
-                <div style={{ height: '14px', width: '90%', background: '#e2e8f0', borderRadius: '4px', marginBottom: '6px' }} />
-                <div style={{ height: '14px', width: '40%', background: '#e2e8f0', borderRadius: '4px' }} />
+              <div key={n} className="scout-shortlist-card" style={{ height: '180px', pointerEvents: 'none', background: 'var(--scout-surface-card)' }}>
+                <div style={{ height: '20px', width: '60%', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '6px', marginBottom: '10px' }} />
+                <div style={{ height: '14px', width: '90%', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '4px', marginBottom: '6px' }} />
+                <div style={{ height: '14px', width: '40%', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '4px' }} />
               </div>
             ))}
           </div>
@@ -384,7 +384,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
 
       {/* 3. Error State */}
       {!loading && error && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', maxWidth: '540px', margin: '40px auto' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', maxWidth: '540px', margin: '40px auto' }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚠️</div>
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#991b1b', margin: '0 0 8px 0' }}>
             Unable to load your shortlists.
@@ -470,8 +470,8 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  background: '#ffffff',
+                  border: '1px solid var(--scout-border-default)',
+                  background: 'var(--scout-surface-control)',
                   padding: '20px 22px 18px',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
                   transition: 'all 0.2s ease',
@@ -510,7 +510,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                       style={{
                         fontSize: '16px',
                         fontWeight: 800,
-                        color: '#0f172a',
+                        color: '#ffffff',
                         margin: 0,
                         lineHeight: 1.3,
                         cursor: onOpenShortlist ? 'pointer' : 'default',
@@ -532,8 +532,8 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                         border: '1px solid',
                         flexShrink: 0,
                         ...(sl.visibility === 'PUBLIC'
-                          ? { background: '#f0fdf4', color: '#15803d', borderColor: '#bbf7d0' }
-                          : { background: '#f8fafc', color: '#475569', borderColor: '#e2e8f0' }),
+                          ? { background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.3)' }
+                          : { background: 'rgba(255, 255, 255, 0.06)', color: 'var(--scout-text-secondary)', borderColor: 'var(--scout-border-default)' }),
                       }}
                     >
                       {sl.visibility === 'PUBLIC' ? (
@@ -586,7 +586,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                               width: '32px',
                               height: '32px',
                               borderRadius: '50%',
-                              border: '2px solid #ffffff',
+                              border: '2px solid var(--scout-surface-card)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
                               background: '#e2e8f0',
                               marginLeft: idx === 0 ? 0 : '-10px',
@@ -637,8 +637,8 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                                   width: '12px',
                                   height: '12px',
                                   borderRadius: '50%',
-                                  background: '#ffffff',
-                                  border: '1px solid #ffffff',
+                                  background: 'var(--scout-surface-control)',
+                                  border: '1px solid var(--scout-surface-card)',
                                   objectFit: 'contain',
                                 }}
                               />
@@ -652,9 +652,9 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                               width: '30px',
                               height: '30px',
                               borderRadius: '50%',
-                              background: '#eff6ff',
-                              color: '#1d4ed8',
-                              border: '2px solid #ffffff',
+                              background: 'rgba(59, 130, 246, 0.2)',
+                              color: '#60a5fa',
+                              border: '2px solid var(--scout-surface-card)',
                               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.08)',
                               marginLeft: '-8px',
                               display: 'flex',
@@ -677,12 +677,12 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                           alignItems: 'center',
                           gap: '6px',
                           padding: '3px 10px',
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
+                          background: 'var(--scout-bg-subtle)',
+                          border: '1px solid var(--scout-border-default)',
                           borderRadius: '999px',
                           fontSize: '12px',
                           fontWeight: 700,
-                          color: '#0f172a',
+                          color: '#ffffff',
                         }}
                       >
                         <JerseyIcon size={14} style={{ color: '#2563eb' }} />
@@ -698,9 +698,9 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                         alignItems: 'center',
                         gap: '10px',
                         padding: '8px 12px',
-                        background: '#f8fafc',
+                        background: 'var(--scout-bg-subtle)',
                         borderRadius: '10px',
-                        border: '1px dashed #cbd5e1',
+                        border: '1px dashed var(--scout-border-default)',
                         marginBottom: '12px',
                       }}
                     >
@@ -709,11 +709,11 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                           width: '28px',
                           height: '28px',
                           borderRadius: '6px',
-                          background: '#f1f5f9',
+                          background: 'rgba(255, 255, 255, 0.06)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: '#94a3b8',
+                          color: 'var(--scout-text-muted)',
                         }}
                       >
                         <JerseyIcon size={14} />
@@ -731,9 +731,9 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '7px 10px',
-                      background: '#f8fafc',
+                      background: 'var(--scout-bg-subtle)',
                       borderRadius: '8px',
-                      border: '1px solid #f1f5f9',
+                      border: '1px solid var(--scout-border-subtle)',
                       marginBottom: '14px',
                       fontSize: '11.5px',
                     }}
@@ -749,7 +749,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                       }}
                     >
                       <span style={{ color: '#94a3b8' }}>Avg Age:</span>
-                      <span style={{ color: '#0f172a', fontWeight: 800 }}>
+                      <span style={{ color: '#ffffff', fontWeight: 800 }}>
                         {avgAge ? `${avgAge} yrs` : 'N/A'}
                       </span>
                     </div>
@@ -789,7 +789,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                 {/* Card Footer: Updated Date, [View Scouting List] Outline, and [⋮] Overflow Menu */}
                 <div
                   style={{
-                    borderTop: '1px solid #f1f5f9',
+                    borderTop: '1px solid var(--scout-border-subtle)',
                     paddingTop: '12px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -820,30 +820,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenShortlist && onOpenShortlist(sl.id)}
-                      style={{
-                        flex: 1,
-                        height: '36px',
-                        background: '#ffffff',
-                        color: '#2563eb',
-                        border: '1.5px solid #2563eb',
-                        borderRadius: '9px',
-                        fontSize: '12.5px',
-                        fontWeight: 700,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#2563eb';
-                        e.currentTarget.style.color = '#ffffff';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#ffffff';
-                        e.currentTarget.style.color = '#2563eb';
-                      }}
+                      className="scout-shortlist-cta-btn"
                     >
                       <span>View Scouting List</span>
                       <span style={{ fontSize: '13px' }}>→</span>
@@ -868,7 +845,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                           fontSize: '16px',
                           fontWeight: 900,
                           borderRadius: '9px',
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid var(--scout-border-default)',
                         }}
                         aria-label="More actions"
                         title="Shortlist options"
@@ -884,8 +861,8 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                             bottom: '100%',
                             right: 0,
                             marginBottom: '6px',
-                            background: '#ffffff',
-                            border: '1px solid #e2e8f0',
+                            background: 'var(--scout-surface-control)',
+                            border: '1px solid var(--scout-border-default)',
                             borderRadius: '10px',
                             boxShadow:
                               '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -909,7 +886,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                               border: 'none',
                               fontSize: '12.5px',
                               fontWeight: 600,
-                              color: '#334155',
+                              color: 'var(--scout-text-primary)',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
@@ -947,7 +924,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                               borderTop: '1px solid #f1f5f9',
                             }}
                             onMouseEnter={(e) =>
-                              (e.currentTarget.style.background = '#fef2f2')
+                              (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)')
                             }
                             onMouseLeave={(e) =>
                               (e.currentTarget.style.background = 'none')
@@ -1085,7 +1062,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
               Delete Shortlist?
             </h3>
             <p style={{ fontSize: '13.5px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
-              <strong style={{ color: '#0f172a' }}>"{deletingShortlist.name}"</strong> will be permanently deleted.
+              <strong style={{ color: '#ffffff' }}>"{deletingShortlist.name}"</strong> will be permanently deleted.
             </p>
 
             {deleteError && (

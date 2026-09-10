@@ -7,6 +7,7 @@ import type {
   PlayerDetail,
   PlayerTeamHistoryItem,
   PlayerSeasonStatisticItem,
+  PlayerAdvancedQueryRequest,
 } from '../types/player.types';
 
 // Use Vite environment variable with fallback to local development URL
@@ -244,4 +245,32 @@ export async function getAvailablePositionsApi(): Promise<string[]> {
   }
 
   return data;
+}
+
+/**
+ * Executes an Advanced Query against QUERY /api/players.
+ * Uses the real HTTP QUERY method — not POST.
+ */
+export async function queryPlayersApi(
+  request: PlayerAdvancedQueryRequest,
+): Promise<PlayerListResponse> {
+  const response = await fetch(`${API_BASE_URL}/players`, {
+    method: 'QUERY',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const message =
+      typeof data?.message === 'string'
+        ? data.message
+        : Array.isArray(data?.message)
+          ? data.message.join('; ')
+          : 'Advanced query failed';
+    throw new Error(message);
+  }
+
+  return data as PlayerListResponse;
 }

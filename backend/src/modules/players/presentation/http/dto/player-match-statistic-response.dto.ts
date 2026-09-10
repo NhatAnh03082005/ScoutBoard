@@ -37,16 +37,25 @@ export class MatchBasicResponseDto {
   @ApiProperty({ description: 'ID trận đấu' })
   id: string;
 
-  @ApiProperty({ description: 'Thời gian diễn ra (Kickoff date)', nullable: true })
+  @ApiProperty({
+    description: 'Thời gian diễn ra (Kickoff date)',
+    nullable: true,
+  })
   kickoffAt: string | null;
 
   @ApiProperty({ description: 'Trạng thái trận đấu' })
   status: string;
 
-  @ApiProperty({ description: 'Thông tin giải đấu', type: MatchCompetitionSummaryDto })
+  @ApiProperty({
+    description: 'Thông tin giải đấu',
+    type: MatchCompetitionSummaryDto,
+  })
   competition: MatchCompetitionSummaryDto;
 
-  @ApiProperty({ description: 'Thông tin mùa giải', type: MatchSeasonSummaryDto })
+  @ApiProperty({
+    description: 'Thông tin mùa giải',
+    type: MatchSeasonSummaryDto,
+  })
   season: MatchSeasonSummaryDto;
 
   @ApiProperty({ description: 'Đội nhà', type: MatchTeamSummaryDto })
@@ -66,10 +75,16 @@ export class PlayerMatchStatisticItemDto {
   @ApiProperty({ description: 'ID bản ghi thống kê trận đấu' })
   id: string;
 
-  @ApiProperty({ description: 'Thông tin trận đấu và bối cảnh', type: MatchBasicResponseDto })
+  @ApiProperty({
+    description: 'Thông tin trận đấu và bối cảnh',
+    type: MatchBasicResponseDto,
+  })
   match: MatchBasicResponseDto;
 
-  @ApiProperty({ description: 'Đội bóng cầu thủ đại diện trong trận', type: MatchTeamSummaryDto })
+  @ApiProperty({
+    description: 'Đội bóng cầu thủ đại diện trong trận',
+    type: MatchTeamSummaryDto,
+  })
   team: MatchTeamSummaryDto;
 
   @ApiProperty({ description: 'Số phút thi đấu' })
@@ -121,10 +136,16 @@ export class PlayerMatchStatisticItemDto {
   @ApiProperty({ description: 'Số bàn thua', nullable: true })
   goalsConceded: number | null;
 
-  @ApiProperty({ description: 'Giữ sạch lưới (1: có, 0: không)', nullable: true })
+  @ApiProperty({
+    description: 'Giữ sạch lưới (1: có, 0: không)',
+    nullable: true,
+  })
   cleanSheets: number | null;
 
-  @ApiProperty({ description: 'Số quả phạt đền cản phá thành công', nullable: true })
+  @ApiProperty({
+    description: 'Số quả phạt đền cản phá thành công',
+    nullable: true,
+  })
   penaltiesSaved: number | null;
 
   @ApiProperty({ description: 'Thống kê JSONB nâng cao', nullable: true })
@@ -132,7 +153,10 @@ export class PlayerMatchStatisticItemDto {
 }
 
 export class PlayerMatchStatisticListResponseDto {
-  @ApiProperty({ description: 'Danh sách thống kê trận đấu', type: [PlayerMatchStatisticItemDto] })
+  @ApiProperty({
+    description: 'Danh sách thống kê trận đấu',
+    type: [PlayerMatchStatisticItemDto],
+  })
   items: PlayerMatchStatisticItemDto[];
 
   @ApiProperty({ description: 'Thông tin phân trang' })

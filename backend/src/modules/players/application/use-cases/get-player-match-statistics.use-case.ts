@@ -92,10 +92,20 @@ export class GetPlayerMatchStatisticsUseCase {
           interceptions: item.interceptions,
           yellowCards: item.yellowCards,
           redCards: item.redCards,
-          saves: item.saves !== null && item.saves !== undefined ? item.saves : null,
-          goalsConceded: item.goalsConceded !== null && item.goalsConceded !== undefined ? item.goalsConceded : null,
-          cleanSheets: item.cleanSheets !== null && item.cleanSheets !== undefined ? item.cleanSheets : null,
-          penaltiesSaved: item.penaltiesSaved !== null && item.penaltiesSaved !== undefined ? item.penaltiesSaved : null,
+          saves:
+            item.saves !== null && item.saves !== undefined ? item.saves : null,
+          goalsConceded:
+            item.goalsConceded !== null && item.goalsConceded !== undefined
+              ? item.goalsConceded
+              : null,
+          cleanSheets:
+            item.cleanSheets !== null && item.cleanSheets !== undefined
+              ? item.cleanSheets
+              : null,
+          penaltiesSaved:
+            item.penaltiesSaved !== null && item.penaltiesSaved !== undefined
+              ? item.penaltiesSaved
+              : null,
           statistics: item.statistics,
         };
       }),

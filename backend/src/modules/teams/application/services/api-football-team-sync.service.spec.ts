@@ -61,7 +61,15 @@ describe('ApiFootballTeamSyncService', () => {
             national: false,
             logo: 'https://media.api-sports.io/football/teams/33.png',
           },
-          venue: { id: 556, name: 'Old Trafford', city: 'Manchester', address: null, capacity: null, surface: null, image: null },
+          venue: {
+            id: 556,
+            name: 'Old Trafford',
+            city: 'Manchester',
+            address: null,
+            capacity: null,
+            surface: null,
+            image: null,
+          },
         },
         {
           team: {
@@ -73,7 +81,15 @@ describe('ApiFootballTeamSyncService', () => {
             national: false,
             logo: 'https://media.api-sports.io/football/teams/34.png',
           },
-          venue: { id: 557, name: "St. James' Park", city: 'Newcastle', address: null, capacity: null, surface: null, image: null },
+          venue: {
+            id: 557,
+            name: "St. James' Park",
+            city: 'Newcastle',
+            address: null,
+            capacity: null,
+            surface: null,
+            image: null,
+          },
         },
       ],
     });
@@ -82,14 +98,17 @@ describe('ApiFootballTeamSyncService', () => {
       .mockResolvedValueOnce({ id: 'team-uuid-33' } as any)
       .mockResolvedValueOnce({ id: 'team-uuid-34' } as any);
 
-
     mockPersistSeasonTeamsUseCase.execute.mockResolvedValueOnce({
       seasonId: 'season-uuid-1',
       totalTeams: 2,
       linkedCount: 2,
     });
 
-    const summary = await service.syncTeamsByCompetition(39, 2024, 'season-uuid-1');
+    const summary = await service.syncTeamsByCompetition(
+      39,
+      2024,
+      'season-uuid-1',
+    );
 
     expect(summary.totalRequested).toBe(2);
     expect(summary.successful).toBe(2);

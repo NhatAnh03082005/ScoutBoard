@@ -28,7 +28,9 @@ export class PlayerNotFoundError extends Error {
 
 export class PlayerAlreadyInShortlistError extends Error {
   constructor(playerId: string, shortlistId: string) {
-    super(`Player '${playerId}' is already added to shortlist '${shortlistId}'`);
+    super(
+      `Player '${playerId}' is already added to shortlist '${shortlistId}'`,
+    );
     this.name = 'PlayerAlreadyInShortlistError';
   }
 }
