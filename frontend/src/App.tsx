@@ -578,20 +578,18 @@ export default function App() {
         {activeTab === 'admin' && user && isAdmin && (
           <div className="scout-admin-container" style={{ maxWidth: '1240px', margin: '24px auto', padding: '0 16px' }}>
             {/* Admin Sub-Tabs Navigation */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+            <div className="scout-tabs-list" style={{ marginBottom: '24px' }}>
               <button
                 type="button"
-                className={`scout-btn scout-btn-sm ${adminSubTab === 'data-sync' ? 'scout-btn-primary' : 'scout-btn-secondary'}`}
+                className={`scout-tab-btn ${adminSubTab === 'data-sync' ? 'active' : ''}`}
                 onClick={() => setAdminSubTab('data-sync')}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, padding: '8px 16px', fontSize: '13px' }}
               >
                 <span>⚡</span> Data Synchronization
               </button>
               <button
                 type="button"
-                className={`scout-btn scout-btn-sm ${adminSubTab === 'users' ? 'scout-btn-primary' : 'scout-btn-secondary'}`}
+                className={`scout-tab-btn ${adminSubTab === 'users' ? 'active' : ''}`}
                 onClick={() => setAdminSubTab('users')}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, padding: '8px 16px', fontSize: '13px' }}
               >
                 <span>👥</span> User Management
               </button>
@@ -714,16 +712,42 @@ export default function App() {
 
             {/* Unlock Modal */}
             {selectedUserForModal && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                <div style={{ background: '#ffffff', borderRadius: '12px', padding: '24px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#0f172a' }}>Confirm Action</h4>
-                  <p style={{ color: '#475569', fontSize: '13px', marginBottom: '20px' }}>
-                    Are you sure you want to unlock user <strong>{selectedUserForModal.email}</strong>?
-                  </p>
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <div
+                className="scout-modal-clean-overlay"
+                onClick={() => {
+                  setSelectedUserForModal(null);
+                  setIsUnlockAction(false);
+                }}
+                role="presentation"
+              >
+                <div
+                  className="scout-modal-clean-dialog"
+                  onClick={(e) => e.stopPropagation()}
+                  role="dialog"
+                  aria-modal="true"
+                  style={{ maxWidth: '440px' }}
+                >
+                  <div className="scout-modal-clean-header" style={{ marginBottom: '14px' }}>
+                    <h3 className="scout-modal-clean-title">Confirm Action</h3>
                     <button
                       type="button"
-                      className="scout-btn scout-btn-secondary"
+                      className="scout-modal-clean-close-btn"
+                      aria-label="Close"
+                      onClick={() => {
+                        setSelectedUserForModal(null);
+                        setIsUnlockAction(false);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p style={{ color: '#475569', fontSize: '13.5px', lineHeight: 1.5, marginBottom: '24px' }}>
+                    Are you sure you want to unlock user <strong>{selectedUserForModal.email}</strong>?
+                  </p>
+                  <div className="scout-modal-clean-footer">
+                    <button
+                      type="button"
+                      className="scout-btn scout-btn-md scout-btn-secondary"
                       onClick={() => {
                         setSelectedUserForModal(null);
                         setIsUnlockAction(false);
@@ -733,7 +757,7 @@ export default function App() {
                     </button>
                     <button
                       type="button"
-                      className="scout-btn"
+                      className="scout-btn scout-btn-md scout-btn-primary"
                       onClick={confirmModalAction}
                       disabled={loading}
                     >

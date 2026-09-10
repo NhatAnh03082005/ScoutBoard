@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import type { Shortlist, ShortlistVisibility } from '../../types/shortlist.types';
+import type { Shortlist } from '../../types/shortlist.types';
 import {
   getShortlistsApi,
-  createShortlistApi,
   addPlayerToShortlistApi,
+  getShortlistPlayersApi,
 } from '../../services/shortlist.service';
 import { getNationalityFlagUrl } from '../../utils/nationality-flag.util';
+import {
+  CloseIcon,
+  LockIcon,
+  GlobeIcon,
+  AlertCircleIcon,
+} from '../modal/ModalIcons';
 
 export interface AddToShortlistPlayerInfo {
   id: string;
@@ -44,26 +50,30 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
   // Selection & Note State
   const [selectedShortlistId, setSelectedShortlistId] = useState<string>('');
   const [scoutNote, setScoutNote] = useState<string>('');
-
-  // Inline Create New Shortlist State
-  const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
-  const [newName, setNewName] = useState<string>('');
-  const [newDescription, setNewDescription] = useState<string>('');
-  const [newVisibility, setNewVisibility] = useState<ShortlistVisibility>('PRIVATE');
+  const [membershipMap, setMembershipMap] = useState<Record<string, boolean>>({});
 
   // Submitting
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  // ESC key handler for accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !submitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, submitting, onClose]);
+
   useEffect(() => {
     if (isOpen) {
       void fetchUserShortlists();
       setScoutNote('');
-      setIsCreatingNew(false);
-      setNewName('');
-      setNewDescription('');
-      setNewVisibility('PRIVATE');
       setActionError(null);
+      setMembershipMap({});
     }
   }, [isOpen]);
 
@@ -73,10 +83,31 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
     try {
       const data = await getShortlistsApi();
       setShortlists(data);
-      if (data.length > 0) {
+
+      // Check which shortlists already contain this player
+      const mem: Record<string, boolean> = {};
+      if (player?.id && data.length > 0) {
+        await Promise.allSettled(
+          data.map(async (sl) => {
+            try {
+              const pList = await getShortlistPlayersApi(sl.id);
+              if (pList.some((item) => item.playerId === player.id || item.player?.id === player.id)) {
+                mem[sl.id] = true;
+              }
+            } catch {
+              // Ignore failure for individual list check
+            }
+          })
+        );
+      }
+      setMembershipMap(mem);
+
+      // Auto-select first shortlist that does not yet contain this player
+      const available = data.find((sl) => !mem[sl.id]);
+      if (available) {
+        setSelectedShortlistId(available.id);
+      } else if (data.length > 0) {
         setSelectedShortlistId(data[0].id);
-      } else {
-        setIsCreatingNew(true);
       }
     } catch (err: any) {
       if (err.message === 'UNAUTHORIZED') {
@@ -97,40 +128,25 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionError(null);
+
+    if (!selectedShortlistId) {
+      setActionError('Please select a target shortlist');
+      return;
+    }
+
+    if (membershipMap[selectedShortlistId]) {
+      setActionError(`⚠️ ${playerName} is already in this shortlist.`);
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      let targetShortlistId = selectedShortlistId;
-      let targetShortlistName = '';
-
-      if (isCreatingNew) {
-        if (!newName.trim()) {
-          setActionError('Please enter a name for the new shortlist');
-          setSubmitting(false);
-          return;
-        }
-
-        const created = await createShortlistApi({
-          name: newName.trim(),
-          description: newDescription.trim() || undefined,
-          visibility: newVisibility,
-        });
-
-        targetShortlistId = created.id;
-        targetShortlistName = created.name;
-      } else {
-        const selected = shortlists.find((s) => s.id === targetShortlistId);
-        targetShortlistName = selected ? selected.name : 'Shortlist';
-      }
-
-      if (!targetShortlistId) {
-        setActionError('Please select or create a shortlist');
-        setSubmitting(false);
-        return;
-      }
+      const selected = shortlists.find((s) => s.id === selectedShortlistId);
+      const targetShortlistName = selected ? selected.name : 'Shortlist';
 
       await addPlayerToShortlistApi(
-        targetShortlistId,
+        selectedShortlistId,
         player.id,
         scoutNote.trim() || undefined,
       );
@@ -151,47 +167,97 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
     }
   };
 
+  const isSelectedAlreadyInList = !!membershipMap[selectedShortlistId];
+
   return (
-    <div className="scout-modal-overlay" onClick={onClose}>
-      <div className="scout-modal-dialog" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="scout-modal-header">
-          <div>
-            <h3 className="scout-modal-title">Add to Shortlist</h3>
-            <p className="scout-modal-subtitle">Save player to your scouting watchlists</p>
+    <div
+      className="scout-modal-clean-overlay"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="scout-modal-clean-dialog shortlist-dialog"
+        style={{
+          maxWidth: '480px',
+          maxHeight: 'min(90vh, 640px)',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '20px 24px 18px',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+        }}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-to-shortlist-title"
+      >
+        {/* 1. Header with ScoutBoard primary blue title & clean close button */}
+        <div className="scout-modal-clean-header">
+          <div className="scout-modal-clean-header-content">
+            <h2 id="add-to-shortlist-title" className="scout-modal-clean-title">
+              Add to Shortlist
+            </h2>
+            <p className="scout-modal-clean-subtitle">
+              Save player to your scouting watchlists
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="scout-modal-close-btn"
-            title="Close"
+            className="scout-modal-clean-close-btn"
+            aria-label="Close modal"
           >
-            ✕
+            <CloseIcon size={16} />
           </button>
         </div>
 
-        {/* Player Summary Card */}
-        <div className="scout-modal-player-card" style={{ marginBottom: '18px' }}>
-          <div className="scout-modal-player-avatar">
+        {/* Player Summary Preview Card */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '10px',
+            padding: '10px 12px',
+            marginBottom: '12px',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '8px',
+              background: '#e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              flexShrink: 0,
+            }}
+          >
             {player.imageUrl ? (
               <img
                 src={player.imageUrl}
                 alt={playerName}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
             ) : (
-              <span>⚽</span>
+              <span style={{ fontSize: '18px' }}>⚽</span>
             )}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <h4 style={{ margin: '0 0 2px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+            <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
               {playerName}
             </h4>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
               {player.primaryPosition && (
-                <span style={{ background: '#0f172a', color: '#ffffff', fontSize: '10px', fontWeight: 900, padding: '1px 6px', borderRadius: '4px' }}>
+                <span style={{ background: '#0f172a', color: '#ffffff', fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
                   {player.primaryPosition}
                 </span>
               )}
@@ -242,194 +308,245 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                 onClose();
                 if (onNavigateToLogin) onNavigateToLogin();
               }}
-              className="scout-btn scout-btn-primary"
-              style={{ padding: '10px 24px', fontSize: '13px' }}
+              className="scout-btn scout-btn-md scout-btn-primary"
+              style={{ width: 'auto', padding: '10px 24px', fontSize: '13px', margin: '0 auto' }}
             >
               Log In Now
             </button>
           </div>
         ) : (
-          <form onSubmit={handleAddSubmit} className="scout-modal-body">
+          <form
+            onSubmit={handleAddSubmit}
+            className="scout-modal-clean-form"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              minHeight: 0,
+              overflow: 'hidden',
+              gap: '12px',
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                minHeight: 0,
+                overflowY: 'auto',
+                paddingRight: '4px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
             {actionError && (
-              <div className="alert-banner alert-error" style={{ margin: 0, padding: '10px 14px', fontSize: '12.5px' }}>
-                {actionError}
+              <div className="scout-modal-alert-error" role="alert">
+                <AlertCircleIcon size={16} />
+                <span>{actionError}</span>
               </div>
             )}
 
-            {/* Toggle Existing vs Create New */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {isCreatingNew ? 'Create New Shortlist' : 'Select Target Shortlist'}
+            {/* 2. Select Target Shortlist (No + Create New List button) */}
+            <div className="scout-field-group">
+              <label className="scout-field-label">
+                SELECT TARGET SHORTLIST
               </label>
-              <button
-                type="button"
-                onClick={() => setIsCreatingNew(!isCreatingNew)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#2563eb',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: 0,
-                  textDecoration: 'underline',
-                }}
-              >
-                {isCreatingNew ? '← Choose Existing List' : '+ Create New List'}
-              </button>
-            </div>
 
-            {/* Mode 1: Select Existing */}
-            {!isCreatingNew && (
-              <div>
-                {loading ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ height: '48px', background: '#f1f5f9', borderRadius: '10px' }}></div>
-                    <div style={{ height: '48px', background: '#f1f5f9', borderRadius: '10px' }}></div>
-                  </div>
-                ) : shortlists.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '13px' }}>
-                    No shortlists found. Click <strong>'+ Create New List'</strong> above to create one.
-                  </div>
-                ) : (
-                  <div style={{ maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
-                    {shortlists.map((sl) => (
+              {loading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ height: '46px', background: '#f1f5f9', borderRadius: '10px' }}></div>
+                  <div style={{ height: '46px', background: '#f1f5f9', borderRadius: '10px' }}></div>
+                </div>
+              ) : shortlists.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '24px 16px',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    color: '#64748b',
+                    fontSize: '13px',
+                  }}
+                >
+                  No shortlists found. Please create a shortlist first from the <strong>My Shortlists</strong> page.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    maxHeight: '150px',
+                    overflowY: 'auto',
+                    paddingRight: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                  {shortlists.map((sl) => {
+                    const alreadyInList = !!membershipMap[sl.id];
+                    const isSelected = selectedShortlistId === sl.id;
+                    return (
                       <div
                         key={sl.id}
                         onClick={() => setSelectedShortlistId(sl.id)}
-                        className={`scout-radio-option ${selectedShortlistId === sl.id ? 'selected' : ''}`}
+                        style={{
+                          minHeight: '46px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                          padding: '10px 14px',
+                          borderRadius: '10px',
+                          border: isSelected
+                            ? '2px solid #2563eb'
+                            : '1px solid #e2e8f0',
+                          background: isSelected
+                            ? '#eff6ff'
+                            : '#ffffff',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          boxSizing: 'border-box',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = '#cbd5e1';
+                            e.currentTarget.style.backgroundColor = '#f8fafc';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = '#e2e8f0';
+                            e.currentTarget.style.backgroundColor = '#ffffff';
+                          }
+                        }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
                           <input
                             type="radio"
                             name="shortlistSelection"
-                            checked={selectedShortlistId === sl.id}
+                            checked={isSelected}
                             onChange={() => setSelectedShortlistId(sl.id)}
-                            style={{ cursor: 'pointer', accentColor: '#2563eb' }}
+                            style={{ cursor: 'pointer', accentColor: '#2563eb', flexShrink: 0 }}
                           />
-                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <span
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              color: isSelected ? '#1e40af' : '#0f172a',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
                             {sl.name}
                           </span>
                         </div>
-                        <span className={sl.visibility === 'PUBLIC' ? 'scout-badge-public' : 'scout-badge-private'}>
-                          {sl.visibility === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}
-                        </span>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                          {alreadyInList && (
+                            <span
+                              style={{
+                                background: '#ecfdf5',
+                                color: '#047857',
+                                border: '1px solid #a7f3d0',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                              }}
+                            >
+                              ✓ In Shortlist
+                            </span>
+                          )}
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              border: '1px solid',
+                              ...(sl.visibility === 'PUBLIC'
+                                ? { background: '#f0fdf4', color: '#15803d', borderColor: '#bbf7d0' }
+                                : { background: '#f8fafc', color: '#475569', borderColor: '#e2e8f0' }),
+                            }}
+                          >
+                            {sl.visibility === 'PUBLIC' ? (
+                              <>
+                                <GlobeIcon size={12} /> Public
+                              </>
+                            ) : (
+                              <>
+                                <LockIcon size={12} /> Private
+                              </>
+                            )}
+                          </span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Mode 2: Inline Create New Shortlist Subform */}
-            {isCreatingNew && (
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
-                    Shortlist Name <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={150}
-                    autoFocus
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="e.g., Champions League Targets"
-                    className="scout-input"
-                    style={{ background: '#ffffff' }}
-                  />
+                    );
+                  })}
                 </div>
+              )}
+            </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
-                    Description <span style={{ color: '#94a3b8', fontWeight: 400 }}>(Optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                    placeholder="Short summary..."
-                    className="scout-input"
-                    style={{ background: '#ffffff' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
-                    Visibility
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setNewVisibility('PRIVATE')}
-                      style={{
-                        padding: '8px',
-                        borderRadius: '8px',
-                        border: newVisibility === 'PRIVATE' ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                        background: newVisibility === 'PRIVATE' ? '#eff6ff' : '#ffffff',
-                        color: newVisibility === 'PRIVATE' ? '#1e40af' : '#475569',
-                        fontWeight: 700,
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      🔒 Private
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewVisibility('PUBLIC')}
-                      style={{
-                        padding: '8px',
-                        borderRadius: '8px',
-                        border: newVisibility === 'PUBLIC' ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                        background: newVisibility === 'PUBLIC' ? '#eff6ff' : '#ffffff',
-                        color: newVisibility === 'PUBLIC' ? '#1e40af' : '#475569',
-                        fontWeight: 700,
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      🌐 Public
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Optional Scout Note */}
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
-                Initial Scout Note <span style={{ color: '#94a3b8', fontWeight: 400 }}>(Optional)</span>
+            {/* 3. Expanded Initial Scout Note */}
+            <div className="scout-field-group">
+              <label htmlFor="scout-note-textarea" className="scout-field-label">
+                INITIAL SCOUT NOTE <span className="scout-field-optional">(OPTIONAL)</span>
               </label>
               <textarea
+                id="scout-note-textarea"
                 rows={2}
                 value={scoutNote}
                 onChange={(e) => setScoutNote(e.target.value)}
                 placeholder="Tactical strengths, press resistance, scouting observations..."
-                className="scout-input"
-                style={{ resize: 'none', height: 'auto', minHeight: '60px', padding: '10px' }}
+                className="scout-clean-textarea"
+                style={{
+                  width: '100%',
+                  minHeight: '65px',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
 
-            {/* Footer Actions */}
-            <div className="scout-modal-footer">
+            </div>
+
+            {/* 4. Action Buttons (Footer) */}
+            <div
+              className="scout-modal-clean-footer"
+              style={{
+                marginTop: 'auto',
+                paddingTop: '12px',
+                flexShrink: 0,
+                borderTop: '1px solid #f1f5f9',
+              }}
+            >
               <button
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className="scout-btn scout-btn-secondary"
-                style={{ padding: '8px 16px', fontSize: '12.5px' }}
+                className="scout-btn scout-btn-md scout-btn-secondary"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={submitting || (isCreatingNew && !newName.trim()) || (!isCreatingNew && !selectedShortlistId)}
-                className="scout-btn scout-btn-primary"
-                style={{ padding: '8px 20px', fontSize: '12.5px' }}
+                disabled={submitting || !selectedShortlistId || isSelectedAlreadyInList}
+                className="scout-btn scout-btn-md scout-btn-primary"
+                style={{
+                  padding: '0 24px',
+                  opacity: isSelectedAlreadyInList ? 0.6 : 1,
+                }}
               >
-                {submitting ? 'Adding...' : 'Add to Shortlist'}
+                {submitting
+                  ? 'Adding...'
+                  : isSelectedAlreadyInList
+                  ? 'Already In Shortlist'
+                  : 'Add to Shortlist'}
               </button>
             </div>
           </form>

@@ -936,7 +936,7 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
           </p>
           <button
             type="button"
-            className="scout-b2b-btn scout-b2b-btn-secondary"
+            className="scout-btn scout-btn-secondary"
             onClick={handleResetFilters}
             style={{ marginTop: '14px' }}
           >
@@ -1052,8 +1052,7 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <button
               type="button"
-              className="scout-sports-back-btn"
-              style={{ height: '38px', padding: '0 16px', fontSize: '12px' }}
+              className="scout-btn scout-btn-secondary"
               onClick={() => setSelectedCandidate(null)}
             >
               Deselect
@@ -1062,7 +1061,6 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
               type="button"
               className="scout-sports-compare-btn"
               onClick={handleProceed}
-              style={{ height: '38px', padding: '0 24px', fontSize: '13px' }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 3h5v5" />

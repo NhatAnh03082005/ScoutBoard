@@ -1,38 +1,84 @@
+import { SearchInput } from "../components/common";
 import React, { useState, useEffect } from 'react';
-import type { Squad, SquadPlayerItem } from '../types/squad.types';
-import type { PlayerItem } from '../types/player.types';
 import {
   getSquadByIdApi,
   getPlayersInSquadApi,
   addPlayerToSquadApi,
   updateSquadPlayerApi,
   removePlayerFromSquadApi,
+  updateSquadApi,
   deleteSquadApi,
 } from '../services/squad.service';
 import { searchPlayersApi } from '../services/player.service';
+import type {
+  Squad,
+  SquadPlayerItem,
+  FormationCode,
+} from '../types/squad.types';
+import type { PlayerItem } from '../types/player.types';
 import {
   FORMATION_CONFIGS,
-  type FormationSlot,
   findStarterForSlot,
-  isPlayerInSquad,
   applyMoveStarter,
   applyStarterToBench,
-  applyBenchToStarter,
+  isPlayerEligibleForSlot,
+  getCanonicalPosition,
 } from '../utils/squad-placement.utils';
+import type { FormationSlot } from '../utils/squad-placement.utils';
+import { FormationSelector } from '../components/modal/FormationSelector';
 
-interface SquadDetailPageProps {
+export interface SquadDetailPageProps {
   squadId: string;
-  onBack: () => void;
+  onBack?: () => void;
   onNavigateToLogin?: () => void;
   isAuthenticated?: boolean;
 }
 
+// Position category color mapping
+function getSlotCategory(posCode?: string | null): 'attacker' | 'midfielder' | 'defender' | 'goalkeeper' {
+  if (!posCode) return 'midfielder';
+  const u = posCode.toUpperCase();
+  if (['ST', 'CF', 'LW', 'RW', 'SS', 'FWD'].includes(u)) return 'attacker';
+  if (['GK'].includes(u)) return 'goalkeeper';
+  if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF'].includes(u)) return 'defender';
+  return 'midfielder';
+}
+
+
+function getCleanDisplayPosition(posCode?: string | null): string {
+  if (!posCode) return 'POS';
+  const u = posCode.toUpperCase();
+  if (['LS', 'RS', 'CF', 'SS'].includes(u)) return 'ST';
+  if (['LCB', 'RCB'].includes(u)) return 'CB';
+  if (['LDM', 'RDM'].includes(u)) return 'CDM';
+  if (['LCM', 'RCM'].includes(u)) return 'CM';
+  if (['LAM', 'RAM'].includes(u)) return 'CAM';
+  return u;
+}
+
+function getPillBadgeColor(posCode?: string | null): string {
+  const cat = getSlotCategory(posCode);
+  switch (cat) {
+    case 'attacker': return '#e11d48';
+    case 'midfielder': return '#10b981';
+    case 'defender': return '#2563eb';
+    case 'goalkeeper': return '#f59e0b';
+  }
+}
+
+const JerseyIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.85 }}>
+    <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.5a2 2 0 0 0 1.62 1.65L7 11.5V20a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-8.5l2.52-.66a2 2 0 0 0 1.62-1.65l.58-3.5a2 2 0 0 0-1.34-2.23z" />
+  </svg>
+);
+
+
+
 export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
   squadId,
   onBack,
-  onNavigateToLogin,
-  isAuthenticated = true,
 }) => {
+  // Main Data States
   const [squad, setSquad] = useState<Squad | null>(null);
   const [players, setPlayers] = useState<SquadPlayerItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,22 +87,31 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
-  // Drag & Drop State
-  const [draggedPlayer, setDraggedPlayer] = useState<{
-    id: string;
-    sourceType: 'STARTER' | 'SUBSTITUTE' | 'POOL';
-    slotCode?: string | null;
-    playerData?: any;
-  } | null>(null);
-  const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
+  // Inline Rename State
+  const [isEditingName, setIsEditingName] = useState<boolean>(false);
+  const [nameInputValue, setNameInputValue] = useState<string>('');
 
-  // Player Picker Drawer State
+  // Formation Selector Modal State
+  const [isFormationModalOpen, setIsFormationModalOpen] = useState<boolean>(false);
+
+  // Tactical Player Picker Modal State (Click-to-Assign)
   const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
-  const [pickerTargetSlot, setPickerTargetSlot] = useState<string | null>(null);
+  const [pickerTargetSlot, setPickerTargetSlot] = useState<FormationSlot | null>(null);
   const [pickerTargetRole, setPickerTargetRole] = useState<'STARTER' | 'SUBSTITUTE'>('STARTER');
+  const [replacingPlayer, setReplacingPlayer] = useState<SquadPlayerItem | null>(null);
   const [poolSearch, setPoolSearch] = useState<string>('');
   const [poolPlayers, setPoolPlayers] = useState<PlayerItem[]>([]);
   const [poolLoading, setPoolLoading] = useState<boolean>(false);
+
+  // Context Popovers
+  const [activeMenuSlotCode, setActiveMenuSlotCode] = useState<string | null>(null);
+  const [activeBenchMenuId, setActiveBenchMenuId] = useState<string | null>(null);
+
+  // Matchday Substitutes Drawer State (Hover & Click-to-pin)
+  const [isBenchOpen, setIsBenchOpen] = useState<boolean>(false);
+
+  // Bench Drawer Slide-up State
+  // Bench section is directly placed below starting XI
 
   // Delete Squad Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
@@ -81,14 +136,10 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
       setSquad(squadData);
       setPlayers(playersData);
     } catch (err: any) {
-      if (err.message === 'UNAUTHORIZED') {
+      if (err.status === 401 || err.statusCode === 401) {
         setError('UNAUTHORIZED');
-      } else if (err.message?.includes('404') || err.message?.toLowerCase().includes('not found')) {
-        setError('Squad not found.');
-      } else if (err.message?.includes('403') || err.message?.toLowerCase().includes('forbidden')) {
-        setError('You do not have permission to view this squad.');
       } else {
-        setError(err.message || 'Unable to load squad details.');
+        setError(err.message || 'Failed to load squad details.');
       }
     } finally {
       setLoading(false);
@@ -99,49 +150,264 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
     void fetchSquadData();
   }, [squadId]);
 
-  // Load player pool when search changes or drawer opens
+  // Load player pool when picker opens or search changes
   useEffect(() => {
     if (!isPickerOpen) return;
-    const delayDebounce = setTimeout(async () => {
-      setPoolLoading(true);
+
+    let active = true;
+    setPoolLoading(true);
+
+    const timer = setTimeout(async () => {
       try {
-        const res = await searchPlayersApi({
+        const canonicalPos = pickerTargetSlot
+          ? getCanonicalPosition(pickerTargetSlot.requiredPosition || pickerTargetSlot.displayRole || pickerTargetSlot.code)
+          : undefined;
+
+        const response = await searchPlayersApi({
           search: poolSearch.trim() || undefined,
-          limit: 15,
-          offset: 0,
+          position: !poolSearch.trim() && pickerTargetRole === 'STARTER' && canonicalPos ? canonicalPos : undefined,
+          limit: 100,
         });
-        setPoolPlayers(res.items);
+        if (active) {
+          setPoolPlayers(response.items || []);
+        }
       } catch {
-        setPoolPlayers([]);
+        if (active) setPoolPlayers([]);
       } finally {
-        setPoolLoading(false);
+        if (active) setPoolLoading(false);
       }
-    }, 250);
+    }, 200);
 
-    return () => clearTimeout(delayDebounce);
-  }, [poolSearch, isPickerOpen]);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [isPickerOpen, poolSearch, pickerTargetSlot, pickerTargetRole]);
 
-  // Separate starters and substitutes
-  const starters = players.filter((p) => p.role === 'STARTER');
-  const substitutes = players.filter((p) => p.role === 'SUBSTITUTE');
+  // Quick Change Formation
+  const handleQuickChangeFormation = async (newFormation: FormationCode) => {
+    if (!squad || squad.formationCode === newFormation) {
+      setIsFormationModalOpen(false);
+      return;
+    }
+    const previousFormation = squad.formationCode;
+    setSquad((prev) => (prev ? { ...prev, formationCode: newFormation } : prev));
+    setIsFormationModalOpen(false);
 
-  const formationCode = squad?.formationCode || '4-3-3';
-  const formationLayout = FORMATION_CONFIGS[formationCode] || FORMATION_CONFIGS['4-3-3'];
+    try {
+      await updateSquadApi(squad.id, { formationCode: newFormation });
+      showToast(`Đã chuyển sơ đồ chiến thuật sang ${newFormation}`);
+    } catch (err: any) {
+      setSquad((prev) => (prev ? { ...prev, formationCode: previousFormation } : prev));
+      showToast(err.message || 'Failed to update formation.', 'error');
+    }
+  };
 
-  // --- CAPTAINCY MUTATIONS (TC-01, TC-02, TC-03, TC-04) ---
+  // Start Editing Squad Name
+  const handleStartEditName = () => {
+    if (!squad) return;
+    setNameInputValue(squad.name);
+    setIsEditingName(true);
+  };
 
-  const handleSetCaptain = async (playerId: string) => {
-    const targetPlayer = players.find((p) => p.playerId === playerId);
-    if (!targetPlayer) return;
+  // Save Squad Name
+  const handleSaveSquadName = async () => {
+    if (!squad) return;
+    const trimmed = nameInputValue.trim();
+    if (!trimmed || trimmed === squad.name) {
+      setIsEditingName(false);
+      return;
+    }
+    const prevName = squad.name;
+    setSquad((prev) => (prev ? { ...prev, name: trimmed } : prev));
+    setIsEditingName(false);
 
-    if (targetPlayer.role !== 'STARTER') {
-      showToast('Captain can only be assigned to a STARTER player.', 'error');
+    try {
+      await updateSquadApi(squad.id, { name: trimmed });
+      showToast('Đã lưu tên đội hình thành công.');
+    } catch (err: any) {
+      setSquad((prev) => (prev ? { ...prev, name: prevName } : prev));
+      showToast(err.message || 'Failed to update name.', 'error');
+    }
+  };
+
+  // Open Player Picker for Slot
+  const handleOpenPickerForSlot = (slot: FormationSlot) => {
+    setActiveMenuSlotCode(null);
+    setPickerTargetRole('STARTER');
+    setPickerTargetSlot(slot);
+    setReplacingPlayer(null);
+    setPoolSearch('');
+    setIsPickerOpen(true);
+  };
+
+  // Open Picker for Bench
+  const handleOpenPickerForBench = () => {
+    setActiveMenuSlotCode(null);
+    setActiveBenchMenuId(null);
+    setPickerTargetRole('SUBSTITUTE');
+    setPickerTargetSlot(null);
+    setReplacingPlayer(null);
+    setPoolSearch('');
+    setIsPickerOpen(true);
+  };
+
+  // Open Swap for an occupied slot
+  const handleOpenSwapForSlot = (slot: FormationSlot, currentPlayer: SquadPlayerItem) => {
+    setActiveMenuSlotCode(null);
+    setPickerTargetRole('STARTER');
+    setPickerTargetSlot(slot);
+    setReplacingPlayer(currentPlayer);
+    setPoolSearch('');
+    setIsPickerOpen(true);
+  };
+
+  // Assign Player from Picker
+  const handleAssignPlayer = async (selectedPlayer: PlayerItem) => {
+    if (!squad) return;
+    const targetSlotCode = pickerTargetSlot ? pickerTargetSlot.code : null;
+    const isStarter = pickerTargetRole === 'STARTER';
+
+    const existingInSquad = players.find((p) => p.playerId === selectedPlayer.id);
+
+    if (existingInSquad) {
+      // Reassigning existing squad player
+      if (isStarter && targetSlotCode) {
+        const { nextPlayers } = applyMoveStarter(players, selectedPlayer.id, targetSlotCode);
+        setPlayers(nextPlayers);
+        setIsPickerOpen(false);
+
+        try {
+          await updateSquadPlayerApi(squadId, selectedPlayer.id, {
+            role: 'STARTER',
+            slotCode: targetSlotCode,
+          });
+          showToast(`Đã thêm ${selectedPlayer.fullName || "cầu thủ"} vào vị trí ${pickerTargetSlot?.displayRole || pickerTargetSlot?.label}`);
+        } catch (err: any) {
+          showToast(err.message || 'Failed to move player.', 'error');
+          void fetchSquadData();
+        }
+      } else {
+        // Move to bench
+        const nextPlayers = applyStarterToBench(players, selectedPlayer.id);
+        setPlayers(nextPlayers);
+        setIsPickerOpen(false);
+
+        try {
+          await updateSquadPlayerApi(squadId, selectedPlayer.id, {
+            role: 'SUBSTITUTE',
+            slotCode: null,
+          });
+          showToast(`Đã chuyển ${selectedPlayer.fullName || "cầu thủ"} sang ghế dự bị.`);
+        } catch (err: any) {
+          showToast(err.message || 'Failed to move to bench.', 'error');
+          void fetchSquadData();
+        }
+      }
       return;
     }
 
-    const previousSnapshot = [...players];
+    // Adding NEW player from pool
+    setIsPickerOpen(false);
+    const tempId = `temp-${Date.now()}`;
+    const optimisticItem: SquadPlayerItem = {
+      id: tempId,
+      squadId,
+      playerId: selectedPlayer.id,
+      role: isStarter ? 'STARTER' : 'SUBSTITUTE',
+      slotCode: targetSlotCode,
+      isCaptain: false,
+      displayOrder: null,
+      player: {
+        id: selectedPlayer.id,
+        name: selectedPlayer.fullName,
+        shortName: selectedPlayer.fullName,
+        primaryPosition: selectedPlayer.primaryPosition,
+        rawPosition: selectedPlayer.rawPosition,
+        imageUrl: selectedPlayer.imageUrl,
+        shirtNumber: selectedPlayer.shirtNumber,
+        currentTeam: selectedPlayer.currentTeam ? {
+          id: selectedPlayer.currentTeam.id,
+          name: selectedPlayer.currentTeam.name,
+          shortName: selectedPlayer.currentTeam.shortName,
+          logoUrl: selectedPlayer.currentTeam.logoUrl,
+        } : null,
+      },
+    };
 
-    // Optimistic UI: set this player as captain, unset any existing captain
+    let next = [...players];
+    if (isStarter && targetSlotCode) {
+      next = next.filter((p) => !(p.role === 'STARTER' && p.slotCode === targetSlotCode));
+    }
+    next.push(optimisticItem);
+    setPlayers(next);
+
+    try {
+      await addPlayerToSquadApi(squadId, {
+        playerId: selectedPlayer.id,
+        role: isStarter ? 'STARTER' : 'SUBSTITUTE',
+        slotCode: targetSlotCode,
+      });
+      showToast(`Đã thêm ${selectedPlayer.fullName || "cầu thủ"} vào đội hình.`);
+      void fetchSquadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to add player.', 'error');
+      void fetchSquadData();
+    }
+  };
+
+  // Move starter to bench
+  const handleMoveStarterToBench = async (playerId: string) => {
+    setActiveMenuSlotCode(null);
+    const currentSubs = players.filter((p) => p.role === 'SUBSTITUTE');
+    if (currentSubs.length >= 7) {
+      showToast('Substitutes bench is already full (max 7 players).', 'error');
+      return;
+    }
+
+    const prev = [...players];
+    const nextPlayers = applyStarterToBench(players, playerId);
+    setPlayers(nextPlayers);
+
+    try {
+      await updateSquadPlayerApi(squadId, playerId, { role: 'SUBSTITUTE', slotCode: null });
+      showToast('Player moved to substitutes bench.');
+    } catch (err: any) {
+      setPlayers(prev);
+      showToast(err.message || 'Failed to move player to bench.', 'error');
+    }
+  };
+
+  // Promote Bench Player to Slot
+  const handlePromoteBenchPlayerToSlot = (benchPlayer: SquadPlayerItem) => {
+    const emptySlot = tacticalSlots.find((s) => {
+      const isOccupied = players.some((p) => p.role === 'STARTER' && p.slotCode === s.code);
+      if (isOccupied) return false;
+      return isPlayerEligibleForSlot(benchPlayer.player, s.requiredPosition);
+    });
+
+    if (!emptySlot) {
+      showToast(`No empty tactical slot available for ${benchPlayer.player?.name || 'player'}.`, 'error');
+      return;
+    }
+
+    const { nextPlayers } = applyMoveStarter(players, benchPlayer.playerId, emptySlot.code);
+    setPlayers(nextPlayers);
+    void updateSquadPlayerApi(squadId, benchPlayer.playerId, {
+      role: 'STARTER',
+      slotCode: emptySlot.code,
+    }).then(() => {
+      showToast(`Promoted to starting XI (${emptySlot.displayRole || emptySlot.label})`);
+    }).catch((err: any) => {
+      showToast(err.message || 'Failed to promote player.', 'error');
+      void fetchSquadData();
+    });
+  };
+
+  // Captaincy
+  const handleSetCaptain = async (playerId: string) => {
+    setActiveMenuSlotCode(null);
+    const previousSnapshot = [...players];
     setPlayers((prev) =>
       prev.map((p) => ({
         ...p,
@@ -150,1350 +416,843 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
     );
 
     try {
-      await updateSquadPlayerApi(squadId, playerId, {
-        isCaptain: true,
-      });
-      showToast(`⭐ ${targetPlayer.player?.name || 'Player'} is now team Captain!`);
+      await updateSquadPlayerApi(squadId, playerId, { isCaptain: true });
+      showToast('Đã chỉ định đội trưởng mới.');
     } catch (err: any) {
       setPlayers(previousSnapshot);
-      showToast(err.message || 'Failed to update team captain.', 'error');
+      showToast(err.message || 'Failed to update captain.', 'error');
     }
   };
 
-  const handleRemoveCaptain = async (playerId: string) => {
-    const targetPlayer = players.find((p) => p.playerId === playerId);
-    if (!targetPlayer) return;
-
-    const previousSnapshot = [...players];
-
-    setPlayers((prev) =>
-      prev.map((p) => (p.playerId === playerId ? { ...p, isCaptain: false } : p)),
-    );
+  // Remove Player from Squad
+  const handleRemovePlayer = async (playerId: string) => {
+    setActiveMenuSlotCode(null);
+    setActiveBenchMenuId(null);
+    const prev = [...players];
+    setPlayers((p) => p.filter((item) => item.playerId !== playerId));
 
     try {
-      await updateSquadPlayerApi(squadId, playerId, {
-        isCaptain: false,
-      });
-      showToast('Captaincy removed.');
+      await removePlayerFromSquadApi(squadId, playerId);
+      showToast('Đã xóa cầu thủ khỏi đội hình.');
     } catch (err: any) {
-      setPlayers(previousSnapshot);
-      showToast(err.message || 'Failed to remove captaincy.', 'error');
+      setPlayers(prev);
+      showToast(err.message || 'Failed to remove player.', 'error');
     }
   };
 
-  // --- EXPLICIT SAVE / SYNC SQUAD (TC-05, TC-08) ---
+  // Global Save Squad
   const handleSaveSquad = async () => {
-    if (isSaving) return;
+    if (!squad) return;
     setIsSaving(true);
     try {
-      // Re-fetch to ensure clean sync with server
-      await fetchSquadData();
-      showToast('💾 Squad configuration saved and synced successfully!');
+      await updateSquadApi(squad.id, {
+        name: squad.name,
+        formationCode: squad.formationCode,
+        visibility: squad.visibility,
+      });
+      showToast('Đã lưu cấu hình đội hình thành công!');
     } catch (err: any) {
-      showToast(err.message || 'Failed to save squad configuration.', 'error');
+      showToast(err.message || 'Failed to save squad.', 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
-  // --- DELETE SQUAD (TC-09) ---
-  const handleDeleteSquad = async () => {
-    if (submittingDelete) return;
+  // Confirm Delete Squad
+  const handleConfirmDelete = async () => {
+    if (!squad) return;
     setSubmittingDelete(true);
     try {
-      await deleteSquadApi(squadId);
-      showToast('Squad deleted successfully.');
-      onBack();
+      await deleteSquadApi(squad.id);
+      showToast(`Squad "${squad.name}" has been deleted.`);
+      if (onBack) onBack();
     } catch (err: any) {
       showToast(err.message || 'Failed to delete squad.', 'error');
-    } finally {
       setSubmittingDelete(false);
       setIsDeleteModalOpen(false);
     }
   };
 
-  // --- MUTATION HANDLERS (WITH OPTIMISTIC UI & ROLLBACK) ---
-
-  // 1. Place player from Pool to Starter or Bench
-  const handleAddPlayerFromPool = async (player: PlayerItem, slotCode: string | null, role: 'STARTER' | 'SUBSTITUTE') => {
-    const playerName = player.fullName || 'Player';
-    if (isPlayerInSquad(players, player.id)) {
-      showToast(`${playerName} is already in this squad.`, 'error');
-      return;
-    }
-
-    const previousSnapshot = [...players];
-
-    const optimisticItem: SquadPlayerItem = {
-      id: `temp-${Date.now()}`,
-      squadId,
-      playerId: player.id,
-      slotCode: role === 'STARTER' ? slotCode : null,
-      role,
-      isCaptain: false,
-      displayOrder: role === 'SUBSTITUTE' ? substitutes.length + 1 : null,
-      player: {
-        id: player.id,
-        name: playerName,
-        shortName: playerName,
-        dateOfBirth: player.dateOfBirth ?? null,
-        nationality: player.nationality ?? null,
-        heightCm: player.heightCm ?? null,
-        weightKg: player.weightKg ?? null,
-        primaryPosition: player.primaryPosition ?? null,
-        shirtNumber: player.shirtNumber ?? null,
-        imageUrl: player.imageUrl ?? null,
-        currentTeam: player.currentTeam
-          ? {
-              id: player.currentTeam.id,
-              name: player.currentTeam.name,
-              shortName: player.currentTeam.shortName ?? null,
-              logoUrl: player.currentTeam.logoUrl ?? null,
-            }
-          : null,
-      },
+  // Close menus on clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveMenuSlotCode(null);
+      setActiveBenchMenuId(null);
     };
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
 
-    setPlayers((prev) => {
-      const filtered = role === 'STARTER' && slotCode
-        ? prev.filter((p) => !(p.role === 'STARTER' && p.slotCode === slotCode))
-        : prev;
-      return [...filtered, optimisticItem];
-    });
-    setIsPickerOpen(false);
+  // Formation Slots Definition
+  const currentFormationKey = (squad?.formationCode as string) || '4-4-2';
+  const formationRows = FORMATION_CONFIGS[currentFormationKey] || FORMATION_CONFIGS['4-4-2'] || FORMATION_CONFIGS['4-3-3'] || [];
+  const tacticalSlots = formationRows.flatMap((r) => r.slots);
+  
 
-    try {
-      const saved = await addPlayerToSquadApi(squadId, {
-        playerId: player.id,
-        slotCode: role === 'STARTER' ? slotCode : null,
-        role,
-      });
-      setPlayers((prev) =>
-        prev.map((p) => (p.playerId === player.id ? { ...p, ...saved, player: optimisticItem.player } : p)),
-      );
-      showToast(`${playerName} added as ${role === 'STARTER' ? slotCode : 'Substitute'}.`);
-    } catch (err: any) {
-      setPlayers(previousSnapshot);
-      showToast(err.message || 'Failed to add player to squad.', 'error');
-    }
-  };
+  const substitutes = players.filter((p) => p.role === 'SUBSTITUTE');
 
-  // 2. Move or swap Starter slot
-  const handleMoveStarterSlot = async (sourcePlayerId: string, targetSlotCode: string) => {
-    const previousSnapshot = [...players];
-    const { nextPlayers, swappedPlayer } = applyMoveStarter(players, sourcePlayerId, targetSlotCode);
-
-    setPlayers(nextPlayers);
-
-    try {
-      await updateSquadPlayerApi(squadId, sourcePlayerId, {
-        slotCode: targetSlotCode,
-        role: 'STARTER',
-      });
-
-      if (swappedPlayer && swappedPlayer.slotCode) {
-        const sourcePlayer = previousSnapshot.find((p) => p.playerId === sourcePlayerId);
-        await updateSquadPlayerApi(squadId, swappedPlayer.playerId, {
-          slotCode: sourcePlayer?.slotCode || null,
-          role: 'STARTER',
-        });
-      }
-      showToast('Tactical position updated.');
-    } catch (err: any) {
-      setPlayers(previousSnapshot);
-      showToast(err.message || 'Failed to move player position.', 'error');
-    }
-  };
-
-  // 3. Move Starter -> Bench (Substitute)
-  const handleStarterToBenchDrop = async (playerId: string) => {
-    const previousSnapshot = [...players];
-    const nextPlayers = applyStarterToBench(players, playerId);
-    setPlayers(nextPlayers);
-
-    try {
-      await updateSquadPlayerApi(squadId, playerId, {
-        role: 'SUBSTITUTE',
-        slotCode: null,
-        isCaptain: false,
-      });
-      showToast('Player moved to substitute bench.');
-    } catch (err: any) {
-      setPlayers(previousSnapshot);
-      showToast(err.message || 'Failed to move player to bench.', 'error');
-    }
-  };
-
-  // 4. Move Bench (Substitute) -> Starter Slot
-  const handleBenchToStarterDrop = async (playerId: string, targetSlotCode: string) => {
-    const previousSnapshot = [...players];
-    const { nextPlayers, displacedStarter } = applyBenchToStarter(players, playerId, targetSlotCode);
-    setPlayers(nextPlayers);
-
-    try {
-      if (displacedStarter) {
-        await updateSquadPlayerApi(squadId, displacedStarter.playerId, {
-          role: 'SUBSTITUTE',
-          slotCode: null,
-          isCaptain: false,
-        });
-      }
-
-      await updateSquadPlayerApi(squadId, playerId, {
-        role: 'STARTER',
-        slotCode: targetSlotCode,
-      });
-      showToast(`Player promoted to ${targetSlotCode} starter.`);
-    } catch (err: any) {
-      setPlayers(previousSnapshot);
-      showToast(err.message || 'Failed to promote player to starter.', 'error');
-    }
-  };
-
-  // 5. Remove Player from squad
-  const handleRemovePlayer = async (playerId: string, playerName: string) => {
-    const previousSnapshot = [...players];
-    setPlayers((prev) => prev.filter((p) => p.playerId !== playerId));
-
-    try {
-      await removePlayerFromSquadApi(squadId, playerId);
-      showToast(`${playerName} removed from squad.`);
-    } catch (err: any) {
-      setPlayers(previousSnapshot);
-      showToast(err.message || 'Failed to remove player.', 'error');
-    }
-  };
-
-  // --- DRAG AND DROP HANDLERS ---
-  const handleDragStart = (
-    e: React.DragEvent,
-    id: string,
-    sourceType: 'STARTER' | 'SUBSTITUTE' | 'POOL',
-    slotCode?: string | null,
-    playerData?: any,
-  ) => {
-    setDraggedPlayer({ id, sourceType, slotCode, playerData });
-    e.dataTransfer.setData('text/plain', id);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragOverTarget !== targetId) {
-      setDragOverTarget(targetId);
-    }
-  };
-
-  const handleDragLeave = () => {
-    setDragOverTarget(null);
-  };
-
-  const handleDropOnStarterSlot = async (e: React.DragEvent, targetSlot: FormationSlot) => {
-    e.preventDefault();
-    setDragOverTarget(null);
-    if (!draggedPlayer) return;
-
-    if (draggedPlayer.sourceType === 'STARTER') {
-      if (draggedPlayer.slotCode === targetSlot.code) return;
-      await handleMoveStarterSlot(draggedPlayer.id, targetSlot.code);
-    } else if (draggedPlayer.sourceType === 'SUBSTITUTE') {
-      await handleBenchToStarterDrop(draggedPlayer.id, targetSlot.code);
-    } else if (draggedPlayer.sourceType === 'POOL' && draggedPlayer.playerData) {
-      await handleAddPlayerFromPool(draggedPlayer.playerData, targetSlot.code, 'STARTER');
-    }
-
-    setDraggedPlayer(null);
-  };
-
-  const handleDropOnBench = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOverTarget(null);
-    if (!draggedPlayer) return;
-
-    if (draggedPlayer.sourceType === 'STARTER') {
-      await handleStarterToBenchDrop(draggedPlayer.id);
-    } else if (draggedPlayer.sourceType === 'POOL' && draggedPlayer.playerData) {
-      await handleAddPlayerFromPool(draggedPlayer.playerData, null, 'SUBSTITUTE');
-    }
-
-    setDraggedPlayer(null);
-  };
-
-  const handleOpenPickerForSlot = (slotCode: string) => {
-    setPickerTargetSlot(slotCode);
-    setPickerTargetRole('STARTER');
-    setPoolSearch('');
-    setIsPickerOpen(true);
-  };
-
-  const handleOpenPickerForBench = () => {
-    setPickerTargetSlot(null);
-    setPickerTargetRole('SUBSTITUTE');
-    setPoolSearch('');
-    setIsPickerOpen(true);
-  };
+  // Filter pool players strictly by position first, then search query
+  const eligiblePoolPlayers = poolPlayers.filter((player) => {
+    if (pickerTargetRole !== 'STARTER' || !pickerTargetSlot) return true;
+    return isPlayerEligibleForSlot(player, pickerTargetSlot.requiredPosition);
+  });  const startingXI = players.filter((p) => p.role === 'STARTER');
 
   return (
-    <div
-      className="scout-page-container"
-      style={{
-        maxWidth: '1360px',
-        margin: '0 auto',
-        padding: '32px 20px 80px',
-      }}
-    >
-      {/* Toast Notification */}
+    <div className="scout-tactical-stage scout-squad-builder-stage">
+      {/* TOAST NOTIFICATION (Fixed compact pill in top-right) */}
       {toastMessage && (
-        <div
-          className={`scout-toast ${toastType === 'error' ? 'scout-toast-error' : 'scout-toast-success'}`}
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            zIndex: 9999,
-            background: toastType === 'error'
-              ? 'linear-gradient(135deg, #ef4444, #dc2626)'
-              : 'linear-gradient(135deg, #10b981, #059669)',
-            color: '#ffffff',
-            padding: '12px 20px',
-            borderRadius: '12px',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4)',
-            fontSize: '14px',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            animation: 'fadeIn 0.2s ease-out',
-          }}
-        >
-          <span>{toastType === 'error' ? '⚠️' : '✅'}</span>
+        <div className={`scout-toast ${toastType === 'error' ? 'scout-toast-error' : 'scout-toast-success'}`}>
+          {toastType === 'error' ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          )}
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Top Navigation & Action Toolbar */}
-      <div
-        style={{
-          marginBottom: '24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
-        <button
-          type="button"
-          className="scout-btn scout-btn-sm scout-btn-secondary"
-          onClick={onBack}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            fontSize: '13px',
-            fontWeight: 600,
-            borderRadius: '10px',
-          }}
-        >
-          ← My Squads
-        </button>
-
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button
-            type="button"
-            className="scout-btn scout-btn-sm"
-            onClick={handleSaveSquad}
-            disabled={isSaving}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 18px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: '10px',
-              background: '#0284c7',
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
-            }}
-          >
-            <span>💾</span> {isSaving ? 'Saving...' : 'Save Squad'}
-          </button>
-
-          <button
-            type="button"
-            className="scout-btn scout-btn-sm"
-            onClick={handleOpenPickerForBench}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: '10px',
-            }}
-          >
-            <span>+</span> Add Player
-          </button>
-
-          <button
-            type="button"
-            className="scout-btn scout-btn-sm"
-            onClick={() => setIsDeleteModalOpen(true)}
-            style={{
-              padding: '8px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: '10px',
-              background: 'rgba(239, 68, 68, 0.15)',
-              color: '#ef4444',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-            }}
-          >
-            🗑️ Delete
-          </button>
-        </div>
-      </div>
-
-      {/* 1. UNAUTHORIZED STATE */}
-      {error === 'UNAUTHORIZED' || (!isAuthenticated && !loading) ? (
-        <div
-          className="scout-empty-state"
-          style={{
-            background: 'rgba(15, 23, 42, 0.65)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '16px',
-            padding: '48px 24px',
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-          <h3 style={{ fontSize: '18px', color: '#f8fafc', margin: '0 0 8px' }}>
-            Authentication Required
-          </h3>
-          <p style={{ color: '#94a3b8', fontSize: '14px', maxWidth: '400px', margin: '0 auto 20px' }}>
-            Please log in to view and manage this tactical squad.
-          </p>
-          {onNavigateToLogin && (
-            <button
-              type="button"
-              className="scout-btn"
-              onClick={onNavigateToLogin}
-              style={{ padding: '8px 24px' }}
-            >
-              Log In Now
-            </button>
-          )}
-        </div>
-      ) : null}
-
-      {/* 2. ERROR / 404 STATE */}
-      {error && error !== 'UNAUTHORIZED' ? (
-        <div
-          style={{
-            background: 'rgba(239, 68, 68, 0.12)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '16px',
-            padding: '32px 24px',
-            textAlign: 'center',
-          }}
-        >
-          <span style={{ fontSize: '36px', display: 'block', marginBottom: '12px' }}>⚠️</span>
-          <h3 style={{ margin: '0 0 8px', color: '#fca5a5', fontSize: '18px' }}>
-            {error}
-          </h3>
-          <p style={{ color: '#fecaca', fontSize: '14px', maxWidth: '450px', margin: '0 auto 20px' }}>
-            The squad you are looking for might have been deleted, or you do not have permission to access it.
-          </p>
-          <button
-            type="button"
-            className="scout-btn scout-btn-secondary"
-            onClick={fetchSquadData}
-            style={{ padding: '8px 20px', fontSize: '13px' }}
-          >
-            🔄 Try Again
-          </button>
-        </div>
-      ) : null}
-
-      {/* 3. LOADING SKELETON */}
-      {loading ? (
-        <div style={{ animation: 'pulse 1.5s infinite' }}>
-          <div
-            style={{
-              height: '120px',
-              background: 'rgba(30, 41, 59, 0.5)',
-              borderRadius: '16px',
-              marginBottom: '24px',
-            }}
-          />
-          <div
-            style={{
-              height: '580px',
-              background: 'rgba(30, 41, 59, 0.5)',
-              borderRadius: '20px',
-            }}
-          />
-        </div>
-      ) : null}
-
-      {/* 4. SQUAD DETAIL & TACTICAL PITCH CONTENT */}
-      {!loading && !error && squad ? (
-        <div>
-          {/* Squad Header Banner */}
-          <div
-            style={{
-              background: 'rgba(15, 23, 42, 0.75)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '20px',
-              padding: '28px',
-              marginBottom: '28px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                marginBottom: '10px',
-                flexWrap: 'wrap',
-              }}
-            >
-              <span
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  background: 'rgba(56, 189, 248, 0.15)',
-                  color: '#38bdf8',
-                  border: '1px solid rgba(56, 189, 248, 0.25)',
-                }}
+      {/* ============================================================ */}
+      {/* VIEWPORT 1: COMPLETE STARTING XI TACTICAL SCENE             */}
+      {/* ============================================================ */}
+      <div className="scout-tactical-scene">
+        {/* COMPACT TACTICAL HUD */}
+        <div className="scout-tactical-hud">
+          {/* Left: Back + Title + Formation + Starters Count */}
+          <div className="scout-hud-left">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="scout-hud-back-btn"
+                title="Quay lại danh sách đội hình"
               >
-                ⚽ {squad.formationCode}
-              </span>
-
-              <span
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  background:
-                    squad.visibility === 'PUBLIC'
-                      ? 'rgba(34, 197, 94, 0.12)'
-                      : 'rgba(148, 163, 184, 0.12)',
-                  color:
-                    squad.visibility === 'PUBLIC' ? '#4ade80' : '#94a3b8',
-                }}
-              >
-                {squad.visibility}
-              </span>
-
-              {squad.seasonId ? (
-                <span
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    background: 'rgba(168, 85, 247, 0.12)',
-                    color: '#c084fc',
-                  }}
-                >
-                  Season {squad.seasonId}
-                </span>
-              ) : null}
-
-              <span
-                style={{
-                  fontSize: '13px',
-                  color: '#94a3b8',
-                  marginLeft: 'auto',
-                }}
-              >
-                Starters: {starters.length}/11 · Bench: {substitutes.length}
-              </span>
-            </div>
-
-            <h1
-              style={{
-                fontSize: '26px',
-                fontWeight: 800,
-                color: '#f8fafc',
-                margin: '0 0 8px',
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {squad.name}
-            </h1>
-
-            {squad.description && (
-              <p
-                style={{
-                  color: '#94a3b8',
-                  fontSize: '14px',
-                  margin: 0,
-                  lineHeight: 1.5,
-                  maxWidth: '800px',
-                }}
-              >
-                {squad.description}
-              </p>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+                <span>Quay lại</span>
+              </button>
             )}
-          </div>
 
-          {/* Main Layout: Tactical Pitch + Bench Panel */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1fr) 340px',
-              gap: '24px',
-              alignItems: 'start',
-            }}
-          >
-            {/* --- TACTICAL PITCH --- */}
-            <div
-              className="tactical-pitch-container"
-              style={{
-                background: 'linear-gradient(180deg, #0f3822 0%, #092315 100%)',
-                border: '2px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px',
-                padding: '36px 20px',
-                position: 'relative',
-                minHeight: '620px',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5), inset 0 0 100px rgba(0,0,0,0.3)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                overflow: 'hidden',
-              }}
-            >
-              {/* Pitch Markings */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: 0,
-                  right: 0,
-                  height: '2px',
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  transform: 'translateY(-50%)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: '130px',
-                  height: '130px',
-                  border: '2px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: '6px',
-                  height: '6px',
-                  background: 'rgba(255, 255, 255, 0.25)',
-                  borderRadius: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: '50%',
-                  width: '260px',
-                  height: '90px',
-                  border: '2px solid rgba(255, 255, 255, 0.15)',
-                  borderTop: 'none',
-                  transform: 'translateX(-50%)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: '50%',
-                  width: '260px',
-                  height: '90px',
-                  border: '2px solid rgba(255, 255, 255, 0.15)',
-                  borderBottom: 'none',
-                  transform: 'translateX(-50%)',
-                  pointerEvents: 'none',
-                }}
-              />
+            <div className="scout-hud-title-group">
+              {squad && (
+                isEditingName ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <input
+                      type="text"
+                      value={nameInputValue}
+                      onChange={(e) => setNameInputValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') void handleSaveSquadName();
+                        if (e.key === 'Escape') setIsEditingName(false);
+                      }}
+                      className="scout-clean-input"
+                      style={{ height: '32px', fontSize: '14px', fontWeight: 700, padding: '0 10px', width: '200px' }}
+                      autoFocus
+                    />
+                    <button type="button" onClick={handleSaveSquadName} className="scout-btn scout-btn-sm scout-btn-primary">Lưu</button>
+                    <button type="button" onClick={() => setIsEditingName(false)} className="scout-btn scout-btn-sm scout-btn-secondary">Hủy</button>
+                  </div>
+                ) : (
+                  <h1
+                    className="scout-hud-title"
+                    onClick={handleStartEditName}
+                    title="Nhấp để đổi tên đội"
+                  >
+                    <span>{squad.name}</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}>
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                    </svg>
+                  </h1>
+                )
+              )}
 
-              {/* Pitch Formation Rows */}
-              {formationLayout.map((row) => (
-                <div
-                  key={row.name}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-around',
-                    alignItems: 'center',
-                    zIndex: 10,
-                    margin: '8px 0',
-                  }}
-                >
-                  {row.slots.map((slot) => {
-                    const assignedPlayer = findStarterForSlot(players, slot);
-                    const isDragOver = dragOverTarget === `slot-${slot.code}`;
-
-                    return (
-                      <div
-                        key={slot.code}
-                        onDragOver={(e) => handleDragOver(e, `slot-${slot.code}`)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDropOnStarterSlot(e, slot)}
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          width: '95px',
-                          textAlign: 'center',
-                          transform: isDragOver ? 'scale(1.08)' : 'scale(1)',
-                          transition: 'transform 0.18s ease',
-                        }}
-                      >
-                        {assignedPlayer ? (
-                          // Occupied Slot
-                          <div
-                            draggable={true}
-                            onDragStart={(e) =>
-                              handleDragStart(
-                                e,
-                                assignedPlayer.playerId,
-                                'STARTER',
-                                assignedPlayer.slotCode,
-                                assignedPlayer.player,
-                              )
-                            }
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              position: 'relative',
-                              cursor: 'grab',
-                              userSelect: 'none',
-                            }}
-                          >
-                            {/* Captain Badge & Toggle (TC-01, TC-02, TC-03) */}
-                            <button
-                              type="button"
-                              title={
-                                assignedPlayer.isCaptain
-                                  ? 'Team Captain (Click to remove)'
-                                  : 'Click to make Captain'
-                              }
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (assignedPlayer.isCaptain) {
-                                  void handleRemoveCaptain(assignedPlayer.playerId);
-                                } else {
-                                  void handleSetCaptain(assignedPlayer.playerId);
-                                }
-                              }}
-                              style={{
-                                position: 'absolute',
-                                top: '-6px',
-                                right: '8px',
-                                background: assignedPlayer.isCaptain
-                                  ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-                                  : 'rgba(15, 23, 42, 0.85)',
-                                color: assignedPlayer.isCaptain ? '#000000' : '#f59e0b',
-                                fontWeight: 900,
-                                fontSize: '10px',
-                                width: '20px',
-                                height: '20px',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                                zIndex: 20,
-                                border: assignedPlayer.isCaptain
-                                  ? '1.5px solid #ffffff'
-                                  : '1px solid rgba(245, 158, 11, 0.4)',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              {assignedPlayer.isCaptain ? 'C' : '⭐'}
-                            </button>
-
-                            {/* Remove button */}
-                            <button
-                              type="button"
-                              title="Remove player"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                void handleRemovePlayer(
-                                  assignedPlayer.playerId,
-                                  assignedPlayer.player?.name || 'Player',
-                                );
-                              }}
-                              style={{
-                                position: 'absolute',
-                                top: '-6px',
-                                left: '8px',
-                                width: '18px',
-                                height: '18px',
-                                borderRadius: '50%',
-                                background: '#ef4444',
-                                color: '#ffffff',
-                                border: 'none',
-                                fontSize: '10px',
-                                fontWeight: 'bold',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                zIndex: 20,
-                              }}
-                            >
-                              ✕
-                            </button>
-
-                            {/* Player Circle */}
-                            <div
-                              style={{
-                                width: '54px',
-                                height: '54px',
-                                borderRadius: '50%',
-                                background: assignedPlayer.isCaptain
-                                  ? 'linear-gradient(135deg, #f59e0b, #b45309)'
-                                  : 'linear-gradient(135deg, #0284c7, #0369a1)',
-                                border: isDragOver
-                                  ? '2px solid #22c55e'
-                                  : assignedPlayer.isCaptain
-                                  ? '2px solid #fbbf24'
-                                  : '2px solid #38bdf8',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
-                                color: '#ffffff',
-                                fontWeight: 800,
-                                fontSize: '16px',
-                                marginBottom: '6px',
-                                position: 'relative',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {assignedPlayer.player?.imageUrl ? (
-                                <img
-                                  src={assignedPlayer.player.imageUrl}
-                                  alt={assignedPlayer.player.name}
-                                  style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                  }}
-                                  onError={(e) => {
-                                    (e.target as HTMLElement).style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <span>{assignedPlayer.player?.shirtNumber || slot.label}</span>
-                              )}
-                            </div>
-
-                            {/* Name Tag */}
-                            <div
-                              style={{
-                                background: 'rgba(15, 23, 42, 0.9)',
-                                backdropFilter: 'blur(8px)',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
-                                borderRadius: '6px',
-                                padding: '2px 8px',
-                                color: '#f8fafc',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                whiteSpace: 'nowrap',
-                                maxWidth: '92px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              {assignedPlayer.player?.shortName || assignedPlayer.player?.name || 'Player'}
-                            </div>
-
-                            {/* Slot Badge */}
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                color: '#38bdf8',
-                                fontWeight: 600,
-                                marginTop: '2px',
-                              }}
-                            >
-                              {slot.label} {assignedPlayer.isCaptain ? '(C)' : ''}
-                            </span>
-                          </div>
-                        ) : (
-                          // Empty Slot
-                          <div
-                            onClick={() => handleOpenPickerForSlot(slot.code)}
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: '50px',
-                                height: '50px',
-                                borderRadius: '50%',
-                                border: isDragOver
-                                  ? '2px solid #22c55e'
-                                  : '2px dashed rgba(255, 255, 255, 0.35)',
-                                background: isDragOver
-                                  ? 'rgba(34, 197, 94, 0.25)'
-                                  : 'rgba(15, 23, 42, 0.4)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: isDragOver ? '#22c55e' : 'rgba(255, 255, 255, 0.65)',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                marginBottom: '4px',
-                                transition: 'all 0.2s ease',
-                              }}
-                            >
-                              + {slot.label}
-                            </div>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                color: 'rgba(255, 255, 255, 0.45)',
-                              }}
-                            >
-                              Add
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-
-            {/* --- BENCH (SUBSTITUTES) PANEL --- */}
-            <div
-              className="tactical-bench-container"
-              onDragOver={(e) => handleDragOver(e, 'bench-area')}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDropOnBench}
-              style={{
-                background: dragOverTarget === 'bench-area'
-                  ? 'rgba(34, 197, 94, 0.12)'
-                  : 'rgba(15, 23, 42, 0.75)',
-                backdropFilter: 'blur(16px)',
-                border: dragOverTarget === 'bench-area'
-                  ? '2px dashed #22c55e'
-                  : '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '20px',
-                padding: '24px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '16px',
-                  paddingBottom: '12px',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                }}
-              >
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: '15px',
-                    fontWeight: 700,
-                    color: '#f8fafc',
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Substitutes
-                </h3>
-                <span
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    background: 'rgba(56, 189, 248, 0.15)',
-                    color: '#38bdf8',
-                  }}
-                >
-                  {substitutes.length}
-                </span>
-              </div>
-
-              {substitutes.length === 0 ? (
-                <div
-                  style={{
-                    padding: '36px 16px',
-                    textAlign: 'center',
-                    border: '1px dashed rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                  }}
-                >
-                  <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>🪑</span>
-                  <p style={{ margin: '0 0 12px', fontSize: '13px', color: '#64748b' }}>
-                    No substitutes on bench
-                  </p>
+              {squad && (
+                <div className="scout-hud-subline">
                   <button
                     type="button"
-                    className="scout-btn scout-btn-sm scout-btn-secondary"
-                    onClick={handleOpenPickerForBench}
-                    style={{ fontSize: '11px', padding: '6px 12px' }}
+                    className="scout-hud-formation-btn"
+                    onClick={() => setIsFormationModalOpen(true)}
+                    title="Nhấp để đổi sơ đồ chiến thuật"
                   >
-                    + Add Substitute
+                    <span>{squad.formationCode}</span>
+                    <span style={{ fontSize: '9px' }}>▾</span>
                   </button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {substitutes.map((sub, idx) => (
-                    <div
-                      key={sub.id || sub.playerId}
-                      draggable={true}
-                      onDragStart={(e) =>
-                        handleDragStart(e, sub.playerId, 'SUBSTITUTE', null, sub.player)
-                      }
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '10px 14px',
-                        background: 'rgba(30, 41, 59, 0.4)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        borderRadius: '12px',
-                        cursor: 'grab',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          color: '#64748b',
-                          width: '16px',
-                        }}
-                      >
-                        {idx + 1}
-                      </span>
-
-                      <div
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #475569, #334155)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#ffffff',
-                          fontWeight: 700,
-                          fontSize: '12px',
-                          overflow: 'hidden',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {sub.player?.imageUrl ? (
-                          <img
-                            src={sub.player.imageUrl}
-                            alt={sub.player.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <span>{sub.player?.shirtNumber || 'SUB'}</span>
-                        )}
-                      </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h4
-                          style={{
-                            margin: '0 0 2px',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            color: '#f8fafc',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {sub.player?.name || 'Player'}
-                        </h4>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            color: '#94a3b8',
-                          }}
-                        >
-                          {sub.player?.primaryPosition || 'SUB'}
-                          {sub.player?.currentTeam ? ` · ${sub.player.currentTeam.shortName || sub.player.currentTeam.name}` : ''}
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        title="Remove player"
-                        onClick={() =>
-                          handleRemovePlayer(sub.playerId, sub.player?.name || 'Player')
-                        }
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#ef4444',
-                          fontSize: '14px',
-                          cursor: 'pointer',
-                          padding: '4px',
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
+                  <span className="scout-hud-starters-badge">
+                    STARTERS {startingXI.length}/11
+                  </span>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      ) : null}
 
-      {/* --- PLAYER PICKER DRAWER / MODAL --- */}
-      {isPickerOpen && (
-        <div className="scout-modal-overlay" onClick={() => setIsPickerOpen(false)}>
-          <div
-            className="scout-modal-dialog"
-            style={{
-              maxWidth: '540px',
-              width: '90%',
-              background: 'rgba(15, 23, 42, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '20px',
-              padding: '24px',
-              color: '#f8fafc',
-              maxHeight: '85vh',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '16px',
-              }}
+          {/* Right: Save Button + Delete Button */}
+          <div className="scout-hud-right">
+            <button
+              type="button"
+              className="scout-hud-save-btn"
+              onClick={handleSaveSquad}
+              disabled={isSaving}
+              title="Lưu cấu hình đội hình"
             >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+              <span>{isSaving ? 'Đang lưu...' : 'SAVE SQUAD'}</span>
+            </button>
+
+            <button
+              type="button"
+              className="scout-hud-delete-btn"
+              onClick={() => setIsDeleteModalOpen(true)}
+              title="Xóa đội hình này"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* ERROR / LOADING FEEDBACK */}
+        {error && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', padding: '12px 20px', textAlign: 'center', margin: '8px auto', maxWidth: '440px', color: '#fca5a5' }}>
+            <h4 style={{ margin: '0 0 4px', color: '#f87171', fontSize: '13px' }}>{error}</h4>
+            <button type="button" className="scout-btn scout-btn-secondary" style={{ padding: '3px 12px', fontSize: '11px' }} onClick={fetchSquadData}>↻ Thử lại</button>
+          </div>
+        )}
+
+        {loading && !error && (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '14px', fontWeight: 700 }}>
+            Đang tải dữ liệu chiến thuật...
+          </div>
+        )}
+
+        {/* CENTERED TACTICAL PITCH WITH ILLUMINATED TURF */}
+        {!loading && !error && squad && (
+          <div className="scout-tactical-pitch-stage">
+            <div className="scout-tactical-pitch-canvas">
+              {/* Field Markings SVG */}
+              <svg
+                viewBox="0 0 600 800"
+                preserveAspectRatio="none"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+              >
+                {/* Outer Touchlines */}
+                <rect x="20" y="20" width="560" height="760" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" />
+
+                {/* Halfway line */}
+                <line x1="20" y1="400" x2="580" y2="400" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" />
+
+                {/* Center Circle & Spot */}
+                <circle cx="300" cy="400" r="76" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" />
+                <circle cx="300" cy="400" r="4.5" fill="rgba(255,255,255,0.75)" />
+
+                {/* Corner Arcs */}
+                <path d="M 20 40 A 20 20 0 0 0 40 20" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+                <path d="M 560 20 A 20 20 0 0 0 580 40" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+                <path d="M 20 760 A 20 20 0 0 1 40 780" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+                <path d="M 560 780 A 20 20 0 0 1 580 760" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+
+                {/* Opponent Goal Box (Top / Attack) */}
+                <rect x="175" y="20" width="250" height="115" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" />
+                <rect x="230" y="20" width="140" height="42" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
+                <circle cx="300" cy="90" r="4" fill="rgba(255,255,255,0.6)" />
+                <path d="M 240 135 A 65 65 0 0 0 360 135" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+
+                {/* Our Goal Box (Bottom / Goalkeeper) */}
+                <rect x="175" y="665" width="250" height="115" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" />
+                <rect x="230" y="738" width="140" height="42" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
+                <circle cx="300" cy="710" r="4" fill="rgba(255,255,255,0.6)" />
+                <path d="M 240 665 A 65 65 0 0 1 360 665" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
+              </svg>
+
+              {/* 11 TACTICAL SLOTS RENDERED ON PITCH */}
+              {tacticalSlots.map((slot) => {
+                const assignedPlayer = findStarterForSlot(players, slot);
+                const isMenuOpen = activeMenuSlotCode === slot.code;
+                const cleanPos = getCleanDisplayPosition(slot.requiredPosition || slot.displayRole || slot.code);
+                const posCat = getSlotCategory(slot.requiredPosition || slot.code);
+                const pillColor = getPillBadgeColor(slot.requiredPosition || slot.code);
+                const isLowerHalf = slot.y > 55;
+
+                return (
+                  <div
+                    key={slot.code}
+                    className="scout-tactical-slot"
+                    style={{
+                      left: `${slot.x}%`,
+                      top: `${slot.y}%`,
+                      zIndex: isMenuOpen ? 200 : 10,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {assignedPlayer ? (
+                      <>
+                        {/* OCCUPIED COMPACT FOOTBALL CARD */}
+                        <div
+                          className={`scout-player-card-compact ${posCat}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuSlotCode((prev) => (prev === slot.code ? null : slot.code));
+                          }}
+                          title={`Quản lý ${assignedPlayer.player?.name || 'Cầu thủ'}`}
+                        >
+                          {/* Position Pill Badge */}
+                          <span className="scout-card-pos-badge" style={{ background: pillColor }}>
+                            {cleanPos}
+                          </span>
+
+                          {/* Player Avatar */}
+                          <div className="scout-card-compact-avatar-wrap">
+                            {assignedPlayer.player?.imageUrl ? (
+                              <img
+                                src={assignedPlayer.player.imageUrl}
+                                alt={assignedPlayer.player.name}
+                                className="scout-card-compact-avatar"
+                                onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                              />
+                            ) : (
+                              <div className="scout-card-compact-fallback">
+                                <JerseyIcon size={18} />
+                              </div>
+                            )}
+                            {assignedPlayer.isCaptain && (
+                              <span className="scout-card-captain-badge" title="Đội trưởng">C</span>
+                            )}
+                          </div>
+
+                          {/* Player Name */}
+                          <div className="scout-card-compact-name" title={assignedPlayer.player?.name}>
+                            {assignedPlayer.player?.shortName || assignedPlayer.player?.name || 'Player'}
+                          </div>
+                        </div>
+
+                        {/* Tactical Action Menu (Glassmorphic Popover with Proper Spacing & Alignment) */}
+                        {isMenuOpen && (
+                          <div
+                            className={`tactical-context-popover ${isLowerHalf ? 'pop-up' : 'pop-down'}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="tactical-popover-header">
+                              {assignedPlayer.player?.name || 'Player'}
+                            </div>
+                            <button
+                              type="button"
+                              className="tactical-action-item"
+                              onClick={() => {
+                                setActiveMenuSlotCode(null);
+                                handleOpenSwapForSlot(slot, assignedPlayer);
+                              }}
+                            >
+                              <span className="tactical-action-icon">🔄</span>
+                              <span>Đổi cầu thủ</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="tactical-action-item"
+                              onClick={() => {
+                                setActiveMenuSlotCode(null);
+                                void handleMoveStarterToBench(assignedPlayer.playerId);
+                              }}
+                            >
+                              <span className="tactical-action-icon">⬇️</span>
+                              <span>Cho ra ghế dự bị</span>
+                            </button>
+                            {!assignedPlayer.isCaptain && (
+                              <button
+                                type="button"
+                                className="tactical-action-item"
+                                onClick={() => {
+                                  setActiveMenuSlotCode(null);
+                                  handleSetCaptain(assignedPlayer.playerId);
+                                }}
+                              >
+                                <span className="tactical-action-icon">⭐</span>
+                                <span>Chọn làm Đội trưởng</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="tactical-action-item destructive"
+                              onClick={() => {
+                                setActiveMenuSlotCode(null);
+                                void handleRemovePlayer(assignedPlayer.playerId);
+                              }}
+                            >
+                              <span className="tactical-action-icon">🗑️</span>
+                              <span>Bỏ khỏi đội</span>
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      // SUBTLE TACTICAL EMPTY SLOT MARKER
+                      <button
+                        type="button"
+                        className="scout-empty-slot-marker"
+                        onClick={() => handleOpenPickerForSlot(slot)}
+                        title={`Chọn cầu thủ cho vị trí ${cleanPos}`}
+                      >
+                        <div className="scout-marker-plus">+</div>
+                        <div className="scout-marker-role" style={{ color: pillColor }}>
+                          {cleanPos}
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+                {/* MATCHDAY SUBSTITUTES DOCK (Slide-up drawer on hover / click) */}
+        <div
+          className={`scout-bench-drawer ${isBenchOpen ? 'is-open' : ''}`}
+        >
+          {/* Drawer Top Tab / Header */}
+          <div
+            className="scout-bench-drawer-tab"
+            onClick={() => setIsBenchOpen((prev) => !prev)}
+            title="Nhấp hoặc di chuột để mở/đóng danh sách dự bị"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '13px' }}>🛡️</span>
+              <span style={{ fontWeight: 800 }}>DỰ BỊ / SUBSTITUTES</span>
+              <span
+                style={{
+                  background: substitutes.length > 0 ? 'rgba(37, 99, 235, 0.3)' : 'rgba(255, 255, 255, 0.1)',
+                  color: substitutes.length > 0 ? '#60a5fa' : '#94a3b8',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  fontSize: '10.5px',
+                  fontWeight: 800,
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}
+              >
+                {substitutes.length}/7 SLOTS
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11px', color: '#94a3b8' }}>
+              <span>{isBenchOpen ? '▼ Thu gọn' : '▲ Di chuột hoặc nhấp để xem'}</span>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  color: '#ffffff',
+                  fontSize: '10px',
+                }}
+              >
+                {isBenchOpen ? '✕' : '▲'}
+              </span>
+            </div>
+          </div>
+
+          {/* Drawer Body with 7 Substitutes Cards */}
+          <div className="scout-bench-drawer-body">
+            <div className="scout-bench-row-7">
+              {Array.from({ length: 7 }).map((_, idx) => {
+                const sub = substitutes[idx];
+                if (sub) {
+                  const posCode = getCleanDisplayPosition(sub.player?.primaryPosition || 'SUB');
+                  const pillColor = getPillBadgeColor(posCode);
+                  const isBenchMenuOpen = activeBenchMenuId === sub.id;
+
+                  return (
+                    <div
+                      key={sub.id}
+                      className="scout-bench-slot-card occupied"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveBenchMenuId((prev) => (prev === sub.id ? null : sub.id));
+                      }}
+                    >
+                      <div className="scout-card-header" style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
+                        <span style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8' }}>#{idx + 1}</span>
+                        <span className="scout-card-pos-badge" style={{ background: pillColor }}>
+                          {posCode}
+                        </span>
+                      </div>
+
+                      <div className="scout-card-compact-avatar-wrap">
+                        {sub.player?.imageUrl ? (
+                          <img
+                            src={sub.player.imageUrl}
+                            alt={sub.player.name}
+                            className="scout-card-compact-avatar"
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="scout-card-compact-fallback">
+                            <JerseyIcon size={18} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="scout-card-compact-name" title={sub.player?.name}>
+                        {sub.player?.shortName || sub.player?.name || 'Player'}
+                      </div>
+
+                      {/* Bench Context Popover */}
+                      {isBenchMenuOpen && (
+                        <div className="tactical-context-popover" onClick={(e) => e.stopPropagation()}>
+                          <div style={{ padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>
+                            {sub.player?.name || 'Player'}
+                          </div>
+                          <button
+                            type="button"
+                            className="tactical-action-item"
+                            onClick={() => {
+                              setActiveBenchMenuId(null);
+                              void handlePromoteBenchPlayerToSlot(sub);
+                            }}
+                          >
+                            <span>⬆️</span>
+                            <span>Lên đá chính</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="tactical-action-item destructive"
+                            onClick={() => {
+                              setActiveBenchMenuId(null);
+                              void handleRemovePlayer(sub.playerId);
+                            }}
+                          >
+                            <span>🗑️</span>
+                            <span>Bỏ khỏi đội</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={`empty-sub-${idx}`}
+                    className="scout-bench-slot-card empty"
+                    onClick={() => handleOpenPickerForBench()}
+                    title="Thêm cầu thủ dự bị"
+                  >
+                    <div className="scout-marker-plus">+</div>
+                    <div style={{ fontSize: '10px', fontWeight: 600, color: '#94a3b8' }}>Click to Add</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+{/* ---------------------------------------------------- */}
+      {/* MODAL 1: TACTICAL PLAYER SELECTION (CLICK-TO-ASSIGN) */}
+      {/* ---------------------------------------------------- */}
+      {isPickerOpen && (
+        <div
+          className="scout-modal-clean-overlay"
+          onClick={() => setIsPickerOpen(false)}
+          role="presentation"
+        >
+          <div
+            className="scout-modal-clean-dialog squad-dialog"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="player-picker-title"
+            style={{ maxWidth: '580px' }}
+          >
+            {/* Modal Header */}
+            <div className="scout-modal-clean-header" style={{ marginBottom: '14px' }}>
               <div>
-                <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700 }}>
-                  Select Player for {pickerTargetRole === 'STARTER' ? `Slot ${pickerTargetSlot}` : 'Bench'}
+                <h3 id="player-picker-title" style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                  {pickerTargetRole === 'STARTER' && pickerTargetSlot ? (
+                    <span>
+                      Assign Player for <strong style={{ color: '#2563eb' }}>{pickerTargetSlot.displayRole || pickerTargetSlot.label}</strong>
+                    </span>
+                  ) : (
+                    <span>Add Player to Matchday Bench</span>
+                  )}
                 </h3>
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                  Search and click to add to your squad
-                </span>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                  {pickerTargetRole === 'STARTER' && pickerTargetSlot
+                    ? `Showing players eligible for ${pickerTargetSlot.requiredPosition} (Primary or Secondary position)`
+                    : 'Select a reserve player for your tactical substitutions'}
+                </p>
               </div>
               <button
                 type="button"
-                className="scout-modal-close"
                 onClick={() => setIsPickerOpen(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                }}
+                className="scout-btn-icon scout-btn-ghost"
+                aria-label="Close"
               >
                 ✕
               </button>
             </div>
 
-            <input
-              type="text"
-              className="scout-input"
-              placeholder="Search player by name..."
-              value={poolSearch}
-              onChange={(e) => setPoolSearch(e.target.value)}
-              style={{ marginBottom: '16px' }}
-              autoFocus
-            />
+            {/* Position Filter Tag */}
+            {pickerTargetRole === 'STARTER' && pickerTargetSlot && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  background: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  marginBottom: '12px',
+                  fontSize: '12px',
+                  color: '#1e40af',
+                }}
+              >
+                <span style={{ fontWeight: 800 }}>Vị trí yêu cầu:</span>
+                <span
+                  style={{
+                    fontWeight: 900,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                  }}
+                >
+                  {pickerTargetSlot.displayRole || pickerTargetSlot.requiredPosition}{pickerTargetSlot.displayRole && pickerTargetSlot.displayRole !== pickerTargetSlot.requiredPosition ? ` (${pickerTargetSlot.requiredPosition})` : ''}
+                </span>
+                <span style={{ color: '#60a5fa', marginLeft: 'auto', fontSize: '11px' }}>
+                  Strict eligibility enabled
+                </span>
+              </div>
+            )}
 
-            {/* List */}
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Search Input */}
+            <div style={{ marginBottom: '14px' }}>
+              <SearchInput
+                placeholder="Search player by name..."
+                value={poolSearch}
+                onChange={(e) => setPoolSearch(e.target.value)}
+                onClear={() => setPoolSearch('')}
+                autoFocus
+              />
+            </div>
+
+            {/* Candidate List */}
+            <div style={{ maxHeight: '340px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {poolLoading ? (
-                <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
-                  Searching players...
+                <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                  Searching eligible players...
                 </div>
-              ) : poolPlayers.length === 0 ? (
-                <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
-                  No matching players found
+              ) : eligiblePoolPlayers.length === 0 ? (
+                <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
+                  <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>No eligible players found</div>
+                  <div style={{ fontSize: '12px' }}>
+                    {pickerTargetSlot
+                      ? `No players found with ${pickerTargetSlot.requiredPosition} in primary or secondary positions.`
+                      : 'Try adjusting your search query.'}
+                  </div>
                 </div>
               ) : (
-                poolPlayers.map((player) => {
-                  const inSquad = isPlayerInSquad(players, player.id);
+                eligiblePoolPlayers.map((player) => {
+                  const alreadyInSquad = players.some((p) => p.playerId === player.id);
+                  const isCurrentTargetOccupant = replacingPlayer?.playerId === player.id;
+                  const primaryPos = player.primaryPosition || 'N/A';
+                  const pillColor = getPillBadgeColor(primaryPos);
+                  const secondaryCodes = player.positions?.filter((p) => !p.isPrimary).map((p) => p.positionCode) || [];
 
                   return (
                     <div
                       key={player.id}
-                      onClick={() => !inSquad && handleAddPlayerFromPool(player, pickerTargetSlot, pickerTargetRole)}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '10px 14px',
-                        background: inSquad ? 'rgba(30, 41, 59, 0.2)' : 'rgba(30, 41, 59, 0.5)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        borderRadius: '12px',
-                        cursor: inSquad ? 'not-allowed' : 'pointer',
-                        opacity: inSquad ? 0.5 : 1,
+                        borderRadius: '10px',
+                        border: '1px solid #e2e8f0',
+                        background: isCurrentTargetOccupant ? '#f0fdf4' : '#ffffff',
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div
-                          style={{
-                            width: '38px',
-                            height: '38px',
-                            borderRadius: '50%',
-                            background: '#334155',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {player.imageUrl ? (
-                            <img
-                              src={player.imageUrl}
-                              alt={player.fullName}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                          ) : (
-                            <span>{player.shirtNumber || '⚽'}</span>
-                          )}
-                        </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                        {player.imageUrl ? (
+                          <img
+                            src={player.imageUrl}
+                            alt={player.fullName}
+                            style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #cbd5e1' }}
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                            <JerseyIcon size={18} />
+                          </div>
+                        )}
 
-                        <div>
-                          <h4 style={{ margin: '0 0 2px', fontSize: '14px', color: '#f8fafc' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {player.fullName}
-                          </h4>
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            {player.primaryPosition} · {player.currentTeam?.name || player.nationality || 'Unattached'}
-                          </span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>{player.currentTeam?.name || 'Free Agent'}</span>
+                            {secondaryCodes.length > 0 && (
+                              <span style={{ color: '#94a3b8' }}>• Sec: {secondaryCodes.join(', ')}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {inSquad ? (
-                        <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>
-                          In Squad
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 900,
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: pillColor,
+                            color: '#ffffff',
+                          }}
+                        >
+                          {primaryPos}
                         </span>
-                      ) : (
+
                         <button
                           type="button"
-                          className="scout-btn scout-btn-sm"
-                          style={{ padding: '4px 12px', fontSize: '12px' }}
+                          className="scout-btn scout-btn-sm scout-btn-primary"
+                          onClick={() => handleAssignPlayer(player)}
+                          disabled={isCurrentTargetOccupant}
                         >
-                          + Select
+                          {isCurrentTargetOccupant ? 'Current' : alreadyInSquad ? 'Move Here' : 'Select'}
                         </button>
-                      )}
+                      </div>
                     </div>
                   );
                 })
               )}
             </div>
+
+            {/* Modal Footer */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
+              <button
+                type="button"
+                className="scout-btn scout-btn-secondary"
+                onClick={() => setIsPickerOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* --- DELETE CONFIRMATION MODAL --- */}
-      {isDeleteModalOpen && (
-        <div className="scout-modal-overlay" onClick={() => setIsDeleteModalOpen(false)}>
+      {/* ---------------------------------------------------- */}
+      {/* MODAL 2: TACTICAL FORMATION SELECTOR (34 FORMATIONS) */}
+      {/* ---------------------------------------------------- */}
+      {isFormationModalOpen && (
+        <div
+          className="scout-modal-clean-overlay"
+          onClick={() => setIsFormationModalOpen(false)}
+          role="presentation"
+        >
           <div
-            className="scout-modal-dialog"
-            style={{
-              maxWidth: '440px',
-              width: '90%',
-              background: 'rgba(15, 23, 42, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '20px',
-              padding: '28px',
-              textAlign: 'center',
-              color: '#f8fafc',
-            }}
+            className="scout-modal-clean-dialog squad-dialog"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="formation-modal-title"
+            style={{ maxWidth: '640px' }}
           >
-            <div
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                background: 'rgba(239, 68, 68, 0.15)',
-                color: '#ef4444',
-                fontSize: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px',
-              }}
-            >
-              ⚠️
+            <div className="scout-modal-clean-header" style={{ marginBottom: '14px' }}>
+              <div>
+                <h3 id="formation-modal-title" style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                  Switch Tactical Formation
+                </h3>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                  Choose from 34 professional setups. Players will adapt to the new coordinate slots.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFormationModalOpen(false)}
+                className="scout-btn-icon scout-btn-ghost"
+                aria-label="Close"
+              >
+                ✕
+              </button>
             </div>
 
-            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>
-              Delete Squad?
-            </h3>
-            <p style={{ color: '#94a3b8', fontSize: '14px', margin: '0 0 20px', lineHeight: 1.5 }}>
-              Are you sure you want to delete <strong style={{ color: '#f8fafc' }}>"{squad?.name || 'this squad'}"</strong>? All tactical player placements will be removed. This action cannot be undone.
-            </p>
+            <FormationSelector
+              value={squad?.formationCode || '4-3-3'}
+              onChange={handleQuickChangeFormation}
+              label="FORMATION PRESETS"
+            />
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
               <button
                 type="button"
                 className="scout-btn scout-btn-secondary"
+                onClick={() => setIsFormationModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------- */}
+      {/* MODAL 3: DELETE SQUAD CONFIRMATION                   */}
+      {/* ---------------------------------------------------- */}
+      {isDeleteModalOpen && (
+        <div
+          className="scout-modal-overlay"
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <div
+            className="scout-modal-dialog"
+            style={{ maxWidth: '420px', textAlign: 'center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: '38px', marginBottom: '10px' }}>🗑️</div>
+            <h3 className="scout-modal-title" style={{ marginBottom: '8px' }}>
+              Delete Squad?
+            </h3>
+            <p style={{ fontSize: '13.5px', color: '#64748b', marginBottom: '22px', lineHeight: 1.5 }}>
+              Are you sure you want to delete <strong style={{ color: '#0f172a' }}>&ldquo;{squad?.name}&rdquo;</strong>? This action cannot be undone.
+            </p>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button
+                type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
                 disabled={submittingDelete}
+                className="scout-btn scout-btn-secondary"
+                style={{ minWidth: '110px' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="scout-btn"
-                style={{ background: '#ef4444' }}
-                onClick={handleDeleteSquad}
+                onClick={handleConfirmDelete}
                 disabled={submittingDelete}
+                className="scout-btn scout-btn-danger"
+                style={{ minWidth: '120px' }}
               >
                 {submittingDelete ? 'Deleting...' : 'Delete Squad'}
               </button>

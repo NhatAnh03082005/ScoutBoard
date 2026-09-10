@@ -10,6 +10,7 @@ interface ComparisonRadarChartProps {
   playerBHexColor?: string;
   selectedPosition: string;
   radarTitle?: string;
+  radarTitleB?: string;
   commonPositions?: string[];
   onSelectPosition?: (pos: string) => void;
 }
@@ -23,6 +24,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
   playerBHexColor = '#f59e0b',
   selectedPosition,
   radarTitle = 'TACTICAL PROFILE',
+  radarTitleB,
   commonPositions = [],
   onSelectPosition,
 }) => {
@@ -98,19 +100,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
   });
 
   return (
-    <div
-      style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '16px',
-        padding: '24px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        height: '100%',
-      }}
-    >
+    <div className="scout-card scout-comparison-radar-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
       {/* 1. Header: Title, Position Switcher & Player Legend Sub-row */}
       <div
         style={{
@@ -145,7 +135,7 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
             </h3>
             {radarTitle && (
               <span style={{ color: '#64748b', fontWeight: 700, fontSize: '11.5px', textTransform: 'uppercase' }}>
-                · {radarTitle}
+                · {radarTitleB && radarTitleB !== radarTitle ? `${radarTitle} vs ${radarTitleB}` : radarTitle}
               </span>
             )}
           </div>
@@ -411,17 +401,32 @@ export const ComparisonRadarChart: React.FC<ComparisonRadarChartProps> = ({
                 style={{ cursor: 'pointer' }}
               >
                 {/* Metric Title */}
-                <text
-                  x={pos.x}
-                  y={pos.y - 6}
-                  textAnchor={pos.textAnchor}
-                  fill={isHovered ? '#0f172a' : '#334155'}
-                  fontSize="11"
-                  fontWeight="900"
-                  letterSpacing="0.04em"
-                >
-                  {mA.label}
-                </text>
+                {!mB || mA.label === mB.label ? (
+                  <text
+                    x={pos.x}
+                    y={pos.y - 6}
+                    textAnchor={pos.textAnchor}
+                    fill={isHovered ? '#0f172a' : '#334155'}
+                    fontSize="11"
+                    fontWeight="900"
+                    letterSpacing="0.04em"
+                  >
+                    {mA.label}
+                  </text>
+                ) : (
+                  <text
+                    x={pos.x}
+                    y={pos.y - 6}
+                    textAnchor={pos.textAnchor}
+                    fontSize="9.5"
+                    fontWeight="800"
+                    letterSpacing="0.02em"
+                  >
+                    <tspan fill={playerAHexColor}>{mA.label}</tspan>
+                    <tspan fill="#94a3b8"> / </tspan>
+                    <tspan fill={playerBHexColor}>{mB.label}</tspan>
+                  </text>
+                )}
 
                 {/* Score Comparison: [Score A] vs [Score B] with Winner Highlight */}
                 <text

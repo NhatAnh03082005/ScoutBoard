@@ -27,9 +27,9 @@ const POSITION_LABELS: Record<string, string> = {
   RWB: 'Right Wing Back',
   CDM: 'Defensive Midfield',
   CM: 'Central Midfield',
-  CAM: 'Attacking Midfield',
   LM: 'Left Midfield',
   RM: 'Right Midfield',
+  CAM: 'Attacking Midfield',
   LW: 'Left Wing',
   RW: 'Right Wing',
   CF: 'Centre Forward',
@@ -38,6 +38,35 @@ const POSITION_LABELS: Record<string, string> = {
   MID: 'Midfielder',
   FWD: 'Forward',
 };
+
+export const POSITION_ORDER = [
+  'GK',
+  'CB',
+  'LB',
+  'RB',
+  'LWB',
+  'RWB',
+  'CDM',
+  'CM',
+  'LM',
+  'RM',
+  'CAM',
+  'LW',
+  'RW',
+  'CF',
+  'ST',
+];
+
+export function sortPositions(positions: string[]): string[] {
+  return [...positions].sort((a, b) => {
+    const idxA = POSITION_ORDER.indexOf(a);
+    const idxB = POSITION_ORDER.indexOf(b);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.localeCompare(b);
+  });
+}
 
 export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
   searchInput,
@@ -160,9 +189,8 @@ export const PlayerFilters: React.FC<PlayerFiltersProps> = ({
             onChange={(e) => onFilterChange('position', e.target.value)}
           >
             <option value="">All Positions</option>
-            {(availablePositions && availablePositions.length > 0
-              ? availablePositions
-              : ['GK', 'LB', 'CB', 'RB', 'LWB', 'RWB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'CF', 'ST']
+            {sortPositions(
+              Array.from(new Set([...POSITION_ORDER, ...(availablePositions || [])]))
             ).map((pos) => (
               <option key={pos} value={pos}>
                 {pos} {POSITION_LABELS[pos] ? `- ${POSITION_LABELS[pos]}` : ''}

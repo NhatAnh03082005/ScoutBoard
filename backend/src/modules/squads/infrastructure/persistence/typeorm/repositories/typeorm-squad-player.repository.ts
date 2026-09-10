@@ -55,7 +55,7 @@ export class TypeOrmSquadPlayerRepository implements SquadPlayerRepository {
   async findPlayersWithDetailsBySquadId(squadId: string): Promise<any[]> {
     const entities = await this.ormRepository.find({
       where: { squadId },
-      relations: ['player', 'player.currentTeam'],
+      relations: ['player', 'player.currentTeam', 'player.positions'],
       order: { displayOrder: 'ASC', addedAt: 'ASC' },
     });
 
@@ -78,6 +78,11 @@ export class TypeOrmSquadPlayerRepository implements SquadPlayerRepository {
             heightCm: e.player.heightCm,
             weightKg: e.player.weightKg,
             primaryPosition: e.player.primaryPosition,
+            positions: (e.player.positions || []).map((pos: any) => ({
+              id: pos.id,
+              positionCode: pos.positionCode,
+              isPrimary: pos.isPrimary,
+            })),
             shirtNumber: e.player.shirtNumber,
             imageUrl: e.player.imageUrl,
             currentTeam: e.player.currentTeam

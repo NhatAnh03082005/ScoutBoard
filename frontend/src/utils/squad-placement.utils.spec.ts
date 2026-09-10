@@ -5,6 +5,7 @@ import {
   applyMoveStarter,
   applyStarterToBench,
   applyBenchToStarter,
+  isPlayerEligibleForSlot,
 } from './squad-placement.utils';
 import type { SquadPlayerItem } from '../types/squad.types';
 
@@ -44,7 +45,7 @@ describe('Squad Placement Utilities', () => {
 
   const initialPlayers: SquadPlayerItem[] = [mockStarterGK, mockStarterCB, mockSub];
 
-  describe('Formation Layout Validation', () => {
+  describe('Formation Layout & Pitch Orientation Validation', () => {
     const formations = ['4-3-3', '4-2-3-1', '4-4-2', '3-5-2', '3-4-3'];
 
     formations.forEach((fmt) => {
@@ -54,6 +55,98 @@ describe('Squad Placement Utilities', () => {
         const totalSlots = config.reduce((acc, row) => acc + row.slots.length, 0);
         expect(totalSlots).toBe(11);
       });
+
+      it(`should have Attackers at row 0 (top) and Goalkeeper at the bottom row for ${fmt}`, () => {
+        const config = FORMATION_CONFIGS[fmt];
+        const topRow = config[0];
+        const bottomRow = config[config.length - 1];
+
+        expect(topRow.name).toBe('Attackers');
+        expect(bottomRow.name).toBe('Goalkeeper');
+        expect(bottomRow.slots[0].requiredPosition).toBe('GK');
+      });
+    });
+
+    it('should assign canonical requiredPosition to all slots', () => {
+      Object.entries(FORMATION_CONFIGS).forEach(([_code, rows]) => {
+        rows.forEach((row) => {
+          row.slots.forEach((slot) => {
+            expect(slot.requiredPosition).toBeDefined();
+            expect(typeof slot.requiredPosition).toBe('string');
+            expect(slot.requiredPosition.length).toBeGreaterThan(0);
+          });
+        });
+      });
+    });
+  });
+
+  describe('isPlayerEligibleForSlot (Test Matrix)', () => {
+    // Example 1: Player Primary = CM, Secondary = CDM
+    const playerCmCdm = {
+      primaryPosition: 'CM',
+      positions: [
+        { positionCode: 'CM', isPrimary: true },
+        { positionCode: 'CDM', isPrimary: false },
+      ],
+    };
+
+    it('Example 1: CM / CDM player is eligible for CM and CDM, but rejected for CAM and CB', () => {
+      expect(isPlayerEligibleForSlot(playerCmCdm, 'CM')).toBe(true);
+      expect(isPlayerEligibleForSlot(playerCmCdm, 'CDM')).toBe(true);
+      expect(isPlayerEligibleForSlot(playerCmCdm, 'CAM')).toBe(false);
+      expect(isPlayerEligibleForSlot(playerCmCdm, 'CB')).toBe(false);
+    });
+
+    // Example 2: Player Primary = LW, Secondary = ST
+    const playerLwSt = {
+      primaryPosition: 'LW',
+      positions: [
+        { positionCode: 'LW', isPrimary: true },
+        { positionCode: 'ST', isPrimary: false },
+      ],
+    };
+
+    it('Example 2: LW / ST player is eligible for LW and ST, but rejected for RW and CAM', () => {
+      expect(isPlayerEligibleForSlot(playerLwSt, 'LW')).toBe(true);
+      expect(isPlayerEligibleForSlot(playerLwSt, 'ST')).toBe(true);
+      expect(isPlayerEligibleForSlot(playerLwSt, 'RW')).toBe(false);
+      expect(isPlayerEligibleForSlot(playerLwSt, 'CAM')).toBe(false);
+    });
+
+    // Example 3: Player Primary = CB, Secondary = LB
+    const playerCbLb = {
+      primaryPosition: 'CB',
+      positions: [
+        { positionCode: 'CB', isPrimary: true },
+        { positionCode: 'LB', isPrimary: false },
+      ],
+    };
+
+    it('Example 3: CB / LB player is eligible for CB and LB, but rejected for RB and CDM', () => {
+      expect(isPlayerEligibleForSlot(playerCbLb, 'CB')).toBe(true);
+      expect(isPlayerEligibleForSlot(playerCbLb, 'LB')).toBe(true);
+      expect(isPlayerEligibleForSlot(playerCbLb, 'RB')).toBe(false);
+      expect(isPlayerEligibleForSlot(playerCbLb, 'CDM')).toBe(false);
+    });
+
+    // Example 4: Player Primary = GK
+    const playerGk = {
+      primaryPosition: 'GK',
+      positions: [{ positionCode: 'GK', isPrimary: true }],
+    };
+
+    it('Example 4: GK player is only eligible for GK, rejected for CB and ST', () => {
+      expect(isPlayerEligibleForSlot(playerGk, 'GK')).toBe(true);
+      expect(isPlayerEligibleForSlot(playerGk, 'CB')).toBe(false);
+      expect(isPlayerEligibleForSlot(playerGk, 'ST')).toBe(false);
+    });
+
+    it('Edge cases: handles case-insensitivity, whitespace, null/undefined player or requiredPosition', () => {
+      expect(isPlayerEligibleForSlot(playerCmCdm, ' cm ')).toBe(true);
+      expect(isPlayerEligibleForSlot(playerCmCdm, 'cdm')).toBe(true);
+      expect(isPlayerEligibleForSlot(null, 'CM')).toBe(false);
+      expect(isPlayerEligibleForSlot(undefined, 'CM')).toBe(false);
+      expect(isPlayerEligibleForSlot(playerCmCdm, '')).toBe(false);
     });
   });
 

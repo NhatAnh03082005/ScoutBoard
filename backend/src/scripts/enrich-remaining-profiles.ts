@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 import { DataSource } from 'typeorm';
@@ -8,9 +11,10 @@ import * as dns from 'dns';
 
 dns.setDefaultResultOrder('ipv4first');
 
-const API_KEY = process.env.API_FOOTBALL_KEY || '02ada4bba01560e3ca554bf514f793ec';
+const API_KEY = process.env.API_FOOTBALL_KEY || '09b395257421d95a43fa4fd945df43b7';
 const BASE_HOST = 'v3.football.api-sports.io';
-const DELAY_BETWEEN_CALLS_MS = 6200; // Strictly adhere to 10 requests / minute max
+const DELAY_BETWEEN_CALLS_MS = 6200; // Strictly adhere to 10 requests / minute max (6.2s delay)
+const SAFETY_RESERVE_REQUESTS = 5; // Never spend below this threshold
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -120,76 +124,93 @@ async function main() {
       `Daily Quota: ${currentRequests}/${limitDay} used. Remaining: ${remainingQuota}\n`,
     );
 
-    if (remainingQuota <= 0) {
+    if (remainingQuota <= SAFETY_RESERVE_REQUESTS) {
       console.warn(
-        `[QUOTA LIMIT] 0 request(s) left today (${currentRequests}/${limitDay}). Cannot call API without HTTP 429. Stopping safely.`,
+        `[QUOTA LIMIT] Only ${remainingQuota} request(s) left today (Safety reserve: ${SAFETY_RESERVE_REQUESTS}). Stopping safely to prevent HTTP 429 lockout.`,
       );
     } else {
-      // 3. Find Players Where Required Profile Fields Are Missing (Resumable)
-      console.log('--- 3. FINDING INCOMPLETE PLAYERS (RESUMABLE) ---');
+      // 3. Find Players Where Required Profile Fields Are Missing (Prioritizing Active Match Players)
+      console.log('--- 3. FINDING INCOMPLETE PLAYERS (ACTIVE MATCH PLAYERS FIRST) ---');
       const incompletePlayers = await dataSource.query(`
-        SELECT p.id, p.name, p.external_id, t.name as team_name
+        SELECT p.id, p.name, p.external_id, t.name as team_name, COUNT(pms.id) as match_count
         FROM players p
+        JOIN player_match_statistics pms ON pms.player_id = p.id
         LEFT JOIN teams t ON t.id = p.current_team_id
         WHERE (p.date_of_birth IS NULL OR p.nationality IS NULL OR p.height_cm IS NULL OR p.weight_kg IS NULL)
-        ORDER BY p.name ASC, p.id ASC;
+        GROUP BY p.id, p.name, p.external_id, t.name
+        ORDER BY match_count DESC, p.name ASC;
       `);
 
-      console.log(`Found ${incompletePlayers.length} players needing enrichment.\n`);
+      const maxToProcess = Math.min(
+        incompletePlayers.length,
+        Math.max(0, remainingQuota - SAFETY_RESERVE_REQUESTS),
+      );
+
+      console.log(
+        `Found ${incompletePlayers.length} active match players needing profile enrichment.`,
+      );
+      console.log(
+        `Will process up to ${maxToProcess} players (preserving ${SAFETY_RESERVE_REQUESTS} safety reserve requests).\n`,
+      );
 
       let processedCount = 0;
       let enrichedCount = 0;
 
-      for (let i = 0; i < incompletePlayers.length; i++) {
-        if (remainingQuota <= 0) {
+      for (let i = 0; i < maxToProcess; i++) {
+        if (remainingQuota <= SAFETY_RESERVE_REQUESTS) {
           console.warn(
             `\n[SAFETY STOP] Daily quota threshold reached (${remainingQuota} remaining). Stopping safely to prevent HTTP 429 lockout.`,
           );
           break;
         }
 
-      const player = incompletePlayers[i];
-      console.log(
-        `[${i + 1}/${incompletePlayers.length}] Processing ${player.name} (ID: ${player.external_id} | ${player.team_name || 'Free Agent'})...`,
-      );
-
-      await sleep(DELAY_BETWEEN_CALLS_MS);
-
-      try {
-        const profileRes = await callApiWithRetry(
-          `/players/profiles?player=${player.external_id}`,
-        );
-        remainingQuota--;
-        processedCount++;
-
-        // Verify API payload before persisting
-        const profileData = profileRes?.response?.[0]?.player;
-        if (!profileData || !profileData.id) {
-          console.warn(`  -> No profile data returned for ${player.name} (ExtID: ${player.external_id})`);
-          continue;
-        }
-
-        // Map response using official Mapper
-        const mappedEnrichment = ApiFootballPlayerMapper.fromSingleProfile(profileData);
-
-        // Persist through official Use Case and Repository
-        await enrichPlayerProfileUseCase.execute({
-          playerId: player.id,
-          enrichment: mappedEnrichment,
-        });
-
-        enrichedCount++;
+        const player = incompletePlayers[i];
         console.log(
-          `  -> Enriched: DOB=${mappedEnrichment.dateOfBirth ?? 'NULL'}, Nat=${mappedEnrichment.nationality ?? 'NULL'}, H=${mappedEnrichment.heightCm ?? 'NULL'}cm, W=${mappedEnrichment.weightKg ?? 'NULL'}kg (Quota left: ~${remainingQuota})`,
+          `[${i + 1}/${maxToProcess}] Processing ${player.name} (ExtID: ${player.external_id} | ${player.team_name || 'Free Agent'} | ${player.match_count} matches)...`,
         );
-      } catch (err: any) {
-        console.error(`  -> Failed for ${player.name}: ${err.message}`);
-      }
-    }
 
-    console.log('\n====================================================');
-    console.log(`BATCH FINISHED: ${processedCount} API requests made, ${enrichedCount} players enriched.`);
-    console.log('====================================================\n');
+        await sleep(DELAY_BETWEEN_CALLS_MS);
+
+        try {
+          const profileRes = await callApiWithRetry(
+            `/players/profiles?player=${player.external_id}`,
+          );
+          remainingQuota--;
+          processedCount++;
+
+          // Verify API payload before persisting
+          const profileData = profileRes?.response?.[0]?.player;
+          if (!profileData || !profileData.id) {
+            console.warn(
+              `  -> No profile data returned for ${player.name} (ExtID: ${player.external_id})`,
+            );
+            continue;
+          }
+
+          // Map response using official Mapper
+          const mappedEnrichment =
+            ApiFootballPlayerMapper.fromSingleProfile(profileData);
+
+          // Persist through official Use Case and Repository
+          await enrichPlayerProfileUseCase.execute({
+            playerId: player.id,
+            enrichment: mappedEnrichment,
+          });
+
+          enrichedCount++;
+          console.log(
+            `  -> Enriched: DOB=${mappedEnrichment.dateOfBirth ?? 'NULL'}, Nat=${mappedEnrichment.nationality ?? 'NULL'}, H=${mappedEnrichment.heightCm ?? 'NULL'}cm, W=${mappedEnrichment.weightKg ?? 'NULL'}kg (Quota left: ~${remainingQuota})`,
+          );
+        } catch (err: any) {
+          console.error(`  -> Failed for ${player.name}: ${err.message}`);
+        }
+      }
+
+      console.log('\n====================================================');
+      console.log(
+        `BATCH FINISHED: ${processedCount} API requests made, ${enrichedCount} players successfully enriched.`,
+      );
+      console.log('====================================================\n');
     }
 
     // 4. Post-Batch Coverage Audit

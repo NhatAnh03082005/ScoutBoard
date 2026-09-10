@@ -139,43 +139,12 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
           >
             COMPARISON SCOPE
           </label>
-          <div
-            style={{
-              display: 'inline-flex',
-              padding: '4px',
-              background: '#f1f5f9',
-              borderRadius: '12px',
-              border: '1px solid rgba(226, 232, 240, 0.8)',
-              gap: '4px',
-              width: '100%',
-              boxSizing: 'border-box',
-              height: '40px',
-              alignItems: 'center',
-            }}
-          >
+          <div className="scout-tabs-segmented" style={{ width: '100%', height: '40px', boxSizing: 'border-box' }}>
             <button
               type="button"
               onClick={() => onScopeChange('COMPETITION')}
-              style={{
-                flex: 1,
-                height: '100%',
-                background: scope === 'COMPETITION' ? '#ffffff' : 'transparent',
-                color: scope === 'COMPETITION' ? '#2563eb' : '#64748b',
-                fontWeight: scope === 'COMPETITION' ? 900 : 700,
-                boxShadow: scope === 'COMPETITION' ? '0 1px 2px rgba(0, 0, 0, 0.05)' : 'none',
-                padding: '0 12px',
-                borderRadius: '8px',
-                fontSize: '11.5px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                whiteSpace: 'nowrap',
-              }}
+              className={`scout-tab-segmented-btn ${scope === 'COMPETITION' ? 'active' : ''}`}
+              style={{ flex: 1, height: '100%', fontSize: '11.5px', letterSpacing: '0.04em', textTransform: 'uppercase' }}
             >
               Specific Competition
             </button>
@@ -183,26 +152,8 @@ export const PlayerComparisonScopeSelector: React.FC<PlayerComparisonScopeSelect
             <button
               type="button"
               onClick={() => onScopeChange('ALL')}
-              style={{
-                flex: 1,
-                height: '100%',
-                background: scope === 'ALL' ? '#ffffff' : 'transparent',
-                color: scope === 'ALL' ? '#2563eb' : '#64748b',
-                fontWeight: scope === 'ALL' ? 900 : 700,
-                boxShadow: scope === 'ALL' ? '0 1px 2px rgba(0, 0, 0, 0.05)' : 'none',
-                padding: '0 12px',
-                borderRadius: '8px',
-                fontSize: '11.5px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                whiteSpace: 'nowrap',
-              }}
+              className={`scout-tab-segmented-btn ${scope === 'ALL' ? 'active' : ''}`}
+              style={{ flex: 1, height: '100%', fontSize: '11.5px', letterSpacing: '0.04em', textTransform: 'uppercase' }}
             >
               All Competitions
             </button>

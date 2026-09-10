@@ -12,6 +12,7 @@ interface PlayerCardProps {
 export const PlayerCard: React.FC<PlayerCardProps> = ({
   player,
   onSelect,
+  onAddToShortlist,
 }) => {
   // Helper to compute age from dateOfBirth
   const calculateAge = (dateOfBirth?: string | null): string => {
@@ -165,6 +166,42 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           </div>
         )}
       </div>
+
+      {/* 6. Quick Add to Shortlist Action Button */}
+      {onAddToShortlist && (
+        <button
+          type="button"
+          className="scout-fc-card-quick-add"
+          aria-label={`Add ${player.fullName} to shortlist`}
+          title="Add to shortlist"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddToShortlist(player, e);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              e.preventDefault();
+              onAddToShortlist(player, e as any);
+            }
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 };

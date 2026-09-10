@@ -126,7 +126,8 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
   ): Promise<{ items: PlayerOrmEntity[]; total: number }> {
     const qb = this.repository
       .createQueryBuilder('player')
-      .leftJoinAndSelect('player.currentTeam', 'currentTeam');
+      .leftJoinAndSelect('player.currentTeam', 'currentTeam')
+      .leftJoinAndSelect('player.positions', 'positions');
 
     if (query.search && query.search.trim() !== '') {
       const searchTerm = `%${query.search.trim()}%`;
@@ -149,7 +150,16 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
     }
 
     if (query.position && query.position.trim() !== '') {
-      const posCode = query.position.trim().toUpperCase();
+      let posCode = query.position.trim().toUpperCase();
+      // Canonical mapping for tactical slot roles (LCM/RCM -> CM, LDM/RDM -> CDM, LAM/RAM -> CAM, etc.)
+      if (['LCM', 'RCM'].includes(posCode)) posCode = 'CM';
+      else if (['LDM', 'RDM'].includes(posCode)) posCode = 'CDM';
+      else if (['LAM', 'RAM', 'LCAM', 'RCAM'].includes(posCode)) posCode = 'CAM';
+      else if (['LCB', 'RCB'].includes(posCode)) posCode = 'CB';
+      else if (['LS', 'RS'].includes(posCode)) posCode = 'ST';
+      else if (posCode === 'LWB') posCode = 'LB';
+      else if (posCode === 'RWB') posCode = 'RB';
+
       qb.innerJoin('player.positions', 'pos');
 
       if (posCode === 'DEFENDER') {
@@ -167,6 +177,42 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       } else if (posCode === 'GOALKEEPER') {
         qb.andWhere(
           "(player.primaryPosition = 'GK' OR pos.positionCode = 'GK')",
+        );
+      } else if (posCode === 'CM') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('CM', 'CDM', 'CAM', 'MID') OR pos.positionCode IN ('CM', 'CDM', 'CAM', 'MID'))",
+        );
+      } else if (posCode === 'CDM') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('CDM', 'CM', 'MID') OR pos.positionCode IN ('CDM', 'CM', 'MID'))",
+        );
+      } else if (posCode === 'CAM') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('CAM', 'CM', 'SS', 'MID') OR pos.positionCode IN ('CAM', 'CM', 'SS', 'MID'))",
+        );
+      } else if (posCode === 'CB') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('CB', 'DEF') OR pos.positionCode IN ('CB', 'DEF'))",
+        );
+      } else if (posCode === 'ST') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('ST', 'CF', 'SS', 'FWD') OR pos.positionCode IN ('ST', 'CF', 'SS', 'FWD'))",
+        );
+      } else if (posCode === 'LB') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('LB', 'LWB', 'DEF') OR pos.positionCode IN ('LB', 'LWB', 'DEF'))",
+        );
+      } else if (posCode === 'RB') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('RB', 'RWB', 'DEF') OR pos.positionCode IN ('RB', 'RWB', 'DEF'))",
+        );
+      } else if (posCode === 'LM') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('LM', 'LW', 'LWB', 'CAM') OR pos.positionCode IN ('LM', 'LW', 'LWB', 'CAM'))",
+        );
+      } else if (posCode === 'RM') {
+        qb.andWhere(
+          "(player.primaryPosition IN ('RM', 'RW', 'RWB', 'CAM') OR pos.positionCode IN ('RM', 'RW', 'RWB', 'CAM'))",
         );
       } else {
         qb.andWhere(
@@ -346,13 +392,22 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
   }
 
   async getDistinctPositions(): Promise<string[]> {
-    const raw = await this.repository
-      .createQueryBuilder('player')
-      .select('DISTINCT player.primaryPosition', 'position')
-      .where('player.primaryPosition IS NOT NULL')
-      .orderBy('player.primaryPosition', 'ASC')
-      .getRawMany();
-
-    return raw.map((r) => r.position).filter(Boolean);
+    return [
+      'GK',
+      'CB',
+      'LB',
+      'RB',
+      'LWB',
+      'RWB',
+      'CDM',
+      'CM',
+      'LM',
+      'RM',
+      'CAM',
+      'LW',
+      'RW',
+      'CF',
+      'ST',
+    ];
   }
 }

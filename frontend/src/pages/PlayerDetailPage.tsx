@@ -13,6 +13,7 @@ import {
 } from "../services/player.service";
 import { getPositionRoleInfo, getPositionCategory } from "../utils/position.utils";
 import { PlayerRadarChart } from "../components/player/PlayerRadarChart";
+import { PerformanceCards } from "../components/player/PerformanceCards";
 import { getRadarMetrics } from "../utils/radar.utils";
 import { AddToShortlistModal } from "../components/shortlist/AddToShortlistModal";
 import { getNationalityFlagUrl } from "../utils/nationality-flag.util";
@@ -324,11 +325,6 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
     return `${age}`;
   };
 
-  const formatPer90 = (val: number | null | undefined): string => {
-    if (val === null || val === undefined || isNaN(val)) return "—";
-    return val.toFixed(2);
-  };
-
   const isGoalkeeper = player?.primaryPosition === "GK";
   const positionRole = getPositionRoleInfo(player?.primaryPosition);
   const positionCategory = getPositionCategory(player?.primaryPosition);
@@ -475,11 +471,22 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
           {player && (
             <button
               type="button"
-              className="scout-sports-compare-btn"
-              style={{ background: '#2563eb', borderColor: '#3b82f6', color: '#ffffff' }}
+              className="scout-btn scout-btn-primary"
               onClick={() => setIsShortlistModalOpen(true)}
             >
-              <span style={{ fontSize: '15px' }}>+</span>
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
               <span>Add to Shortlist</span>
             </button>
           )}
@@ -487,7 +494,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
           {player && onCompare && (
             <button
               type="button"
-              className="scout-sports-compare-btn"
+              className="scout-btn scout-btn-primary"
               onClick={() => onCompare(player, seasonStatistics)}
             >
               <svg
@@ -539,8 +546,8 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
           <span>{error}</span>
           <button
             type="button"
-            className="scout-b2b-btn scout-b2b-btn-secondary"
-            style={{ marginLeft: "auto", height: "32px", padding: "0 12px" }}
+            className="scout-btn scout-btn-sm scout-btn-secondary"
+            style={{ marginLeft: "auto" }}
             onClick={onBack}
           >
             Return to Search
@@ -1101,522 +1108,11 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                   />
                 </div>
 
-                {/* Right Column - ScoutBoard Football Game Attribute Cards (70% - lg:col-span-8) */}
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  {isGoalkeeper ? (
-                    (() => {
-                      const rawSaves = selectedStatistic.saves ?? 0;
-                      const rawGoalsConceded = selectedStatistic.goalsConceded ?? 0;
-                      const shotsFaced = rawSaves + rawGoalsConceded;
-                      const rawCleanSheets = selectedStatistic.cleanSheets ?? 0;
-                      const rawAppearances = selectedStatistic.appearances ?? 0;
-                      const rawPensSaved = selectedStatistic.penaltiesSaved ?? 0;
-                      const rawPensFaced = selectedStatistic.penaltiesFaced ?? 0;
-
-                      // Save %
-                      let savePctDisplay = "—";
-                      if (shotsFaced > 0 && selectedStatistic.saves !== null && selectedStatistic.saves !== undefined) {
-                        savePctDisplay = `${((rawSaves / shotsFaced) * 100).toFixed(1)}%`;
-                      } else if (selectedStatistic.savePercentage !== null && selectedStatistic.savePercentage !== undefined) {
-                        savePctDisplay = `${selectedStatistic.savePercentage}%`;
-                      }
-
-                      // Clean Sheet %
-                      let cleanSheetPctDisplay = "—";
-                      if (rawAppearances > 0 && selectedStatistic.cleanSheets !== null && selectedStatistic.cleanSheets !== undefined) {
-                        cleanSheetPctDisplay = `${((rawCleanSheets / rawAppearances) * 100).toFixed(1)}%`;
-                      } else if (selectedStatistic.cleanSheetPercentage !== null && selectedStatistic.cleanSheetPercentage !== undefined) {
-                        cleanSheetPctDisplay = `${selectedStatistic.cleanSheetPercentage}%`;
-                      }
-
-                      // Penalty Save %
-                      let penSavePctDisplay = "—";
-                      if (rawPensFaced > 0 && selectedStatistic.penaltiesSaved !== null && selectedStatistic.penaltiesSaved !== undefined) {
-                        penSavePctDisplay = `${((rawPensSaved / rawPensFaced) * 100).toFixed(1)}%`;
-                      } else if (selectedStatistic.penaltySavePercentage !== null && selectedStatistic.penaltySavePercentage !== undefined) {
-                        penSavePctDisplay = `${selectedStatistic.penaltySavePercentage}%`;
-                      }
-
-                      return (
-                        <>
-                          {/* TẦNG 1 – GOALKEEPING EFFICIENCY */}
-                          <div className="scout-clean-stat-card card-blue">
-                            <div className="scout-clean-card-header">
-                              <div className="scout-clean-card-title title-blue">
-                                <span>🧤</span> GOALKEEPING EFFICIENCY
-                              </div>
-                            </div>
-                            <div className="scout-clean-grid-3">
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">SAVE %</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {savePctDisplay}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {shotsFaced > 0 ? `${rawSaves} saves / ${shotsFaced} shots on target faced` : "—"}
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">CLEAN SHEET %</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {cleanSheetPctDisplay}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {rawAppearances > 0 ? `${rawCleanSheets} clean sheets / ${rawAppearances} appearances` : "—"}
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">PENALTY SAVE %</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {penSavePctDisplay}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {rawPensFaced > 0 ? `${rawPensSaved} saved / ${rawPensFaced} faced` : "0 saved / 0 faced"}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* TẦNG 2 – SHOT STOPPING */}
-                          <div className="scout-clean-stat-card card-amber">
-                            <div className="scout-clean-card-header">
-                              <div className="scout-clean-card-title title-amber">
-                                <span>🛡️</span> SHOT STOPPING
-                              </div>
-                            </div>
-                            <div className="scout-clean-grid-2">
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">SAVES / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {formatPer90(selectedStatistic.savesPer90)}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {rawSaves} total saves
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">GOALS CONCEDED / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {formatPer90(selectedStatistic.goalsConcededPer90)}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {rawGoalsConceded} total goals conceded
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* TẦNG 3 – DISTRIBUTION */}
-                          <div className="scout-clean-stat-card card-emerald">
-                            <div className="scout-clean-card-header">
-                              <div className="scout-clean-card-title title-emerald">
-                                <span>🎯</span> DISTRIBUTION
-                              </div>
-                            </div>
-                            <div className="scout-clean-grid-2">
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">PASS ACCURACY</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {selectedStatistic.passAccuracy !== null && selectedStatistic.passAccuracy !== undefined
-                                    ? `${selectedStatistic.passAccuracy}%`
-                                    : "—"}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {selectedStatistic.passesCompleted} completed / {selectedStatistic.passesAttempted} attempted
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">PASSES / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {formatPer90(selectedStatistic.passesPer90)}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {selectedStatistic.passesAttempted} attempted
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()
-                  ) : (
-                    (() => {
-                      // Common Raw Variables
-                      const goals = selectedStatistic.goals ?? 0;
-                      const assists = selectedStatistic.assists ?? 0;
-                      const shots = selectedStatistic.shots ?? 0;
-                      const shotsOnTarget = selectedStatistic.shotsOnTarget ?? 0;
-                      const passesAttempted = selectedStatistic.passesAttempted ?? 0;
-                      const passesCompleted = selectedStatistic.passesCompleted ?? 0;
-                      const keyPasses = selectedStatistic.keyPasses ?? 0;
-                      const tackles = selectedStatistic.tackles ?? 0;
-                      const interceptions = selectedStatistic.interceptions ?? 0;
-                      const duelsWon = selectedStatistic.duelsWon ?? 0;
-                      const minutesPlayed = selectedStatistic.minutesPlayed ?? 0;
-
-                      // Rate & Efficiency Calculations
-                      const shotAccuracyDisplay = shots > 0 ? `${((shotsOnTarget / shots) * 100).toFixed(1)}%` : "—";
-                      const goalConversionDisplay = shots > 0 ? `${((goals / shots) * 100).toFixed(1)}%` : "—";
-                      const passAccuracyDisplay = selectedStatistic.passAccuracy !== null && selectedStatistic.passAccuracy !== undefined
-                        ? `${selectedStatistic.passAccuracy}%`
-                        : (passesAttempted > 0 ? `${((passesCompleted / passesAttempted) * 100).toFixed(1)}%` : "—");
-
-                      // Tactical Derived Metrics
-                      const ballRecoveryPer90 = minutesPlayed > 0 ? (((tackles + interceptions) * 90) / minutesPlayed).toFixed(2) : "—";
-                      const goalThreatPer90 = minutesPlayed > 0 ? (((goals + assists) * 90) / minutesPlayed).toFixed(2) : "—";
-
-                      if (positionCategory === "ATT") {
-                        return (
-                          <>
-                            {/* TẦNG 1 – ATTACKING EFFICIENCY */}
-                            <div className="scout-clean-stat-card card-amber">
-                              <div className="scout-clean-card-header">
-                                <div className="scout-clean-card-title title-amber">
-                                  <span>🎯</span> ATTACKING EFFICIENCY
-                                </div>
-                              </div>
-                              <div className="scout-clean-grid-3">
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">SHOT ACCURACY</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {shotAccuracyDisplay}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {shots > 0 ? `${shotsOnTarget} on target / ${shots} shots` : "—"}
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">GOAL CONVERSION %</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {goalConversionDisplay}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {shots > 0 ? `${goals} goals / ${shots} shots` : "—"}
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">PASS ACCURACY</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {passAccuracyDisplay}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {passesAttempted > 0 ? `${passesCompleted} completed / ${passesAttempted} attempted` : "—"}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* TẦNG 2 – ATTACKING OUTPUT */}
-                            <div className="scout-clean-stat-card card-blue">
-                              <div className="scout-clean-card-header">
-                                <div className="scout-clean-card-title title-blue">
-                                  <span>⚽</span> ATTACKING OUTPUT
-                                </div>
-                              </div>
-                              <div className="scout-clean-grid-3">
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">GOALS / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.goalsPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {goals} total goals
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">ASSISTS / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.assistsPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {assists} total assists
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">SHOTS / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.shotsPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {shots} total shots
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* TẦNG 3 – CHANCE CREATION */}
-                            <div className="scout-clean-stat-card card-emerald">
-                              <div className="scout-clean-card-header">
-                                <div className="scout-clean-card-title title-emerald">
-                                  <span>⚡</span> CHANCE CREATION
-                                </div>
-                              </div>
-                              <div className="scout-clean-grid-2">
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">SHOTS ON TARGET / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.shotsOnTargetPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {shotsOnTarget} shots on target
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">KEY PASSES / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.keyPassesPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {keyPasses} key passes
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        );
-                      }
-
-                      if (positionCategory === "DEF") {
-                        return (
-                          <>
-                            {/* TẦNG 1 – DEFENSIVE EFFICIENCY */}
-                            <div className="scout-clean-stat-card card-emerald">
-                              <div className="scout-clean-card-header">
-                                <div className="scout-clean-card-title title-emerald">
-                                  <span>🛡️</span> DEFENSIVE EFFICIENCY
-                                </div>
-                              </div>
-                              <div className="scout-clean-grid-2">
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">PASS ACCURACY</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {passAccuracyDisplay}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {passesAttempted > 0 ? `${passesCompleted} completed / ${passesAttempted} attempted` : "—"}
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">BALL RECOVERY / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {ballRecoveryPer90}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {tackles + interceptions} tackles & interceptions
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* TẦNG 2 – DEFENSIVE OUTPUT */}
-                            <div className="scout-clean-stat-card card-blue">
-                              <div className="scout-clean-card-header">
-                                <div className="scout-clean-card-title title-blue">
-                                  <span>⚔️</span> DEFENSIVE OUTPUT
-                                </div>
-                              </div>
-                              <div className="scout-clean-grid-3">
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">TACKLES / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.tacklesPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {tackles} total tackles
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">INTERCEPTIONS / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.interceptionsPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {interceptions} total interceptions
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">DUELS WON / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.duelsWonPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {duelsWon} duels won
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* TẦNG 3 – BUILD-UP / DISTRIBUTION */}
-                            <div className="scout-clean-stat-card card-amber">
-                              <div className="scout-clean-card-header">
-                                <div className="scout-clean-card-title title-amber">
-                                  <span>🎯</span> BUILD-UP / DISTRIBUTION
-                                </div>
-                              </div>
-                              <div className="scout-clean-grid-2">
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">PASSES / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.passesPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {passesAttempted} attempted
-                                  </span>
-                                </div>
-
-                                <div className="scout-clean-stat-block">
-                                  <span className="scout-clean-lbl">KEY PASSES / 90</span>
-                                  <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                    {formatPer90(selectedStatistic.keyPassesPer90)}
-                                  </span>
-                                  <span className="scout-clean-sub">
-                                    {keyPasses} key passes
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        );
-                      }
-
-                      // MID (and fallback)
-                      return (
-                        <>
-                          {/* TẦNG 1 – PASSING EFFICIENCY */}
-                          <div className="scout-clean-stat-card card-blue">
-                            <div className="scout-clean-card-header">
-                              <div className="scout-clean-card-title title-blue">
-                                <span>🎯</span> PASSING EFFICIENCY
-                              </div>
-                            </div>
-                            <div className="scout-clean-grid-2">
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">PASS ACCURACY</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {passAccuracyDisplay}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {passesAttempted > 0 ? `${passesCompleted} completed / ${passesAttempted} attempted` : "—"}
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">SHOT ACCURACY</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {shotAccuracyDisplay}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {shots > 0 ? `${shotsOnTarget} on target / ${shots} shots` : "—"}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* TẦNG 2 – MIDFIELD OUTPUT */}
-                          <div className="scout-clean-stat-card card-amber">
-                            <div className="scout-clean-card-header">
-                              <div className="scout-clean-card-title title-amber">
-                                <span>⚙️</span> MIDFIELD OUTPUT
-                              </div>
-                            </div>
-                            <div className="scout-clean-grid-3">
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">PASSES / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {formatPer90(selectedStatistic.passesPer90)}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {passesAttempted} total attempted
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">KEY PASSES / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {formatPer90(selectedStatistic.keyPassesPer90)}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {keyPasses} key passes
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">DUELS WON / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {formatPer90(selectedStatistic.duelsWonPer90)}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {duelsWon} duels won
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* TẦNG 3 – MIDFIELD IMPACT */}
-                          <div className="scout-clean-stat-card card-emerald">
-                            <div className="scout-clean-card-header">
-                              <div className="scout-clean-card-title title-emerald">
-                                <span>🛡️</span> MIDFIELD IMPACT
-                              </div>
-                            </div>
-                            <div className="scout-clean-grid-4">
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">BALL RECOVERY / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {ballRecoveryPer90}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {tackles + interceptions} recoveries
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">GOAL THREAT / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {goalThreatPer90}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {goals + assists} goals & assists
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">TACKLES / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {formatPer90(selectedStatistic.tacklesPer90)}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {tackles} tackles
-                                </span>
-                              </div>
-
-                              <div className="scout-clean-stat-block">
-                                <span className="scout-clean-lbl">INTERCEPTIONS / 90</span>
-                                <span className="scout-clean-num" style={{ margin: "4px 0" }}>
-                                  {formatPer90(selectedStatistic.interceptionsPer90)}
-                                </span>
-                                <span className="scout-clean-sub">
-                                  {interceptions} interceptions
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()
-                  )}
+                  <PerformanceCards
+                    stats={selectedStatistic}
+                    positionCode={player.primaryPosition}
+                  />
                 </div>
               </div>
             )}
@@ -1658,12 +1154,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                 >
                   <button
                     type="button"
-                    className="scout-b2b-btn scout-b2b-btn-secondary"
-                    style={{
-                      height: "32px",
-                      padding: "0 10px",
-                      fontSize: "12px",
-                    }}
+                    className="scout-btn scout-btn-sm scout-btn-secondary"
                     disabled={matchOffset === 0}
                     onClick={() =>
                       setMatchOffset((prev) => Math.max(0, prev - matchLimit))
@@ -1682,12 +1173,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
                   </span>
                   <button
                     type="button"
-                    className="scout-b2b-btn scout-b2b-btn-secondary"
-                    style={{
-                      height: "32px",
-                      padding: "0 10px",
-                      fontSize: "12px",
-                    }}
+                    className="scout-btn scout-btn-sm scout-btn-secondary"
                     disabled={matchOffset + matchLimit >= matchTotal}
                     onClick={() => setMatchOffset((prev) => prev + matchLimit)}
                   >
@@ -1710,23 +1196,19 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
             )}
 
             {matchError && (
-              <div
-                className="scout-b2b-alert-error"
-                style={{ fontSize: "13px" }}
-              >
-                ⚠️ {matchError}
+              <div className="scout-error-banner">
+                <span className="scout-error-banner-icon">⚠️</span>
+                <div className="scout-error-banner-body">{matchError}</div>
               </div>
             )}
 
             {!matchLoading && !matchError && matchStatistics.length === 0 && (
-              <div
-                style={{
-                  color: "#64748b",
-                  fontSize: "13px",
-                  fontStyle: "italic",
-                }}
-              >
-                No match statistics available for this season and competition.
+              <div className="scout-empty-state compact">
+                <div className="scout-empty-state-icon">📋</div>
+                <h4 className="scout-empty-state-title">No Match Statistics Found</h4>
+                <p className="scout-empty-state-desc">
+                  No individual match performance logs are recorded for the selected season and competition.
+                </p>
               </div>
             )}
 

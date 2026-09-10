@@ -31,32 +31,31 @@ interface AggregatedStats {
   goals: number;
   assists: number;
   shots: number;
-  shotsOnTarget: number;
   passesAttempted: number;
   passesCompleted: number;
   passAccuracy: number | null;
   keyPasses: number;
   tackles: number;
   interceptions: number;
-  duelsWon: number;
+  recoveries: number;
+  goalConversion: number | null;
 
   // Derived Outfield Per-90 Metrics
   goalsPer90: number | null;
   assistsPer90: number | null;
   shotsPer90: number | null;
-  shotsOnTargetPer90: number | null;
+  goalThreatPer90: number | null;
   passesPer90: number | null;
   keyPassesPer90: number | null;
   tacklesPer90: number | null;
   interceptionsPer90: number | null;
-  duelsWonPer90: number | null;
+  recoveriesPer90: number | null;
 
   // Goalkeeper Specific Metrics
   saves: number;
   goalsConceded: number;
   cleanSheets: number;
   penaltiesSaved: number;
-  penaltiesFaced: number;
   savesPer90: number | null;
   goalsConcededPer90: number | null;
   savePercentage: number | null;
@@ -122,11 +121,11 @@ const OUTFIELD_METRIC_SECTIONS: MetricSection[] = [
       { label: 'GOALS', getValue: (s) => s?.goals, higherIsBetter: true },
       { label: 'ASSISTS', getValue: (s) => s?.assists, higherIsBetter: true },
       { label: 'SHOTS', getValue: (s) => s?.shots, higherIsBetter: true },
-      { label: 'SHOTS ON TARGET', getValue: (s) => s?.shotsOnTarget, higherIsBetter: true },
+      { label: 'GOAL CONVERSION %', getValue: (s) => s?.goalConversion, isPercentage: true, higherIsBetter: true },
       { label: 'GOALS / 90', getValue: (s) => s?.goalsPer90, higherIsBetter: true },
       { label: 'ASSISTS / 90', getValue: (s) => s?.assistsPer90, higherIsBetter: true },
       { label: 'SHOTS / 90', getValue: (s) => s?.shotsPer90, higherIsBetter: true },
-      { label: 'SHOTS ON TARGET / 90', getValue: (s) => s?.shotsOnTargetPer90, higherIsBetter: true },
+      { label: 'GOAL THREAT / 90', getValue: (s) => s?.goalThreatPer90, higherIsBetter: true },
     ],
   },
   {
@@ -151,7 +150,7 @@ const OUTFIELD_METRIC_SECTIONS: MetricSection[] = [
     ],
   },
   {
-    title: 'DEFENDING & DUELS',
+    title: 'DEFENDING',
     icon: '🛡️',
     theme: {
       border: '2px solid #a7f3d0',
@@ -165,10 +164,10 @@ const OUTFIELD_METRIC_SECTIONS: MetricSection[] = [
     metrics: [
       { label: 'TACKLES', getValue: (s) => s?.tackles, higherIsBetter: true },
       { label: 'INTERCEPTIONS', getValue: (s) => s?.interceptions, higherIsBetter: true },
-      { label: 'DUELS WON', getValue: (s) => s?.duelsWon, higherIsBetter: true },
+      { label: 'BALL RECOVERIES', getValue: (s) => s?.recoveries, higherIsBetter: true },
       { label: 'TACKLES / 90', getValue: (s) => s?.tacklesPer90, higherIsBetter: true },
       { label: 'INTERCEPTIONS / 90', getValue: (s) => s?.interceptionsPer90, higherIsBetter: true },
-      { label: 'DUELS WON / 90', getValue: (s) => s?.duelsWonPer90, higherIsBetter: true },
+      { label: 'BALL RECOVERY / 90', getValue: (s) => s?.recoveriesPer90, higherIsBetter: true },
     ],
   },
 ];
@@ -209,7 +208,6 @@ const GOALKEEPER_METRIC_SECTIONS: MetricSection[] = [
       { label: 'GOALS CONCEDED', getValue: (s) => s?.goalsConceded, higherIsBetter: false }, // Lower is better!
       { label: 'CLEAN SHEETS', getValue: (s) => s?.cleanSheets, higherIsBetter: true },
       { label: 'PENALTIES SAVED', getValue: (s) => s?.penaltiesSaved, higherIsBetter: true },
-      { label: 'PENALTIES FACED', getValue: (s) => s?.penaltiesFaced, higherIsBetter: false },
       { label: 'SAVES / 90', getValue: (s) => s?.savesPer90, higherIsBetter: true },
       { label: 'GOALS CONCEDED / 90', getValue: (s) => s?.goalsConcededPer90, higherIsBetter: false }, // Lower is better!
       { label: 'SAVE %', getValue: (s) => s?.savePercentage, isPercentage: true, higherIsBetter: true },
@@ -375,20 +373,17 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
     let goals = 0;
     let assists = 0;
     let shots = 0;
-    let shotsOnTarget = 0;
     let passesAttempted = 0;
     let passesCompleted = 0;
     let keyPasses = 0;
     let tackles = 0;
     let interceptions = 0;
-    let duelsWon = 0;
 
     // Goalkeeper raw metrics
     let saves = 0;
     let goalsConceded = 0;
     let cleanSheets = 0;
     let penaltiesSaved = 0;
-    let penaltiesFaced = 0;
 
     targetRecords.forEach((r) => {
       appearances += r.appearances || 0;
@@ -397,13 +392,11 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
       goals += r.goals || 0;
       assists += r.assists || 0;
       shots += r.shots || 0;
-      shotsOnTarget += r.shotsOnTarget || 0;
       passesAttempted += r.passesAttempted || 0;
       passesCompleted += r.passesCompleted || 0;
       keyPasses += r.keyPasses || 0;
       tackles += r.tackles || 0;
       interceptions += r.interceptions || 0;
-      duelsWon += r.duelsWon || 0;
 
       if (r.saves !== null && r.saves !== undefined) {
         saves += r.saves;
@@ -417,9 +410,6 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
       if (r.penaltiesSaved !== null && r.penaltiesSaved !== undefined) {
         penaltiesSaved += r.penaltiesSaved;
       }
-      if (r.penaltiesFaced !== null && r.penaltiesFaced !== undefined) {
-        penaltiesFaced += r.penaltiesFaced;
-      }
     });
 
     // Derived pass accuracy
@@ -427,6 +417,14 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
       passesAttempted > 0
         ? Number(((passesCompleted / passesAttempted) * 100).toFixed(2))
         : null;
+
+    // Derived goal conversion
+    const goalConversion =
+      shots > 0
+        ? Number(((goals / shots) * 100).toFixed(2))
+        : null;
+
+    const recoveries = tackles + interceptions;
 
     // Derived per 90 metrics (guarded against division by zero)
     const calcPer90 = (val: number | null | undefined): number | null => {
@@ -453,30 +451,29 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
       goals,
       assists,
       shots,
-      shotsOnTarget,
       passesAttempted,
       passesCompleted,
       passAccuracy,
       keyPasses,
       tackles,
       interceptions,
-      duelsWon,
+      recoveries,
+      goalConversion,
       goalsPer90: calcPer90(goals),
       assistsPer90: calcPer90(assists),
       shotsPer90: calcPer90(shots),
-      shotsOnTargetPer90: calcPer90(shotsOnTarget),
+      goalThreatPer90: calcPer90(goals + assists),
       passesPer90: calcPer90(passesAttempted),
       keyPassesPer90: calcPer90(keyPasses),
       tacklesPer90: calcPer90(tackles),
       interceptionsPer90: calcPer90(interceptions),
-      duelsWonPer90: calcPer90(duelsWon),
+      recoveriesPer90: calcPer90(recoveries),
 
       // Goalkeeper metrics
       saves,
       goalsConceded,
       cleanSheets,
       penaltiesSaved,
-      penaltiesFaced,
       savesPer90: calcPer90(saves),
       goalsConcededPer90: calcPer90(goalsConceded),
       savePercentage,
@@ -487,20 +484,23 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
   const processedStatsA = useMemo(() => extractStats(statsA), [statsA, scope, seasonId, competitionId]);
   const processedStatsB = useMemo(() => extractStats(statsB), [statsB, scope, seasonId, competitionId]);
 
-  // Derive Radar Profile & Metrics strictly from selectedComparisonPosition (All Hooks at Top)
-  const effectivePosition = selectedComparisonPosition || (commonPositions.length > 0 ? commonPositions[0] : (playerA?.primaryPosition?.trim().toUpperCase() || 'CM'));
-  const radarProfile = getRadarProfile(effectivePosition);
-  const radarProfileTitle = getRadarProfileTitle(radarProfile);
+  // Derive Radar Profile & Metrics strictly from selectedComparisonPosition or individual player primary positions
+  const posA = selectedComparisonPosition || (commonPositions.length > 0 ? commonPositions[0] : (playerA?.primaryPosition?.trim().toUpperCase() || 'CM'));
+  const posB = selectedComparisonPosition || (commonPositions.length > 0 ? commonPositions[0] : (playerB?.primaryPosition?.trim().toUpperCase() || 'CM'));
+  const profileA = getRadarProfile(posA);
+  const profileB = getRadarProfile(posB);
+  const radarProfileTitle = getRadarProfileTitle(profileA);
+  const radarProfileTitleB = profileA !== profileB ? getRadarProfileTitle(profileB) : undefined;
 
   const radarMetricsA = useMemo(() => {
     if (!processedStatsA) return [];
-    return getRadarMetrics(effectivePosition, processedStatsA as any);
-  }, [effectivePosition, processedStatsA]);
+    return getRadarMetrics(profileA, processedStatsA as any);
+  }, [profileA, processedStatsA]);
 
   const radarMetricsB = useMemo(() => {
     if (!processedStatsB) return [];
-    return getRadarMetrics(effectivePosition, processedStatsB as any);
-  }, [effectivePosition, processedStatsB]);
+    return getRadarMetrics(profileB, processedStatsB as any);
+  }, [profileB, processedStatsB]);
 
   // Context Info Labels
   const activeSeasonRecord =
@@ -598,10 +598,10 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
     : [
         { label: 'GOALS', valA: processedStatsA?.goals, valB: processedStatsB?.goals, higherIsBetter: true },
         { label: 'ASSISTS', valA: processedStatsA?.assists, valB: processedStatsB?.assists, higherIsBetter: true },
-        { label: 'SHOTS ON TARGET', valA: processedStatsA?.shotsOnTarget, valB: processedStatsB?.shotsOnTarget, higherIsBetter: true },
+        { label: 'GOAL CONVERSION', valA: processedStatsA?.goalConversion, valB: processedStatsB?.goalConversion, isPercentage: true, higherIsBetter: true },
         { label: 'KEY PASSES', valA: processedStatsA?.keyPasses, valB: processedStatsB?.keyPasses, higherIsBetter: true },
         { label: 'PASS ACCURACY', valA: processedStatsA?.passAccuracy, valB: processedStatsB?.passAccuracy, isPercentage: true, higherIsBetter: true },
-        { label: 'DUELS WON', valA: processedStatsA?.duelsWon, valB: processedStatsB?.duelsWon, higherIsBetter: true },
+        { label: 'BALL RECOVERIES', valA: processedStatsA?.recoveries, valB: processedStatsB?.recoveries, higherIsBetter: true },
       ];
 
   return (
@@ -1104,6 +1104,7 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
             playerBHexColor="#f59e0b"
             selectedPosition={selectedComparisonPosition}
             radarTitle={radarProfileTitle}
+            radarTitleB={radarProfileTitleB}
             commonPositions={commonPositions}
             onSelectPosition={(pos) => setSelectedComparisonPosition(pos)}
           />
@@ -1111,33 +1112,15 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
 
         {/* RIGHT COLUMN: Key Battles Card */}
         <div
-          className="scout-comparison-right"
+          className="scout-card scout-comparison-right"
           style={{
-            background: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '16px',
-            padding: '24px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             height: '100%',
           }}
         >
-          <h3
-            style={{
-              fontSize: '17px',
-              fontWeight: 900,
-              textTransform: 'uppercase',
-              letterSpacing: '-0.02em',
-              color: '#0f172a',
-              margin: 0,
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
+          <h3 className="scout-card-title scout-card-title-dark" style={{ marginBottom: '16px' }}>
             KEY BATTLES
           </h3>
 

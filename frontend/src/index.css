@@ -429,13 +429,14 @@ body {
    ========================================================================= */
 .scout-b2b-control-card {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 18px 20px;
+  border: 1px solid #bfdbfe;
+  border-radius: 16px;
+  padding: 20px 24px;
   box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.08),
-    0 1px 2px -1px rgba(0, 0, 0, 0.08);
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
   margin-bottom: 24px;
+  transition: all 0.2s ease;
 }
 
 /* Top Row: Search Input + Action Buttons */
@@ -572,30 +573,89 @@ body {
 }
 
 .scout-b2b-select,
-.scout-b2b-input {
+.scout-select,
+.scout-sports-select {
   width: 100%;
-  height: 36px;
-  background: #ffffff;
+  height: 38px;
+  background-color: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 0 10px;
+  border-radius: 8px;
+  padding: 0 32px 0 12px;
   font-size: 13px;
+  font-weight: 500;
   color: #0f172a;
   outline: none;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scout-b2b-select:hover,
+.scout-select:hover,
+.scout-sports-select:hover {
+  border-color: #94a3b8;
 }
 
 .scout-b2b-select:focus,
-.scout-b2b-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+.scout-select:focus,
+.scout-sports-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
   outline: none;
 }
 
-.scout-b2b-input::placeholder {
+.scout-b2b-select:disabled,
+.scout-select:disabled,
+.scout-sports-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f8fafc;
+}
+
+.scout-b2b-input,
+.scout-input {
+  width: 100%;
+  height: 38px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scout-b2b-input:hover,
+.scout-input:hover {
+  border-color: #94a3b8;
+}
+
+.scout-b2b-input:focus,
+.scout-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  outline: none;
+}
+
+.scout-b2b-input::placeholder,
+.scout-input::placeholder {
   color: #94a3b8;
+}
+
+.scout-b2b-input:disabled,
+.scout-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f8fafc;
 }
 
 /* Grouped Min/Max Dual Input */
@@ -604,17 +664,20 @@ body {
   align-items: center;
   background: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  height: 36px;
+  border-radius: 8px;
+  height: 38px;
   padding: 0 4px;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scout-b2b-grouped-input:hover {
+  border-color: #94a3b8;
 }
 
 .scout-b2b-grouped-input:focus-within {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
   outline: none;
 }
 
@@ -1426,27 +1489,207 @@ body {
   color: #991b1b;
 }
 
+/* =========================================================================
+   STANDARDIZED SCOUTBOARD BUTTON SYSTEM (REFERENCE: COMPARE PLAYER PAGE)
+   ========================================================================= */
 .scout-btn {
-  background: #0b4ea2;
-  color: #ffffff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-weight: 600;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  background: #2563eb;
+  color: #ffffff;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.scout-btn:disabled,
+.scout-btn[disabled] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Button Variants */
+.scout-btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid transparent;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.scout-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: transparent;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+}
+
+.scout-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
 }
 
 .scout-btn-secondary {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #334155;
+  font-weight: 600;
+  box-shadow: none;
 }
 
-.scout-btn-sm {
-  padding: 4px 10px;
-  font-size: 12px;
+.scout-btn-secondary:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
+
+.scout-btn-secondary:active:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.scout-btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #64748b;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.scout-btn-ghost:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: transparent;
+  color: #0f172a;
+}
+
+.scout-btn-ghost:active:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.scout-btn-danger,
+.scout-btn-destructive {
+  background: #ef4444;
+  color: #ffffff;
+  border: 1px solid transparent;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.scout-btn-danger:hover:not(:disabled),
+.scout-btn-destructive:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.scout-btn-danger:active:not(:disabled),
+.scout-btn-destructive:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.25);
+}
+
+.scout-btn-compare {
+  background: #2563eb;
+  border: 1px solid transparent;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.scout-btn-compare:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+}
+
+.scout-btn-compare:active:not(:disabled) {
+  background: #1e40af;
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
+}
+
+/* Button Sizes */
+.scout-btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  gap: 5px;
+}
+
+.scout-btn-lg {
+  height: 44px;
+  padding: 0 24px;
+  font-size: 14px;
+  border-radius: 10px;
+  gap: 8px;
+}
+
+/* Icon Button */
+.scout-btn-icon {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scout-btn-icon.scout-btn-sm {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+}
+
+.scout-btn-icon.scout-btn-lg {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.scout-btn-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scout-btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: scout-btn-spin 0.6s linear infinite;
+}
+
+@keyframes scout-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 .scout-input,
 .scout-select {
@@ -1472,45 +1715,73 @@ body {
 }
 
 .scout-sports-back-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #334155;
   font-size: 13px;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   transition: all 0.15s ease;
+  box-sizing: border-box;
+  white-space: nowrap;
+  line-height: 1;
 }
 
-.scout-sports-back-btn:hover {
+.scout-sports-back-btn:hover:not(:disabled) {
   background: #f1f5f9;
   border-color: #94a3b8;
   color: #0f172a;
 }
 
+.scout-sports-back-btn:active:not(:disabled) {
+  background: #e2e8f0;
+  border-color: #64748b;
+  transform: translateY(0);
+}
+
+.scout-sports-back-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .scout-sports-compare-btn {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #38bdf8 100%);
-  border: none;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #2563eb;
   color: #ffffff;
   font-size: 13px;
   font-weight: 700;
-  padding: 8px 18px;
-  border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
   transition: all 0.15s ease;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
-.scout-sports-compare-btn:hover {
+.scout-sports-compare-btn:hover:not(:disabled) {
+  background: #1d4ed8;
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+}
+
+.scout-sports-compare-btn:active:not(:disabled) {
+  background: #1e40af;
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
 }
 
 /* =========================================================================
@@ -2957,6 +3228,67 @@ body {
   font-weight: 800;
 }
 
+/* 8.5 Quick Add to Shortlist Button (Desktop hover reveal + Mobile accessible) */
+.scout-fc-card-quick-add {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
+  opacity: 0;
+  transform: scale(0.85);
+  pointer-events: none;
+  transition:
+    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.scout-fc-card:hover .scout-fc-card-quick-add,
+.scout-fc-card:focus-within .scout-fc-card-quick-add {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.scout-fc-card-quick-add:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.scout-fc-card-quick-add:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mobile & Touch: Always accessible without requiring hover */
+@media (hover: none), (max-width: 768px) {
+  .scout-fc-card-quick-add {
+    opacity: 0.95;
+    transform: scale(1);
+    pointer-events: auto;
+    background: #f8fafc;
+  }
+}
+
 /* 8.6 Empty State */
 .scout-fc-empty-card {
   background: #ffffff;
@@ -3053,6 +3385,227 @@ body {
 /* =========================================================================
    SCOUT SHORTLISTS & UNIVERSAL MODALS (Vanilla CSS Design System)
    ========================================================================= */
+/* Clean Modal System (Used across Squad, Shortlist, and Tactical Modals) */
+.scout-modal-clean-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 99999;
+  animation: scoutFadeIn 0.2s ease-out forwards;
+}
+
+.scout-modal-clean-dialog {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 25px 65px -10px rgba(0, 0, 0, 0.65), 0 0 1px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 600px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 24px;
+  animation: scoutScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  position: relative;
+  box-sizing: border-box;
+  color: #0f172a;
+}
+
+.scout-modal-clean-dialog.squad-dialog {
+  max-width: 640px;
+}
+
+.scout-modal-clean-dialog.shortlist-dialog {
+  max-width: 540px;
+}
+
+.scout-modal-clean-dialog.note-dialog {
+  max-width: 500px;
+}
+
+.scout-modal-clean-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.scout-modal-clean-header-content {
+  flex: 1;
+}
+
+.scout-modal-clean-title {
+  margin: 0 0 4px;
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.scout-modal-clean-subtitle {
+  margin: 0;
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.scout-clean-input {
+  width: 100%;
+  height: 42px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  padding: 0 14px;
+  font-size: 13.5px;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scout-clean-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Modal Close Icon & Custom Sleek Scrollbar */
+.scout-btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 15px;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.scout-btn-icon:hover,
+.scout-btn-icon.scout-btn-ghost:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.scout-modal-clean-dialog::-webkit-scrollbar,
+.scout-modal-clean-dialog *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scout-modal-clean-dialog::-webkit-scrollbar-track,
+.scout-modal-clean-dialog *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scout-modal-clean-dialog::-webkit-scrollbar-thumb,
+.scout-modal-clean-dialog *::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.scout-modal-clean-dialog::-webkit-scrollbar-thumb:hover,
+.scout-modal-clean-dialog *::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.scout-modal-clean-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.scout-modal-btn-cancel {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.scout-modal-btn-cancel:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.scout-modal-btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.scout-modal-btn-submit {
+  height: 38px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  transition: all 0.15s ease;
+}
+
+.scout-modal-btn-submit:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+}
+
+.scout-modal-btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
+}
+
+.scout-modal-btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.scout-modal-clean-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .scout-modal-overlay {
   position: fixed;
   inset: 0;
@@ -3252,24 +3805,7 @@ body {
 }
 
 /* Scout Toast Notification */
-.scout-toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: #0f172a;
-  color: #ffffff;
-  padding: 12px 20px;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  z-index: 10000;
-  border: 1px solid #1e293b;
-  animation: scoutSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+
 
 @keyframes scoutFadeIn {
   from {
@@ -3302,4 +3838,3182 @@ body {
   }
 }
 
+/* =========================================================================
+   20. MODERN FOOTBALL TACTICAL SQUAD BUILDER STYLES
+   ========================================================================= */
 
+/* --- Tactical Pitch Container & Field Lines --- */
+.scout-tactical-pitch {
+  position: relative;
+  flex: 1 1 640px;
+  max-width: 660px;
+  min-height: 780px;
+  height: 820px;
+  background: repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.02) 0px,
+      rgba(255, 255, 255, 0.02) 50px,
+      transparent 50px,
+      transparent 100px
+    ),
+    linear-gradient(180deg, #0e2a1b 0%, #0a1f14 100%);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  box-shadow:
+    0 20px 45px -10px rgba(0, 0, 0, 0.35),
+    inset 0 0 80px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* FC MOBILE TACTICAL CARD STYLES */
+.fc-card-container {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease;
+  z-index: 10;
+  cursor: pointer;
+  outline: none;
+}
+
+.fc-card-container:hover {
+  transform: translate(-50%, -54%) scale(1.06);
+  z-index: 25;
+}
+
+.fc-mobile-card {
+  width: 68px;
+  height: 94px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid #f59e0b;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+
+.fc-card-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 5px 0;
+  z-index: 2;
+}
+
+.fc-card-pos {
+  font-size: 9.5px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+
+.fc-card-ovr {
+  font-size: 10px;
+  font-weight: 900;
+  color: #facc15;
+  line-height: 1;
+}
+
+.fc-card-avatar-wrap {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.fc-card-avatar-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.fc-card-bottom-bar {
+  background: rgba(0, 0, 0, 0.88);
+  padding: 3px 4px 4px;
+  text-align: center;
+  z-index: 2;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fc-card-name {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+}
+
+/* FC Mobile Empty Slot Card */
+.fc-empty-card {
+  width: 66px;
+  height: 90px;
+  border-radius: 10px;
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  background: rgba(10, 31, 20, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.18s ease;
+  cursor: pointer;
+}
+
+.fc-empty-card:hover {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+}
+
+.fc-empty-card.slot-fwd {
+  border-color: rgba(244, 63, 94, 0.65);
+  color: #fda4af;
+}
+.fc-empty-card.slot-mid {
+  border-color: rgba(16, 185, 129, 0.65);
+  color: #6ee7b7;
+}
+.fc-empty-card.slot-def {
+  border-color: rgba(59, 130, 246, 0.65);
+  color: #93c5fd;
+}
+.fc-empty-card.slot-gk {
+  border-color: rgba(245, 158, 11, 0.65);
+  color: #fde68a;
+}
+
+/* Field Markings */
+.pitch-marking-halfway {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.pitch-marking-center-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.pitch-marking-center-spot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Opponent Goal Box (Top) */
+.pitch-marking-penalty-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 270px;
+  height: 94px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-top: none;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pitch-marking-goal-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 130px;
+  height: 38px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-top: none;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pitch-marking-arc-top {
+  position: absolute;
+  top: 94px;
+  left: 50%;
+  width: 70px;
+  height: 30px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0 0 50px 50px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* Our Goal Box (Bottom) */
+.pitch-marking-penalty-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 270px;
+  height: 94px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-bottom: none;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pitch-marking-goal-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 130px;
+  height: 38px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-bottom: none;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pitch-marking-arc-bottom {
+  position: absolute;
+  bottom: 94px;
+  left: 50%;
+  width: 70px;
+  height: 30px;
+  border-top: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50px 50px 0 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* Tactical Pitch Zone Labels */
+.pitch-zone-indicator {
+  position: absolute;
+  right: 18px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.pitch-zone-attack {
+  top: 28px;
+}
+
+.pitch-zone-midfield {
+  top: 48%;
+  transform: translateY(-50%);
+}
+
+.pitch-zone-defence {
+  bottom: 28px;
+}
+
+/* Pitch Tactical Rows */
+.pitch-formation-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 10;
+  margin: 10px 0;
+  width: 100%;
+}
+
+/* Tactical Slot Item Container */
+.pitch-slot-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 96px;
+  text-align: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pitch-slot-item:hover {
+  transform: translateY(-2px);
+}
+
+.pitch-slot-item.drag-over {
+  transform: scale(1.12);
+}
+
+/* Occupied Player Token */
+.tactical-player-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.tactical-player-card:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.tactical-avatar-wrap {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0b4ea2 0%, #0284c7 100%);
+  border: 2px solid #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 15px;
+  margin-bottom: 5px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tactical-player-card:hover .tactical-avatar-wrap {
+  transform: scale(1.06);
+  box-shadow: 0 10px 22px rgba(2, 132, 199, 0.45);
+}
+
+.tactical-captain-wrap {
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);
+}
+
+.tactical-captain-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #000000;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.tactical-player-name-pill {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 2px 7px;
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.tactical-role-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Empty Tactical Slot Token */
+.tactical-empty-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.tactical-empty-slot:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.tactical-empty-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0.35);
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tactical-empty-slot:hover .tactical-empty-circle {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  transform: scale(1.08);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+}
+
+.tactical-empty-slot.drag-over .tactical-empty-circle {
+  border-color: #22c55e;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.25);
+  transform: scale(1.12);
+}
+
+.tactical-empty-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Tactical Occupied Action Menu Modal / Popup */
+.tactical-action-menu {
+  position: absolute;
+  z-index: 100;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 170px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55);
+  animation: scoutScaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tactical-action-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.tactical-action-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tactical-action-item.destructive {
+  color: #f87171;
+}
+
+.tactical-action-item.destructive:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* Position Badges */
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+
+.pos-badge-primary {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.pos-badge-secondary {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Avatar Stack */
+.squad-avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.squad-avatar-stack-item {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #0f172a;
+  background: #334155;
+  margin-left: -8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.squad-avatar-stack-item:first-child {
+  margin-left: 0;
+}
+
+.squad-avatar-stack-overflow {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #0f172a;
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  margin-left: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Responsive Grid for Squad Detail */
+.squad-detail-layout {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  align-items: flex-start;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.tactical-bench-container {
+  width: 360px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+  .squad-detail-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tactical-bench-container {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   FC MOBILE STYLE FULL-SCREEN FOOTBALL TACTICAL SQUAD EXPERIENCE
+   ========================================================================== */
+
+/* Full Viewport Tactical Stage with Realistic Stadium Background */
+/* =========================================================================
+   FC MOBILE FULL-SCREEN FOOTBALL TACTICAL SQUAD BUILDER STYLES
+   ========================================================================= */
+
+/* =========================================================================
+   SCOUTBOARD MODERN SQUAD BUILDER (EA SPORTS FC / FOOTBALL MANAGER STYLE)
+   ========================================================================= */
+
+/* Glassmorphic Dark Navbar on Squad Detail Screen */
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar {
+  background: rgba(10, 15, 29, 0.88) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6) !important;
+  transition: all 0.3s ease;
+}
+
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-brand-name {
+  color: #ffffff !important;
+}
+
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-nav-link {
+  color: #94a3b8 !important;
+}
+
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-nav-link:hover,
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-nav-link.active {
+  color: #60a5fa !important;
+  border-bottom-color: #3b82f6 !important;
+}
+
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-user-email {
+  background: rgba(30, 41, 59, 0.7) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-btn-logout {
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-btn-logout:hover {
+  background: rgba(239, 68, 68, 0.18) !important;
+}
+
+/* Main Tactical Stage with Full Stadium Background */
+.scout-squad-builder-stage {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 56px);
+  max-height: calc(100vh - 56px);
+  min-height: 540px;
+  overflow: hidden;
+  background: 
+    radial-gradient(ellipse at 50% 30%, rgba(7, 11, 22, 0.45) 0%, rgba(5, 8, 17, 0.88) 100%),
+    url('/images/stadium_bg.jpg') center top / cover no-repeat,
+    #050811;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.scout-stadium-radial-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, transparent 45%, rgba(5, 8, 17, 0.85) 100%);
+  z-index: 1;
+}
+
+/* Action Bar / Header Điều Hướng */
+.scout-action-bar {
+  position: relative;
+  z-index: 25;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px 24px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.scout-action-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.scout-back-btn {
+  height: 40px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 13.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.scout-back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateX(-2px);
+}
+
+.scout-team-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.scout-team-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1.15;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  transition: color 0.15s ease;
+}
+
+.scout-team-title:hover {
+  color: #93c5fd;
+}
+
+.scout-formation-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #cbd5e1;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 2px 8px;
+  margin-top: 2px;
+  cursor: pointer;
+  width: fit-content;
+  backdrop-filter: blur(6px);
+  transition: all 0.15s ease;
+}
+
+.scout-formation-badge-btn:hover {
+  background: #334155;
+  color: #ffffff;
+  border-color: #60a5fa;
+}
+
+.scout-action-center {
+  flex: 1;
+}
+
+.scout-action-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scout-save-squad-btn {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  background: linear-gradient(to right, #2563eb, #3b82f6);
+  border: none;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.scout-save-squad-btn:hover:not(:disabled) {
+  background: linear-gradient(to right, #1d4ed8, #2563eb);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
+  transform: translateY(-1px);
+}
+
+.scout-save-squad-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.scout-delete-squad-btn {
+  height: 40px;
+  width: 40px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.15s ease;
+}
+
+.scout-delete-squad-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* Pitch Canvas Container */
+.scout-pitch-wrapper {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 5;
+  padding-bottom: 28px;
+  box-sizing: border-box;
+}
+
+.scout-pitch-canvas {
+  position: relative;
+  width: min(84vw, 760px);
+  height: clamp(390px, calc(100vh - 165px), 520px);
+  transform: rotateX(16deg);
+  transform-style: preserve-3d;
+  background: 
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035) 0px,
+      rgba(255, 255, 255, 0.035) 28px,
+      transparent 28px,
+      transparent 56px
+    ),
+    radial-gradient(circle at 50% 50%, #2d6a4f 0%, #1b4332 70%, #102a20 100%);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.75),
+    0 0 35px rgba(27, 67, 50, 0.3),
+    inset 0 0 50px rgba(0, 0, 0, 0.55);
+  user-select: none;
+}
+
+/* Pitch Tactical Slots */
+.scout-pitch-slot {
+  position: absolute;
+  transform: translate(-50%, -50%) rotateX(-16deg);
+  transform-style: preserve-3d;
+  z-index: 10;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.1s;
+  outline: none;
+}
+
+.scout-pitch-slot:hover {
+  z-index: 40;
+  transform: translate(-50%, -55%) rotateX(-16deg) scale(1.06);
+}
+
+/* Starter Card (Occupied) */
+.scout-starter-card {
+  width: 82px;
+  height: 110px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 3px;
+  box-sizing: border-box;
+  position: relative;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.scout-starter-card:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.75);
+}
+
+.scout-starter-card.attacker { border-color: rgba(244, 63, 94, 0.4); }
+.scout-starter-card.midfielder { border-color: rgba(16, 185, 129, 0.4); }
+.scout-starter-card.defender { border-color: rgba(59, 130, 246, 0.4); }
+.scout-starter-card.goalkeeper { border-color: rgba(245, 158, 11, 0.4); }
+
+.scout-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.scout-card-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  line-height: 1;
+}
+
+.scout-card-role-badge {
+  font-size: 9px;
+  font-weight: 800;
+  color: #ffffff;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scout-card-avatar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.scout-card-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.scout-card-fallback-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.scout-card-captain-badge {
+  position: absolute;
+  top: 1px;
+  right: 6px;
+  font-size: 8px;
+  font-weight: 900;
+  color: #0f172a;
+  background: #facc15;
+  padding: 1px 3.5px;
+  border-radius: 3px;
+  line-height: 1;
+  z-index: 5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.scout-card-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 2px 2px;
+  line-height: 1.15;
+}
+
+/* Empty Starter Pitch Card */
+.scout-empty-pitch-card {
+  width: 80px;
+  height: 106px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px dashed rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #fef08a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.scout-empty-pitch-card:hover {
+  border-color: #60a5fa;
+  background: rgba(37, 99, 235, 0.15);
+  color: #93c5fd;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.35);
+  transform: scale(1.04);
+}
+
+.scout-empty-plus-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.scout-empty-role-lbl {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+
+
+.scout-bench-grid-7 {
+  display: grid;
+  grid-template-columns: repeat(7, 82px);
+  gap: 12px;
+  justify-content: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.scout-bench-card {
+  width: 82px;
+  height: 105px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.scout-bench-card.empty {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  justify-content: center;
+  gap: 4px;
+  color: #94a3b8;
+}
+
+.scout-bench-card.empty:hover {
+  border-color: #60a5fa;
+  background: rgba(255, 255, 255, 0.1);
+  color: #60a5fa;
+  transform: translateY(-2px);
+}
+
+.scout-bench-empty-plus {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px dashed currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scout-bench-empty-text {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.scout-bench-card.occupied {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 4px 3px;
+}
+
+.scout-bench-card.occupied:hover {
+  border-color: #60a5fa;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+
+/* Luxury Gold ScoutBoard Branding in Squad Stage */
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-brand-name {
+  color: #dfba73 !important;
+  background: linear-gradient(135deg, #fce5b5 0%, #dfba73 50%, #b88636 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-family: inherit;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-logo-icon {
+  background: linear-gradient(135deg, rgba(223, 186, 115, 0.25) 0%, rgba(184, 134, 54, 0.45) 100%) !important;
+  border: 1px solid rgba(223, 186, 115, 0.6) !important;
+  box-shadow: 0 0 14px rgba(223, 186, 115, 0.3) !important;
+}
+
+.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-logo-icon svg {
+  stroke: #fce5b5 !important;
+}
+
+
+/* ============================================================ */
+/* TACTICAL SQUAD BUILDER REFINED STYLING & BUG FIXES          */
+/* ============================================================ */
+
+/* Pitch Tactical Slots - 3D ELEVATION (FIXES CLIPPING CUT BUG) */
+.scout-pitch-slot {
+  position: absolute;
+  transform: translate(-50%, -50%) translateZ(48px) rotateX(-16deg);
+  transform-origin: center bottom;
+  transform-style: preserve-3d;
+  z-index: 10;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.1s;
+  outline: none;
+  filter: drop-shadow(0 14px 14px rgba(0, 0, 0, 0.65));
+}
+
+.scout-pitch-slot:hover {
+  z-index: 40;
+  transform: translate(-50%, -55%) translateZ(56px) rotateX(-16deg) scale(1.06);
+}
+
+/* Empty Starter Pitch Card (Matches Occupied Card Dimensions) */
+.scout-empty-pitch-card {
+  width: 82px;
+  height: 110px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px dashed rgba(255, 255, 255, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 3px;
+  box-sizing: border-box;
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #ffffff;
+}
+
+.scout-empty-pitch-card:hover {
+  border-color: #60a5fa;
+  background: rgba(37, 99, 235, 0.22);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.45);
+  transform: translateY(-2px);
+}
+
+.scout-empty-avatar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scout-empty-plus-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.2s ease;
+}
+
+.scout-empty-pitch-card:hover .scout-empty-plus-icon {
+  border-color: #60a5fa;
+  background: rgba(59, 130, 246, 0.35);
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.scout-empty-action-lbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-align: center;
+  padding: 0 2px 2px;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+.scout-empty-pitch-card:hover .scout-empty-action-lbl {
+  color: #93c5fd;
+}
+
+/* Toast Notification (Top Right Below Navbar, Glassmorphism) */
+
+
+
+
+@keyframes scoutToastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(35px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+
+
+/* ============================================================ */
+/* PERFECTED TOAST NOTIFICATION (COMPACT GLASSMORPHIC PILL)   */
+/* ============================================================ */
+.scout-toast {
+  position: fixed !important;
+  top: 76px !important;
+  bottom: auto !important;
+  right: 28px !important;
+  left: auto !important;
+  width: auto !important;
+  max-width: 440px !important;
+  height: auto !important;
+  min-height: 44px !important;
+  background: rgba(15, 23, 42, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  color: #ffffff !important;
+  padding: 10px 18px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 32px -4px rgba(0, 0, 0, 0.7), 0 0 14px rgba(16, 185, 129, 0.25) !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  z-index: 100000 !important;
+  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+  animation: scoutToastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  pointer-events: none !important;
+  box-sizing: border-box !important;
+}
+
+.scout-toast.scout-toast-error {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  box-shadow: 0 16px 32px -4px rgba(0, 0, 0, 0.7), 0 0 14px rgba(239, 68, 68, 0.25) !important;
+}
+
+/* ============================================================ */
+/* MATCHDAY SUBSTITUTES DRAWER (CENTERED WITH PADDING ON SIDES) */
+/* ============================================================ */
+.scout-bench-drawer {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) translateY(calc(100% - 36px)) !important;
+  width: min(90vw, 860px) !important;
+  max-width: 860px !important;
+  z-index: 45 !important;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border-radius: 14px 14px 0 0 !important;
+  overflow: hidden !important;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-bottom: none !important;
+}
+
+.scout-bench-drawer.is-open {
+  transform: translateX(-50%) translateY(0) !important;
+}
+
+
+
+/* ============================================================ */
+/* REBUILT TACTICAL SQUAD DETAIL SYSTEM                        */
+/* ============================================================ */
+
+/* Main Stage - Full Viewport with Visible Stadium Background */
+.scout-tactical-stage {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 60px);
+  max-height: calc(100vh - 60px);
+  overflow: hidden;
+  background: 
+    radial-gradient(ellipse at 50% 30%, rgba(10, 15, 29, 0.3) 0%, rgba(5, 8, 17, 0.76) 100%),
+    url('/images/stadium_bg.jpg') center top / cover no-repeat,
+    #070b16;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Viewport 1: Complete Starting XI Tactical Scene */
+.scout-tactical-scene {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 24px 38px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Compact Football Tactical HUD */
+.scout-tactical-hud {
+  position: relative;
+  z-index: 25;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.scout-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.scout-hud-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.scout-hud-back-btn:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: #60a5fa;
+  color: #ffffff;
+}
+
+.scout-hud-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scout-hud-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+.scout-hud-subline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scout-hud-formation-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 2px 10px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.scout-hud-formation-btn:hover {
+  background: rgba(30, 41, 59, 0.9);
+  color: #ffffff;
+  border-color: #60a5fa;
+}
+
+.scout-hud-starters-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+}
+
+.scout-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scout-hud-save-btn {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.scout-hud-save-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
+  transform: translateY(-1px);
+}
+
+.scout-hud-delete-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scout-hud-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+}
+
+/* Centered Tactical Pitch */
+.scout-tactical-pitch-stage {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 850px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 5;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.scout-tactical-pitch-canvas {
+  position: relative;
+  width: min(68vw, 640px);
+  height: clamp(370px, calc(100vh - 180px), 500px);
+  transform: rotateX(15deg);
+  transform-style: preserve-3d;
+  background: 
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.035) 0px,
+      rgba(255, 255, 255, 0.035) 28px,
+      transparent 28px,
+      transparent 56px
+    ),
+    radial-gradient(circle at 50% 50%, #2d6a4f 0%, #1b4332 70%, #102a20 100%);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.75),
+    0 0 35px rgba(27, 67, 50, 0.3),
+    inset 0 0 50px rgba(0, 0, 0, 0.55);
+  user-select: none;
+}
+
+/* Tactical Slot on Pitch */
+.scout-tactical-slot {
+  position: absolute;
+  transform: translate(-50%, -50%) translateZ(46px) rotateX(-15deg);
+  transform-origin: center bottom;
+  transform-style: preserve-3d;
+  z-index: 10;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.1s;
+  outline: none;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.65));
+}
+
+.scout-tactical-slot:hover {
+  z-index: 40;
+  transform: translate(-50%, -55%) translateZ(54px) rotateX(-15deg) scale(1.08);
+}
+
+/* Compact Player Card */
+.scout-player-card-compact {
+  width: 66px;
+  height: 80px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 2px;
+  box-sizing: border-box;
+  position: relative;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.scout-player-card-compact:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.75);
+}
+
+.scout-player-card-compact.attacker { border-color: rgba(244, 63, 94, 0.5); }
+.scout-player-card-compact.midfielder { border-color: rgba(16, 185, 129, 0.5); }
+.scout-player-card-compact.defender { border-color: rgba(59, 130, 246, 0.5); }
+.scout-player-card-compact.goalkeeper { border-color: rgba(245, 158, 11, 0.5); }
+
+.scout-card-pos-badge {
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 1px;
+}
+
+.scout-card-compact-avatar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.scout-card-compact-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.scout-card-compact-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.scout-card-compact-name {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 2px 1px;
+  line-height: 1.15;
+}
+
+/* Subtle Tactical Empty Slot Marker */
+.scout-empty-slot-marker {
+  width: 58px;
+  height: 68px;
+  border-radius: 10px;
+  background: rgba(10, 15, 29, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px dashed rgba(255, 255, 255, 0.32);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.scout-empty-slot-marker:hover {
+  border-color: #60a5fa;
+  background: rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.45);
+  transform: translateY(-2px);
+}
+
+.scout-marker-plus {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1;
+}
+
+.scout-empty-slot-marker:hover .scout-marker-plus {
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+.scout-marker-role {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Scroll Hint at Bottom of Viewport 1 */
+.scout-scroll-down-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  padding-bottom: 2px;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.scout-scroll-down-hint:hover {
+  color: #60a5fa;
+}
+
+/* Viewport 2: Matchday Substitutes Section Below Pitch */
+.scout-matchday-substitutes-section {
+  width: min(88vw, 840px);
+  margin: 16px auto 40px auto;
+  background: rgba(10, 15, 29, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 16px 20px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  box-sizing: border-box;
+}
+
+.scout-substitutes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scout-substitutes-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scout-substitutes-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.scout-bench-row-7 {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  justify-content: center;
+}
+
+.scout-bench-slot-card {
+  height: 95px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.scout-bench-slot-card.empty {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  justify-content: center;
+  gap: 6px;
+  color: #94a3b8;
+}
+
+.scout-bench-slot-card.empty:hover {
+  border-color: #60a5fa;
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+  transform: translateY(-2px);
+}
+
+.scout-bench-slot-card.occupied {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 4px 3px;
+}
+
+.scout-bench-slot-card.occupied:hover {
+  border-color: #60a5fa;
+  background: rgba(30, 41, 59, 0.85);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+
+
+/* =========================================================================
+   SCOUTBOARD MODAL & SHORTLIST FORM SYSTEM (CLEAN & HIGH CONTRAST)
+   ========================================================================= */
+
+.scout-field-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin-bottom: 4px !important;
+  box-sizing: border-box !important;
+}
+
+.scout-field-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  color: #334155 !important;
+  margin-bottom: 2px !important;
+}
+
+.scout-field-required {
+  color: #ef4444 !important;
+  font-weight: 800 !important;
+}
+
+.scout-field-optional {
+  color: #94a3b8 !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+}
+
+.scout-clean-textarea {
+  width: 100% !important;
+  min-height: 80px !important;
+  border-radius: 8px !important;
+  border: 1.5px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  padding: 10px 14px !important;
+  font-size: 13.5px !important;
+  font-family: inherit !important;
+  color: #0f172a !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  resize: vertical !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.scout-clean-textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Visibility Selector Component */
+.scout-visibility-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.scout-visibility-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 12px 14px !important;
+  border-radius: 10px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
+  text-align: left !important;
+}
+
+.scout-visibility-card:hover:not(.disabled) {
+  border-color: #93c5fd !important;
+  background: #f0f7ff !important;
+}
+
+.scout-visibility-card.active {
+  border-color: #2563eb !important;
+  background: #eff6ff !important;
+  box-shadow: 0 0 0 1px #2563eb, 0 2px 8px rgba(37, 99, 235, 0.15) !important;
+}
+
+.scout-visibility-card.disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+.scout-visibility-card-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #2563eb !important;
+  flex-shrink: 0 !important;
+}
+
+.scout-visibility-card.active .scout-visibility-card-icon {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+.scout-visibility-card-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+}
+
+.scout-visibility-card-title {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.01em !important;
+}
+
+.scout-visibility-card.active .scout-visibility-card-title {
+  color: #1d4ed8 !important;
+}
+
+.scout-visibility-card-desc {
+  font-size: 11.5px !important;
+  color: #64748b !important;
+  line-height: 1.35 !important;
+}
+
+/* Modal Close Button & Alert Error Banner */
+.scout-modal-clean-close-btn {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: #64748b !important;
+  border-radius: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+  padding: 0 !important;
+}
+
+.scout-modal-clean-close-btn:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.scout-modal-alert-error {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #b91c1c !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  margin-bottom: 14px !important;
+}
+
+/* Sports Gradient Banner & Overview Chip (Shortlist Detail Page) */
+.scout-sport-banner {
+  background: linear-gradient(135deg, #0b1329 0%, #172554 50%, #0f172a 100%) !important;
+  border-radius: 16px !important;
+  padding: 24px 28px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.scout-overview-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* Trading Cards & Shortlist Components */
+.scout-trading-card {
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  padding: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+}
+
+.scout-trading-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+  transform: translateY(-2px) !important;
+}
+
+.scout-trading-cutout {
+  width: 76px !important;
+  height: 76px !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.scout-card-note-footer {
+  margin-top: 12px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid #f1f5f9 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  font-size: 12px !important;
+}
+
+.scout-filter-btn {
+  padding: 6px 14px !important;
+  border-radius: 8px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #64748b !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.scout-filter-btn:hover {
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  background: #f8fafc !important;
+}
+
+.scout-filter-btn.active {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+.scout-filter-btn.filter-gk.active {
+  background: #d97706 !important;
+  border-color: #d97706 !important;
+}
+
+.scout-filter-btn.filter-def.active {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.scout-filter-btn.filter-mid.active {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+}
+
+.scout-filter-btn.filter-fwd.active {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+.scout-view-toggle-btn {
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.scout-view-toggle-btn:hover {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.scout-view-toggle-btn.active {
+  background: #0f172a !important;
+  border-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+.scout-stat-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 11.5px !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+/* Position Badges */
+.scout-pos-badge-gk {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+  border: 1px solid #fde68a !important;
+}
+
+.scout-pos-badge-def {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+.scout-pos-badge-mid {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid #bbf7d0 !important;
+}
+
+.scout-pos-badge-fwd {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+}
+
+.scout-pos-none {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* Overflow Menu */
+.scout-overflow-trigger {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #64748b !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.scout-overflow-trigger:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.scout-overflow-menu {
+  position: absolute !important;
+  right: 0 !important;
+  top: 100% !important;
+  margin-top: 4px !important;
+  background: #ffffff !important;
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
+  padding: 4px !important;
+  min-width: 140px !important;
+  z-index: 50 !important;
+}
+
+/* Additional Scout Buttons & Badges */
+.scout-btn-primary {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: 1px solid #2563eb !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+.scout-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45) !important;
+}
+
+.scout-btn-danger {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border: 1px solid #ef4444 !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+.scout-btn-danger:hover:not(:disabled) {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+.scout-badge-none {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.scout-toast-success {
+  border-left: 4px solid #10b981 !important;
+}
+
+.scout-table-wrapper {
+  width: 100% !important;
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow-x: auto !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+.scout-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  text-align: left !important;
+  font-size: 13px !important;
+}
+
+.scout-table th {
+  background: #f8fafc !important;
+  padding: 12px 16px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  color: #475569 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.scout-table td {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #0f172a !important;
+  vertical-align: middle !important;
+}
+
+.scout-table tr:hover td {
+  background: #f8fafc !important;
+}
+
+
+/* =========================================================================
+   MATCHDAY SUBSTITUTES DRAWER (Hover Slide-Up Bottom Dock)
+   ========================================================================= */
+.scout-bench-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(100% - 38px));
+  width: min(calc(100vw - 48px), 1100px);
+  z-index: 60;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.scout-bench-drawer:hover,
+.scout-bench-drawer.is-open {
+  transform: translateX(-50%) translateY(0);
+}
+
+.scout-bench-drawer-tab {
+  height: 38px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  cursor: pointer;
+  color: #f1f5f9;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.scout-bench-drawer:hover .scout-bench-drawer-tab,
+.scout-bench-drawer.is-open .scout-bench-drawer-tab {
+  background: rgba(20, 30, 55, 0.98);
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #60a5fa;
+}
+
+.scout-bench-drawer-body {
+  background: rgba(10, 15, 29, 0.96);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  padding: 14px 20px 18px;
+  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.7);
+  box-sizing: border-box;
+}
+
+/* =========================================================================
+   TACTICAL CONTEXT POPOVER MENU (Pitch & Bench Card Actions)
+   ========================================================================= */
+.tactical-context-popover {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  min-width: 175px !important;
+  width: max-content !important;
+  background: rgba(10, 15, 29, 0.96) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 40px -4px rgba(0, 0, 0, 0.9), 0 0 1px rgba(255, 255, 255, 0.3) !important;
+  padding: 6px !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  animation: scoutScaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+
+.tactical-context-popover.pop-down {
+  top: calc(100% + 8px) !important;
+}
+
+.tactical-context-popover.pop-up {
+  bottom: calc(100% + 8px) !important;
+}
+
+.tactical-popover-header {
+  padding: 5px 10px 6px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #94a3b8 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  letter-spacing: 0.04em !important;
+  margin-bottom: 3px !important;
+  text-align: left !important;
+}
+
+.tactical-action-item {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 7px 10px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  color: #f1f5f9 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.12s ease !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+}
+
+.tactical-action-item:hover {
+  background: rgba(37, 99, 235, 0.25) !important;
+  color: #60a5fa !important;
+}
+
+.tactical-action-item.destructive {
+  color: #fca5a5 !important;
+}
+
+.tactical-action-item.destructive:hover {
+  background: rgba(239, 68, 68, 0.25) !important;
+  color: #ef4444 !important;
+}
+
+.tactical-action-icon {
+  font-size: 13px !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+
+/* =========================================================================
+   STANDARDIZED TYPOGRAPHY HIERARCHY (REFERENCE: FIND PLAYERS / SEARCH PAGE)
+   ========================================================================= */
+.scout-title-page {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #0f172a;
+}
+
+.scout-title-section {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: #0f172a;
+}
+
+.scout-title-card {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.scout-player-name-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  transition: color 0.15s ease;
+}
+
+.scout-player-name-text:hover {
+  color: #2563eb;
+}
+
+.scout-label-field {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+  line-height: 1.2;
+}
+
+.scout-text-body {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.scout-text-secondary {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #64748b;
+}
+
+.scout-text-meta {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #64748b;
+}
+
+.scout-badge-pos {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+
+/* Standardized Button Active (Click) States */
+.scout-btn-primary:active:not(:disabled),
+.scout-sports-compare-btn:active:not(:disabled),
+.scout-modal-btn-submit:active:not(:disabled) {
+  background: #1e40af !important;
+  border-color: #1e40af !important;
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3) !important;
+}
+
+.scout-btn-secondary:active:not(:disabled),
+.scout-sports-back-btn:active:not(:disabled),
+.scout-modal-btn-cancel:active:not(:disabled) {
+  background: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+  transform: translateY(0) !important;
+}
+
+.scout-btn-danger:active:not(:disabled),
+.scout-btn-destructive:active:not(:disabled) {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.25) !important;
+}
+
+.scout-btn-ghost:active:not(:disabled) {
+  background: #e2e8f0 !important;
+  border-color: transparent !important;
+  transform: translateY(0) !important;
+}
+
+
+/* =========================================================================
+   STANDARDIZED FORM & FILTER UTILITY CLASSES
+   ========================================================================= */
+.scout-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.scout-search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 14px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.scout-search-input {
+  width: 100%;
+  height: 38px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 12px 0 36px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scout-search-input:hover {
+  border-color: #94a3b8;
+}
+
+.scout-search-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.scout-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.scout-search-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f8fafc;
+}
+
+.scout-search-clear-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.scout-search-clear-btn:hover {
+  color: #0f172a;
+}
+
+/* Compact (sm) variants */
+.scout-search-input.scout-input-sm {
+  height: 32px;
+  padding: 0 10px 0 30px;
+  font-size: 12.5px;
+  border-radius: 6px;
+}
+
+.scout-search-icon.scout-icon-sm {
+  left: 9px;
+  width: 14px;
+  height: 14px;
+}
+
+.scout-select.scout-select-sm,
+.scout-b2b-select.scout-select-sm {
+  height: 32px;
+  padding: 0 28px 0 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  background-position: right 8px center;
+  background-size: 12px;
+}
+
+.scout-input.scout-input-sm,
+.scout-b2b-input.scout-input-sm {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.scout-field-helper {
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.scout-field-error {
+  font-size: 12px;
+  font-weight: 500;
+  color: #dc2626;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================================
+   SCOUTBOARD CORE CARD SYSTEM (Shared Foundation)
+   ========================================================================= */
+.scout-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+/* Base generic .card fallback */
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+  box-sizing: border-box;
+}
+
+/* Variant: Elevated */
+.scout-card-elevated {
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* Variant: Control / Focal */
+.scout-card-control {
+  border-color: #bfdbfe;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* Variant: Flat / Sub-card */
+.scout-card-flat {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
+}
+
+/* Interactive / Hoverable Cards */
+.scout-card-interactive,
+.scout-card-hover {
+  cursor: pointer;
+  user-select: none;
+}
+
+.scout-card-interactive:hover,
+.scout-card-hover:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+.scout-card-interactive:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Padding Scale */
+.scout-card-p-none { padding: 0 !important; }
+.scout-card-p-sm { padding: 12px 16px !important; }
+.scout-card-p-md { padding: 18px 20px !important; }
+.scout-card-p-lg { padding: 24px !important; }
+
+/* Subcomponents */
+.scout-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.scout-card-header.with-divider {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.scout-card-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1d4ed8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scout-card-title-dark {
+  color: #0f172a !important;
+}
+
+.scout-card-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.scout-card-content {
+  width: 100%;
+}
+
+.scout-card-footer {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+/* =========================================================================
+   SCOUTBOARD INTERACTION & DATA DISPLAY SYSTEM (VANILLA CSS)
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1. TABS SYSTEM
+   ------------------------------------------------------------------------- */
+/* Tab List Underline Style */
+.scout-tabs-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 20px;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.scout-tabs-list::-webkit-scrollbar {
+  display: none;
+}
+
+.scout-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.scout-tab-btn:hover:not(:disabled) {
+  color: #0f172a;
+}
+
+.scout-tab-btn.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.scout-tab-btn:disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.scout-tab-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Tab Segmented / Pills Style */
+.scout-tabs-segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 4px;
+  user-select: none;
+}
+
+.scout-tab-segmented-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.scout-tab-segmented-btn:hover:not(:disabled):not(.active) {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.scout-tab-segmented-btn.active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.scout-tab-segmented-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* -------------------------------------------------------------------------
+   2. TABLE & DATA DISPLAY STANDARDIZATION
+   ------------------------------------------------------------------------- */
+.scout-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.scout-table,
+.scout-b2b-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.scout-table thead,
+.scout-b2b-table thead {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.scout-table th,
+.scout-b2b-table th {
+  padding: 12px 16px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #475569 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.scout-table th.text-right,
+.scout-b2b-table th.text-right,
+.scout-table td.text-right,
+.scout-b2b-table td.text-right {
+  text-align: right;
+}
+
+.scout-table th.text-center,
+.scout-b2b-table th.text-center,
+.scout-table td.text-center,
+.scout-b2b-table td.text-center {
+  text-align: center;
+}
+
+.scout-table td,
+.scout-b2b-table td {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #0f172a !important;
+  vertical-align: middle !important;
+  transition: background-color 0.15s ease;
+}
+
+.scout-table tbody tr:hover td,
+.scout-b2b-table tbody tr:hover td,
+.scout-b2b-table-row:hover td {
+  background-color: #f8fafc !important;
+}
+
+.scout-table tbody tr:last-child td,
+.scout-b2b-table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   3. PAGINATION STANDARDIZATION
+   ------------------------------------------------------------------------- */
+.scout-pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 12px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.scout-pagination-info {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11.5px;
+}
+
+.scout-pagination-info strong {
+  color: #0f172a;
+}
+
+.scout-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scout-pagination-btn {
+  height: 32px;
+  min-width: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.scout-pagination-btn:hover:not(:disabled):not(.active) {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.scout-pagination-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.scout-pagination-btn:disabled {
+  color: #cbd5e1;
+  border-color: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* -------------------------------------------------------------------------
+   4. EMPTY STATES
+   ------------------------------------------------------------------------- */
+.scout-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  margin: 16px 0;
+}
+
+.scout-empty-state.compact {
+  padding: 28px 16px;
+}
+
+.scout-empty-state-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.scout-empty-state-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.scout-empty-state-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 16px;
+  max-width: 440px;
+  line-height: 1.5;
+}
+
+.scout-empty-state-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* -------------------------------------------------------------------------
+   5. LOADING & SKELETON STATES
+   ------------------------------------------------------------------------- */
+.scout-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 14px;
+}
+
+.scout-loading-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.scout-skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: scoutSkeletonShimmer 1.5s infinite ease-in-out;
+  border-radius: 8px;
+}
+
+@keyframes scoutSkeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.scout-skeleton-card {
+  border-radius: 16px;
+  height: 295px;
+  width: 100%;
+}
+
+.scout-skeleton-row {
+  height: 44px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* -------------------------------------------------------------------------
+   6. ERROR & ALERT STATES
+   ------------------------------------------------------------------------- */
+.scout-error-banner,
+.scout-b2b-alert-error,
+.scout-modal-alert-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 12px 18px;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.scout-error-banner-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.scout-error-banner-body {
+  flex: 1;
+}
+
+.scout-error-banner-title {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.scout-error-banner-actions {
+  margin-left: auto;
+  flex-shrink: 0;
+}

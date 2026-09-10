@@ -353,7 +353,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
 
       {/* SECTION 1: SYNC CONTROL PANEL */}
       <div
-        className="card"
+        className="scout-card"
         style={{
           background: '#ffffff',
           borderRadius: '16px',
@@ -569,7 +569,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
 
       {/* SECTION 2: JOB HISTORY & AUDIT LOGS */}
       <div
-        className="card"
+        className="scout-card"
         style={{
           background: '#ffffff',
           borderRadius: '16px',
@@ -774,24 +774,44 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
 
       {/* CONFIRMATION MODAL FOR EXPENSIVE FULL BACKFILL */}
       {showConfirmModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-          <div style={{ background: '#ffffff', borderRadius: '16px', padding: '28px', maxWidth: '480px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <span style={{ fontSize: '24px' }}>⚠️</span>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Confirm Full Season Sync</h3>
+        <div
+          className="scout-modal-clean-overlay"
+          onClick={() => setShowConfirmModal(false)}
+          role="presentation"
+        >
+          <div
+            className="scout-modal-clean-dialog"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            style={{ maxWidth: '480px' }}
+          >
+            <div className="scout-modal-clean-header" style={{ marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '22px' }}>⚠️</span>
+                <h3 className="scout-modal-clean-title">Confirm Full Season Sync</h3>
+              </div>
+              <button
+                type="button"
+                className="scout-modal-clean-close-btn"
+                aria-label="Close"
+                onClick={() => setShowConfirmModal(false)}
+              >
+                ✕
+              </button>
             </div>
-            <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.5, marginBottom: '16px' }}>
+            <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.5, marginBottom: '16px' }}>
               You are about to trigger a <strong>FULL season backfill</strong> for <strong>{selectedCompObj?.name}</strong> ({selectedSeasonObj?.seasonCode}).
             </p>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', fontSize: '12px', color: '#334155', marginBottom: '20px', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '12px', fontSize: '12.5px', color: '#334155', marginBottom: '20px', border: '1px solid #e2e8f0' }}>
               <div>• Target: <strong>FULL (Matches → Statistics → Season Aggregation)</strong></div>
               <div>• Mode: <strong>{mode}</strong></div>
               <div>• Scope: <strong>SEASON</strong></div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div className="scout-modal-clean-footer">
               <button
                 type="button"
-                className="scout-btn scout-btn-secondary"
+                className="scout-btn scout-btn-md scout-btn-secondary"
                 onClick={() => setShowConfirmModal(false)}
                 disabled={triggering}
               >
@@ -799,7 +819,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
               </button>
               <button
                 type="button"
-                className="scout-btn scout-btn-primary"
+                className="scout-btn scout-btn-md scout-btn-primary"
                 onClick={() => void executeTrigger()}
                 disabled={triggering}
               >
@@ -812,19 +832,17 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
 
       {/* JOB DETAIL & AUDIT LOGS MODAL */}
       {selectedJob && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+        <div
+          className="scout-modal-clean-overlay"
+          onClick={() => setSelectedJob(null)}
+          role="presentation"
+        >
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              maxWidth: '920px',
-              width: '100%',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-              overflow: 'hidden',
-            }}
+            className="scout-modal-clean-dialog"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            style={{ maxWidth: '920px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
           >
             {/* Modal Header */}
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

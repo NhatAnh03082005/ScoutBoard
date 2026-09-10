@@ -24,7 +24,8 @@
     "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/run-seeds.ts",
-    "sync:match-stats": "ts-node -r tsconfig-paths/register src/scripts/sync-remaining-fixture-stats.ts"
+    "sync:match-stats": "ts-node -r tsconfig-paths/register src/scripts/sync-remaining-fixture-stats.ts",
+    "enrich:profiles": "ts-node -r tsconfig-paths/register src/scripts/enrich-remaining-profiles.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
