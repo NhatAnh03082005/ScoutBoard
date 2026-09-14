@@ -91,10 +91,10 @@ describe('Squad Placement Utilities', () => {
       ],
     };
 
-    it('Example 1: CM / CDM player is eligible for CM and CDM, but rejected for CAM and CB', () => {
+    it('Example 1: CM / CDM player is eligible for CM, CDM, and CAM, but rejected for CB', () => {
       expect(isPlayerEligibleForSlot(playerCmCdm, 'CM')).toBe(true);
       expect(isPlayerEligibleForSlot(playerCmCdm, 'CDM')).toBe(true);
-      expect(isPlayerEligibleForSlot(playerCmCdm, 'CAM')).toBe(false);
+      expect(isPlayerEligibleForSlot(playerCmCdm, 'CAM')).toBe(true);
       expect(isPlayerEligibleForSlot(playerCmCdm, 'CB')).toBe(false);
     });
 
