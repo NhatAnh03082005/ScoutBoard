@@ -1,0 +1,114 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-ci:
+    name: Backend CI
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: test_scoutboard_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_ci_password_123
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test_user -d test_scoutboard_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: test_scoutboard_db
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_ci_password_123
+      JWT_SECRET: test_jwt_access_secret_key_minimum_32_characters_long!
+      JWT_REFRESH_SECRET: test_jwt_refresh_secret_key_minimum_32_characters_long!
+      THROTTLE_GLOBAL_LIMIT: 100
+      THROTTLE_GLOBAL_TTL_MS: 60000
+      THROTTLE_AUTH_LIMIT: 10
+      THROTTLE_AUTH_TTL_MS: 60000
+      THROTTLE_QUERY_LIMIT: 60
+      THROTTLE_QUERY_TTL_MS: 60000
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run database migrations on ephemeral test database
+        run: npm run migration:run
+        working-directory: backend
+
+      - name: Run backend unit and integration test suite
+        run: npm test
+        working-directory: backend
+
+      - name: Build backend application
+        run: npm run build
+        working-directory: backend
+
+  frontend-ci:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+
+    env:
+      VITE_API_BASE_URL: /api
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Run frontend static analysis (oxlint)
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Run frontend unit tests (vitest)
+        run: npm test
+        working-directory: frontend
+
+      - name: Build frontend production bundle
+        run: npm run build
+        working-directory: frontend
