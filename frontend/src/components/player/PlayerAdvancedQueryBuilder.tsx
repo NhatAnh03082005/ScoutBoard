@@ -51,7 +51,7 @@ function defaultValue(metric: CategorizedMetric, op: ConditionOperator): Conditi
   return '';
 }
 
-function updateNode(root: GroupNode, targetId: string, updater: (n: QueryNode) => QueryNode): GroupNode {
+export function updateNode(root: GroupNode, targetId: string, updater: (n: QueryNode) => QueryNode): GroupNode {
   function walk(node: QueryNode): QueryNode {
     if ((node as any).__id === targetId) return updater(node);
     if (node.kind === 'GROUP') {
@@ -62,7 +62,7 @@ function updateNode(root: GroupNode, targetId: string, updater: (n: QueryNode) =
   return walk(root) as GroupNode;
 }
 
-function removeNode(root: GroupNode, targetId: string): GroupNode {
+export function removeNode(root: GroupNode, targetId: string): GroupNode {
   function walk(node: QueryNode): QueryNode[] {
     if (node.kind === 'GROUP') {
       const filtered = node.conditions.flatMap(walk);
@@ -75,7 +75,7 @@ function removeNode(root: GroupNode, targetId: string): GroupNode {
   return result[0] as GroupNode;
 }
 
-function addCondition(root: GroupNode, groupId: string): GroupNode {
+export function addCondition(root: GroupNode, groupId: string): GroupNode {
   function walk(node: QueryNode): QueryNode {
     if (node.kind === 'GROUP' && (node as any).__id === groupId) {
       const newCond: any = { ...defaultCondition(), __id: nextId() };
@@ -89,7 +89,7 @@ function addCondition(root: GroupNode, groupId: string): GroupNode {
   return walk(root) as GroupNode;
 }
 
-function addGroup(root: GroupNode, parentId: string): GroupNode {
+export function addGroup(root: GroupNode, parentId: string): GroupNode {
   function walk(node: QueryNode): QueryNode {
     if (node.kind === 'GROUP' && (node as any).__id === parentId) {
       const newGroup: any = {
@@ -493,7 +493,7 @@ export const PlayerAdvancedQueryBuilder: React.FC<PlayerAdvancedQueryBuilderProp
     <div className="aqb-root">
       {/* Builder */}
       <GroupNodeView
-        node={rootNode}
+        node={rootNode as any}
         depth={0}
         isRoot={true}
         onUpdate={(updated) => setRootNode(updated as any)}
