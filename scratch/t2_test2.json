@@ -1,0 +1,14 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "AND",
+    "conditions": [
+      {
+        "kind": "MATCH_AGGREGATION",
+        "matchCriteria": { "kind": "CONDITION", "field": "match_key_passes", "operator": "GTE", "value": 3 },
+        "aggregation": { "type": "COUNT", "operator": "GTE", "value": 3 }
+      }
+    ]
+  },
+  "pagination": { "limit": 5, "offset": 0 }
+}

@@ -20,12 +20,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly configService: ConfigService,
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
   ) {
+    const secret = configService.get<string>('JWT_SECRET');
+    if (!secret && process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET is required in production.');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey:
-        configService.get<string>('JWT_SECRET') ||
-        'scoutboard_jwt_access_secret_key_2026_super_secure',
+        secret || 'scoutboard_jwt_access_secret_key_2026_super_secure',
     });
   }
 

@@ -1,0 +1,29 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "AND",
+    "conditions": [
+      {
+        "kind": "GROUP",
+        "operator": "AND",
+        "conditions": [
+          { "kind": "CONDITION", "field": "age", "operator": "LTE", "value": 23 },
+          {
+            "kind": "GROUP",
+            "operator": "OR",
+            "conditions": [
+              { "kind": "CONDITION", "field": "goals_per90", "operator": "GTE", "value": 0.20 },
+              { "kind": "CONDITION", "field": "assists_per90", "operator": "GTE", "value": 0.15 }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "MATCH_AGGREGATION",
+        "matchCriteria": { "kind": "CONDITION", "field": "match_rating", "operator": "GTE", "value": 7 },
+        "aggregation": { "type": "COUNT", "operator": "GTE", "value": 5 }
+      }
+    ]
+  },
+  "pagination": { "limit": 5, "offset": 0 }
+}

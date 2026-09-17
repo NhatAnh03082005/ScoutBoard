@@ -1,0 +1,19 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "OR",
+    "conditions": [
+      {
+        "kind": "MATCH_AGGREGATION",
+        "matchCriteria": { "kind": "CONDITION", "field": "match_goals", "operator": "GTE", "value": 2 },
+        "aggregation": { "type": "COUNT", "operator": "GTE", "value": 3 }
+      },
+      {
+        "kind": "MATCH_AGGREGATION",
+        "matchCriteria": { "kind": "CONDITION", "field": "match_assists", "operator": "GTE", "value": 2 },
+        "aggregation": { "type": "COUNT", "operator": "GTE", "value": 3 }
+      }
+    ]
+  },
+  "pagination": { "limit": 5, "offset": 0 }
+}

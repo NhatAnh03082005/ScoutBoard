@@ -15,14 +15,31 @@ import {
   Injectable,
   NestMiddleware,
   BadRequestException,
+  UnauthorizedException,
   HttpException,
+  Optional,
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import passport from 'passport';
+import {
+  InjectThrottlerStorage,
+  ThrottlerStorage,
+  ThrottlerStorageService,
+} from '@nestjs/throttler';
 import { QueryPlayersUseCase } from 'src/modules/players/application/use-cases/query-players.use-case';
 
 @Injectable()
 export class PlayersQueryMethodMiddleware implements NestMiddleware {
-  constructor(private readonly queryPlayersUseCase: QueryPlayersUseCase) {}
+  private readonly storage: ThrottlerStorage;
+
+  constructor(
+    private readonly queryPlayersUseCase: QueryPlayersUseCase,
+    @Optional()
+    @InjectThrottlerStorage()
+    throttlerStorage?: ThrottlerStorage,
+  ) {
+    this.storage = throttlerStorage || new ThrottlerStorageService();
+  }
 
   async use(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Only intercept HTTP QUERY method — all others pass through to the controller
@@ -31,7 +48,77 @@ export class PlayersQueryMethodMiddleware implements NestMiddleware {
       return;
     }
 
-    // At this point: req.method === 'QUERY'
+    // SEC-001: Authenticate request using existing Passport JWT Strategy
+    try {
+      await new Promise<void>((resolve, reject) => {
+        passport.authenticate(
+          'jwt',
+          { session: false },
+          (err: any, user: any, info: any) => {
+            if (err) {
+              return reject(err);
+            }
+            if (!user) {
+              return reject(
+                new UnauthorizedException(
+                  info?.message || 'Access Token không hợp lệ hoặc đã hết hạn',
+                ),
+              );
+            }
+            (req as any).user = user;
+            resolve();
+          },
+        )(req, res, (err: any) => (err ? reject(err) : resolve()));
+      });
+    } catch (authErr: unknown) {
+      if (authErr instanceof HttpException) {
+        const status = authErr.getStatus();
+        const response = authErr.getResponse();
+        res
+          .status(status)
+          .json(
+            typeof response === 'string'
+              ? { statusCode: status, message: response }
+              : response,
+          );
+        return;
+      }
+      res.status(401).json({
+        statusCode: 401,
+        message: 'Access Token không hợp lệ hoặc đã hết hạn',
+      });
+      return;
+    }
+
+    // SEC-002: Enforce Rate Limiting for QUERY /api/players (default: 60 req / 60s per client IP)
+    const clientIp =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.ip ||
+      req.socket?.remoteAddress ||
+      '127.0.0.1';
+
+    const ttlMs = parseInt(process.env.THROTTLE_QUERY_TTL_MS || '60000', 10);
+    const limit = parseInt(process.env.THROTTLE_QUERY_LIMIT || '60', 10);
+    const key = `query-players-${clientIp}`;
+
+    const record = await this.storage.increment(
+      key,
+      ttlMs,
+      limit,
+      ttlMs,
+      'query-players',
+    );
+
+    if (record.isBlocked) {
+      res.header('Retry-After', String(Math.max(1, record.timeToBlockExpire)));
+      res.status(429).json({
+        statusCode: 429,
+        message: 'ThrottlerException: Too Many Requests',
+      });
+      return;
+    }
+
+    // At this point: req.method === 'QUERY', request is authenticated, and within rate limit.
     // The global JSON body parser has already parsed req.body.
     const body = req.body as Record<string, unknown>;
 

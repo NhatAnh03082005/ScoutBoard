@@ -148,6 +148,30 @@ describe('TypeOrmPlayerReadRepository (Unit)', () => {
     );
   });
 
+  it('should execute aggregation queries with player-level pagination and total', async () => {
+    const player = { id: 'player-1', name: 'Player One' } as PlayerOrmEntity;
+    mockQueryBuilder.getManyAndCount!.mockResolvedValueOnce([[player], 7]);
+
+    const result = await repository.queryPlayers(
+      {
+        kind: 'MATCH_AGGREGATION',
+        matchCriteria: {
+          kind: 'CONDITION',
+          field: 'match_rating',
+          operator: 'GTE',
+          value: 7,
+        },
+        aggregation: { type: 'COUNT', operator: 'GTE', value: 5 },
+      },
+      { limit: 2, offset: 4 },
+      { seasonId: 'season-1', competitionId: 'competition-1' },
+    );
+
+    expect(mockQueryBuilder.take).toHaveBeenCalledWith(2);
+    expect(mockQueryBuilder.skip).toHaveBeenCalledWith(4);
+    expect(result).toEqual({ items: [player], total: 7 });
+  });
+
   describe('findComparisonCandidates', () => {
     it('should filter by season_id, competition_id and exclude currentPlayerId in COMPETITION scope', async () => {
       await repository.findComparisonCandidates('saka-id', {

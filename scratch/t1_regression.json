@@ -1,0 +1,19 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "AND",
+    "conditions": [
+      {
+        "kind": "GROUP",
+        "operator": "OR",
+        "conditions": [
+          { "kind": "CONDITION", "field": "position", "operator": "EQ", "value": "CM" },
+          { "kind": "CONDITION", "field": "position", "operator": "EQ", "value": "CDM" }
+        ]
+      },
+      { "kind": "CONDITION", "field": "age", "operator": "LTE", "value": 23 },
+      { "kind": "CONDITION", "field": "minutes", "operator": "GTE", "value": 900 }
+    ]
+  },
+  "pagination": { "limit": 5, "offset": 0 }
+}

@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Unique,
-  Index,
   OneToMany,
 } from 'typeorm';
 import type { SeasonOrmEntity } from 'src/modules/seasons/infrastructure/persistence/typeorm/entities/season.orm-entity';
@@ -14,10 +13,6 @@ import type { PlayerSeasonStatisticOrmEntity } from 'src/modules/players/infrast
 
 @Entity('competitions')
 @Unique('UQ_competitions_provider_external_id', [
-  'externalProvider',
-  'externalId',
-])
-@Index('IDX_competitions_provider_external_id', [
   'externalProvider',
   'externalId',
 ])

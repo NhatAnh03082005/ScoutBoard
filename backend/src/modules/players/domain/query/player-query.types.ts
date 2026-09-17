@@ -19,7 +19,13 @@ export type ConditionOperator =
   'EQ' | 'NE' | 'GT' | 'GTE' | 'LT' | 'LTE' | 'IN' | 'NOT_IN' | 'BETWEEN';
 
 export type ConditionValue =
-  number | string | number[] | string[] | [number, number];
+  | number
+  | string
+  | boolean
+  | number[]
+  | string[]
+  | boolean[]
+  | [number, number];
 
 /**
  * A leaf condition node in the query tree.
@@ -52,11 +58,56 @@ export interface GroupNode {
   readonly conditions: QueryNode[];
 }
 
+export type MatchAggregationType = 'COUNT' | 'AVG' | 'QUALIFYING_RATE';
+
+export type CohortBaselineType = 'AVERAGE' | 'MEDIAN';
+export type CohortComparisonType = CohortBaselineType | 'PERCENTILE' | 'RANK';
+
+export interface CohortDefinition {
+  readonly competitionId?: string;
+  readonly seasonId?: string;
+  readonly position?: string[];
+  /** When true, cohort distribution is evaluated dynamically over the candidate context of the query. */
+  readonly context?: boolean;
+}
+
+export interface CohortComparisonCondition {
+  readonly kind: 'COHORT_COMPARISON';
+  readonly metric: string;
+  readonly comparison: {
+    readonly type: CohortComparisonType;
+    readonly operator: Exclude<ConditionOperator, 'IN' | 'NOT_IN' | 'BETWEEN'>;
+    readonly value?: number;
+  };
+  readonly cohort: CohortDefinition;
+}
+
+/**
+ * A player-level predicate calculated from the player's persisted match rows.
+ * COUNT and QUALIFYING_RATE aggregate rows satisfying matchCriteria. AVG uses
+ * `field` over played rows satisfying matchCriteria (minutes_played > 0).
+ */
+export interface MatchAggregationCondition {
+  readonly kind: 'MATCH_AGGREGATION';
+  readonly matchCriteria: FieldCondition;
+  readonly aggregation: {
+    readonly type: MatchAggregationType;
+    readonly operator: Exclude<ConditionOperator, 'IN' | 'NOT_IN' | 'BETWEEN'>;
+    readonly value: number;
+    /** Required by AVG; must be a registered MATCH_STAT metric. */
+    readonly field?: string;
+  };
+}
+
 /**
  * A QueryNode is either a leaf FieldCondition or a nested GroupNode.
  * The `kind` discriminant enables exhaustive type-safe traversal.
  */
-export type QueryNode = FieldCondition | GroupNode;
+export type QueryNode =
+  | FieldCondition
+  | GroupNode
+  | MatchAggregationCondition
+  | CohortComparisonCondition;
 
 /**
  * Optional scope for the advanced query — restricts season statistics

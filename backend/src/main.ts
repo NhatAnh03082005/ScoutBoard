@@ -1,17 +1,86 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, ForbiddenException } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.setGlobalPrefix('api');
+  // Trust upstream reverse proxy (Nginx) for accurate client IP tracking in Throttler
+  app.set('trust proxy', true);
 
-  // Enable CORS for Frontend requests
+  app.setGlobalPrefix('api', {
+    exclude: ['health', 'health/(.*)', 'api/health', 'api/health/(.*)'],
+  });
+
+  // Security Headers via Helmet
+  // Note: contentSecurityPolicy is disabled here to avoid breaking the React SPA
+  // and ensure Swagger UI at /api/docs initializes and renders properly.
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
+
+  // Hardened CORS Configuration
+  const isProduction = process.env.NODE_ENV === 'production';
+  const configuredOrigins = process.env.FRONTEND_ORIGIN
+    ? process.env.FRONTEND_ORIGIN.split(',')
+        .map((o) => o.trim())
+        .filter(Boolean)
+    : ['http://localhost'];
+
+  const devAllowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
+  ];
+
   app.enableCors({
-    origin: true,
-    credentials: true,
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      // Allow requests with no origin (e.g. server-to-server, curl, same-origin without Origin header)
+      if (!origin) {
+        return callback(null, true);
+      }
+      const allowedList = isProduction
+        ? configuredOrigins
+        : [...configuredOrigins, ...devAllowedOrigins];
+
+      if (allowedList.includes(origin)) {
+        return callback(null, true);
+      }
+      // Return ForbiddenException so NestJS returns a clean HTTP 403 Forbidden with no Allow-Origin header
+      return callback(
+        new ForbiddenException(
+          `CORS policy does not allow access from origin: ${origin}`,
+        ),
+        false,
+      );
+    },
+    methods: [
+      'GET',
+      'HEAD',
+      'PUT',
+      'PATCH',
+      'POST',
+      'DELETE',
+      'OPTIONS',
+      'QUERY',
+    ],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Requested-With',
+    ],
+    credentials: false,
   });
 
   // Global Validation Pipe

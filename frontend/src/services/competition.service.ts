@@ -91,3 +91,23 @@ export async function getCurrentTeamsByCompetitionApi(
 
   return data;
 }
+
+/**
+ * Lấy danh sách tất cả các đội bóng trong hệ thống (từ endpoint GET /api/teams)
+ */
+export async function getAllTeamsApi(): Promise<CompetitionTeamItem[]> {
+  const response = await fetch(`${API_BASE_URL}/teams`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Không thể tải danh sách đội bóng');
+  }
+
+  return data;
+}

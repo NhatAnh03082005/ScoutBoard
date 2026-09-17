@@ -1,19 +1,19 @@
 export const CANONICAL_PLAYER_POSITIONS = [
-  'GK',
-  'LB',
-  'CB',
-  'RB',
-  'LWB',
-  'RWB',
-  'CM',
-  'CDM',
-  'CAM',
-  'LM',
-  'RM',
-  'LW',
-  'RW',
-  'CF',
-  'ST',
+  "GK",
+  "LB",
+  "CB",
+  "RB",
+  "LWB",
+  "RWB",
+  "CM",
+  "CDM",
+  "CAM",
+  "LM",
+  "RM",
+  "LW",
+  "RW",
+  "CF",
+  "ST",
 ] as const;
 
 export type PlayerPosition = (typeof CANONICAL_PLAYER_POSITIONS)[number];
@@ -237,29 +237,31 @@ export interface ComparisonCandidateParams {
 // Added additively — do not modify types above this line.
 // =============================================================================
 
-export type BooleanOperator = 'AND' | 'OR';
+export type BooleanOperator = "AND" | "OR";
 
 export type ConditionOperator =
-  | 'EQ'
-  | 'NE'
-  | 'GT'
-  | 'GTE'
-  | 'LT'
-  | 'LTE'
-  | 'IN'
-  | 'NOT_IN'
-  | 'BETWEEN';
+  | "EQ"
+  | "NE"
+  | "GT"
+  | "GTE"
+  | "LT"
+  | "LTE"
+  | "IN"
+  | "NOT_IN"
+  | "BETWEEN";
 
 export type ConditionValue =
   | number
   | string
+  | boolean
   | number[]
   | string[]
+  | boolean[]
   | [number, number];
 
 /** Leaf condition: field + operator + scalar/array/range value. */
 export interface FieldCondition {
-  kind: 'CONDITION';
+  kind: "CONDITION";
   field: string;
   operator: ConditionOperator;
   value: ConditionValue;
@@ -270,13 +272,48 @@ export interface FieldCondition {
  * OR is represented as an explicit GroupNode(operator:'OR'), not implicit precedence.
  */
 export interface GroupNode {
-  kind: 'GROUP';
+  kind: "GROUP";
   operator: BooleanOperator;
   conditions: QueryNode[];
 }
 
+export type MatchAggregationType = "COUNT" | "AVG" | "QUALIFYING_RATE";
+
+export type CohortComparisonType = "AVERAGE" | "MEDIAN" | "PERCENTILE" | "RANK";
+
+export interface CohortComparisonCondition {
+  kind: "COHORT_COMPARISON";
+  metric: string;
+  comparison: {
+    type: CohortComparisonType;
+    operator: Exclude<ConditionOperator, "IN" | "NOT_IN" | "BETWEEN">;
+    value?: number;
+  };
+  cohort: {
+    competitionId?: string;
+    seasonId?: string;
+    position?: string[];
+    context?: boolean;
+  };
+}
+
+export interface MatchAggregationCondition {
+  kind: "MATCH_AGGREGATION";
+  matchCriteria: FieldCondition;
+  aggregation: {
+    type: MatchAggregationType;
+    operator: Exclude<ConditionOperator, "IN" | "NOT_IN" | "BETWEEN">;
+    value: number;
+    field?: string;
+  };
+}
+
 /** Discriminated union — the `kind` field distinguishes leaf from group. */
-export type QueryNode = FieldCondition | GroupNode;
+export type QueryNode =
+  | FieldCondition
+  | GroupNode
+  | MatchAggregationCondition
+  | CohortComparisonCondition;
 
 export interface PlayerQueryScope {
   competitionId?: string;
@@ -294,7 +331,7 @@ export interface PlayerAdvancedQueryRequest {
 }
 
 /** Data type for a queryable metric — controls operators and input rendering. */
-export type MetricDataType = 'NUMBER' | 'ENUM' | 'STRING';
+export type MetricDataType = "NUMBER" | "ENUM" | "STRING" | "BOOLEAN";
 
 /** Self-describing metric definition (mirrors backend registry, single source of truth for UI). */
 export interface QueryMetricDefinition {
@@ -307,4 +344,3 @@ export interface QueryMetricDefinition {
   /** For position-specific metrics (e.g. GK-only) — informs UI hints. */
   applicablePositions?: string[];
 }
-

@@ -10,6 +10,8 @@ import { UpdatePlayerPrimaryPositionUseCase } from 'src/modules/players/applicat
 import { GetAvailablePositionsUseCase } from 'src/modules/players/application/use-cases/get-available-positions.use-case';
 import { SearchPlayersQueryDto } from '../dto/search-players-query.dto';
 import { ComparisonScope } from 'src/modules/players/domain/enums/comparison-scope.enum';
+import { JwtAuthGuard } from 'src/modules/auth/presentation/http/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/modules/auth/presentation/http/guards/roles.guard';
 
 describe('PlayersController', () => {
   let controller: PlayersController;
@@ -279,6 +281,25 @@ describe('PlayersController', () => {
 
       expect(mockGetAvailablePositionsUseCase.execute).toHaveBeenCalled();
       expect(result).toEqual(positions);
+    });
+  });
+
+  describe('SEC-002 Authorization Guards', () => {
+    it('should be protected by JwtAuthGuard, RolesGuard and Roles("ADMIN")', () => {
+      const guards = Reflect.getMetadata(
+        '__guards__',
+        PlayersController.prototype.updatePrimaryPosition,
+      );
+      const roles = Reflect.getMetadata(
+        'roles',
+        PlayersController.prototype.updatePrimaryPosition,
+      );
+
+      expect(guards).toBeDefined();
+      expect(guards).toContain(JwtAuthGuard);
+      expect(guards).toContain(RolesGuard);
+      expect(roles).toBeDefined();
+      expect(roles).toContain('ADMIN');
     });
   });
 });

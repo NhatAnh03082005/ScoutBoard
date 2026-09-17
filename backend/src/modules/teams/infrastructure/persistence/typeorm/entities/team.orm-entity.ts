@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Unique,
-  Index,
   OneToMany,
 } from 'typeorm';
 import type { PlayerOrmEntity } from 'src/modules/players/infrastructure/persistence/typeorm/entities/player.orm-entity';
@@ -17,7 +16,6 @@ import type { SeasonTeamOrmEntity } from 'src/modules/seasons/infrastructure/per
 
 @Entity('teams')
 @Unique('UQ_teams_provider_external_id', ['externalProvider', 'externalId'])
-@Index('IDX_teams_provider_external_id', ['externalProvider', 'externalId'])
 export class TeamOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

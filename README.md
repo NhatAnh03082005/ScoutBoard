@@ -56,9 +56,18 @@ Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên 
 ---
 
 ### **1.3. Phân quyền Người dùng (RBAC)**
-- **GUEST:** Khách chưa đăng nhập có thể tìm kiếm, xem chi tiết và so sánh cầu thủ.
-- **USER:** Người dùng đã đăng nhập có quyền GUEST + Quản lý Shortlist & Squad Builder.
-- **ADMIN:** Quản trị viên có quyền USER + Quản trị Người dùng (Admin Console), phân quyền và mở khóa tài khoản.
+- **GUEST:** Khách chưa đăng nhập có thể xem trang Giới thiệu (About/Home) và Tìm kiếm cầu thủ cơ bản (Find Players Basic).
+- **USER:** Người dùng đã đăng nhập có quyền:
+  - Xem trang Giới thiệu (About/Home)
+  - Tìm kiếm cầu thủ cơ bản & Tìm kiếm nâng cao (Find Players Basic + Advanced Search qua `QUERY /api/players`)
+  - Quản lý danh sách theo dõi cá nhân (My Shortlists)
+  - Xây dựng đội hình chiến thuật (My Squads)
+  - Quản lý hồ sơ cá nhân (Profile)
+- **ADMIN:** Quản trị viên hệ thống có quyền:
+  - Quản lý hồ sơ cá nhân (Profile)
+  - Quản trị Người dùng (User Management: mở khóa tài khoản, kích hoạt/vô hiệu hóa, phân quyền)
+  - Quản lý Đồng bộ Dữ liệu (Data Sync)
+  *(Lưu ý: Tài khoản ADMIN bị giới hạn nghiêm ngặt và KHÔNG có quyền truy cập: About/Home, Find Players, Advanced Search, My Shortlists, My Squads).*
 
 ---
 
@@ -67,7 +76,7 @@ Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên 
 ### **Backend (API Service)**
 - **Core Framework:** [NestJS 11](https://nestjs.com/) (Modular Monolith + Clean Architecture).
 - **Language:** TypeScript 5.
-- **Database & ORM:** PostgreSQL 17 + [TypeORM 0.3](https://typeorm.io/) (Migrations, Seeding, Transactions & Pessimistic Write Locks).
+- **Database & ORM:** PostgreSQL 17 + [TypeORM 0.3](https://typeorm.io/) (19 Migrations, Seeding, Transactions & Pessimistic Write Locks).
 - **Authentication & Security:**
   - JWT (`@nestjs/jwt`, `passport-jwt`): Cấp phát Access Token (15m) & Refresh Token (7d).
   - `bcryptjs`: Mã hóa mật khẩu với Salt (10 rounds).
@@ -75,14 +84,17 @@ Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên 
   - **Progressive Account Lockout:** Khóa tịnh tiến tự động (5m -> 15m -> 60m -> Vô hiệu hóa) chống Brute-Force.
 - **Validation & Transformation:** `class-validator` & `class-transformer` với Global `ValidationPipe`.
 - **API Documentation:** OpenAPI 3.0 / Swagger (`@nestjs/swagger`).
+- **Testing:** [Jest](https://jestjs.io/) (122 test suites, 674 unit & integration tests).
 
 ### **Frontend (Client Web App)**
 - **Core Library:** [React 19](https://react.dev/) (Single Page Application - SPA).
 - **Build Tool:** [Vite 8](https://vitejs.dev/) (Hot Module Replacement & Speed Opt).
+- **Architecture & Performance:** Route-level Code Splitting (`React.lazy()` & `Suspense`), Component Decomposition (phân rã tách biệt UI render, custom hooks và business logic).
 - **Data Visualization:** **Pure Vector SVG Radar Chart Engine** (0-dependency, responsive qua `viewBox`, đa giác lưới đồng tâm 5 cấp, radial spokes, SVG Linear Gradients & Glow Filters).
 - **Styling:** Vanilla CSS3 + Custom Design Tokens (Dark Mode, Glassmorphism, EA FC HUD & Broadcast Micro-animations).
 - **HTTP Client:** Fetch API chuẩn hóa với Countdown Timer thời gian thực.
-- **Position & Role Categorization System:** Utility chuẩn hóa 4 nhóm vai trò (GK, DEF, MID, ATT) đồng bộ màu sắc và metrics.
+- **Position & Role Categorization System:** Utility chuẩn hóa 4 nhóm vai trò (GK, DEF, MID, ATT) đồng bộ màu sắc và metrics giao diện.
+- **Testing:** [Vitest 4](https://vitest.dev/) (282 pure unit test cases kiểm thử Radar Normalization, Squad Rules, Position Taxonomy, Advanced Query validation).
 
 ---
 
@@ -127,13 +139,16 @@ Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên 
 ---
 
 ### **Module 3: Player Analytics & Scouting Intelligence (`src/modules/players`)**
-1. **Tìm kiếm & Lọc Cầu thủ Đa chiều (`GET /players`):**
-   - Lọc theo tên, giải đấu, CLB, quốc tịch, độ tuổi, chiều cao, cân nặng.
+1. **Tìm kiếm Cầu thủ Cơ bản (`GET /players`):**
+   - Endpoint công khai (Public), hỗ trợ phân trang và lọc theo tên, giải đấu, CLB, quốc tịch, độ tuổi, chiều cao, cân nặng.
    - **Hỗ trợ Any Position Filter:** Khớp cả vị trí chính (`primaryPosition`) và các vị trí phụ liên kết (`player.positions`).
-2. **Đảm bảo tính toàn vẹn vị trí (Position Integrity & Single Primary Rule):**
+2. **Tìm kiếm Nâng cao (`QUERY /api/players`):**
+   - Yêu cầu xác thực JWT (`Authorization: Bearer <token>`, cho phép `USER` và `ADMIN`).
+   - Hỗ trợ cây logic Boolean (AND/OR), lọc chỉ số mùa giải, gom nhóm thống kê trận đấu (Match Aggregation) và xếp hạng phân vị theo vị trí (Cohort Comparison).
+3. **Đảm bảo tính toàn vẹn vị trí (Position Integrity & Single Primary Rule):**
    - Bảng `player_positions` là source of truth với partial unique constraint `IDX_player_positions_one_primary_per_player`.
-   - Endpoint cập nhật nguyên tử có pessimistic lock: `PATCH /players/:id/primary-position`.
-3. **Hero Banner theo Vai trò (Position-Aware Hero Card):**
+   - Cập nhật vị trí chính (`PATCH /players/:id/primary-position`): Dành riêng cho Quản trị viên (`ADMIN only`, bảo vệ bởi `JwtAuthGuard` & `RolesGuard('ADMIN')`), xử lý nguyên tử với pessimistic lock.
+4. **Hero Banner theo Vai trò (Position-Aware Hero Card):**
    - Tự động thay đổi 2 chỉ số nổi bật theo vai trò:
      - **GK:** `SAVES` | `CLEAN SHEETS`
      - **DEF:** `TACKLES` | `INTERCEPTIONS`
@@ -332,29 +347,28 @@ $$\text{Score}_{\text{inverse}} = 100 - \text{clamp}\left( \dfrac{\text{val} - \
 
 ## 🧪 8. Kiểm Thử Tự Động & Quality Checks (Test Suite)
 
-Dự án tích hợp bộ unit test toàn diện cho tất cả Use Cases, Domain Entities và Controllers:
+Dự án tích hợp bộ kiểm thử tự động toàn diện cho cả Backend (Jest) và Frontend (Vitest):
 
 ```bash
+# Backend (Jest - Use Cases, Domain Entities, Controllers, Integration)
 cd backend
-
-# Chạy toàn bộ bộ test tự động (39 Test Suites, 133 Tests)
 npm run test
-
-# Kiểm tra Linter & Sửa lỗi tự động
 npm run lint
+npm run build
 
-# Biên dịch kiểm tra lỗi Type Build
+# Frontend (Vitest - Radar, Squad Placement, Position Taxonomy, Query Composition)
+cd frontend
+npm run test
 npm run build
 ```
 
 ### Kết quả kiểm thử tự động:
 ```text
-Test Suites: 39 passed, 39 total
-Tests:       133 passed, 133 total
-Snapshots:   0 total
-Time:        3.138 s
-Backend Build:  100% PASSED (nest build)
-Frontend Build: 100% PASSED (tsc -b && vite build)
+Backend Tests (Jest):     122 suites passed, 674 tests passed (100%)
+Frontend Tests (Vitest):  5 test files passed, 282 tests passed (100%)
+Total Automated Tests:    956 tests passed (100%)
+Backend Build:            100% PASSED (nest build)
+Frontend Build:           100% PASSED (tsc -b && vite build)
 ```
 
 ---

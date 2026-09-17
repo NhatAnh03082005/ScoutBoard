@@ -1,6 +1,6 @@
 # 🗄️ DATABASE ARCHITECTURE & ERD SPECIFICATION – SCOUTBOARD
 
-Tài liệu hướng dẫn toàn diện về cấu hình, khởi chạy cơ sở dữ liệu PostgreSQL 17 và đặc tả chi tiết Sơ đồ Thực thể Liên kết (Entity Relationship Diagram - ERD) gồm **21 bảng** được phân chia khoa học theo **4 vùng chức năng**.
+Tài liệu hướng dẫn toàn diện về cấu hình, khởi chạy cơ sở dữ liệu PostgreSQL 17 và đặc tả chi tiết Sơ đồ Thực thể Liên kết (Entity Relationship Diagram - ERD) gồm **20 bảng nghiệp vụ đã triển khai** (+ 1 bảng kế hoạch `audit_logs`) được phân chia khoa học theo **4 vùng chức năng**.
 
 ---
 
@@ -69,19 +69,23 @@ Sơ đồ ERD của **ScoutBoard** được phân chia độc lập và rõ ràn
 │ 3. USER-GENERATED DATA                   │ 4. SYNCHRONIZATION & AUDIT                  │
 │    • shortlists                          │    • data_sync_jobs                         │
 │    • shortlist_players                   │    • data_sync_logs                         │
-│    • squads                              │    • audit_logs                             │
+│    • squads                              │    • audit_logs (PLANNED)                   │
 │    • squad_players                       │                                             │
 └──────────────────────────────────────────┴─────────────────────────────────────────────┘
 ```
 
 ### 2.1. Danh sách bảng theo vùng
 
-| Vùng | Nhóm chức năng | Danh sách 21 bảng trong hệ thống |
+| Vùng | Nhóm chức năng | Danh sách 20 bảng đã triển khai (+ 1 bảng kế hoạch) |
 |:---:|---|---|
 | **1** | **Authentication & Authorization** | `users`, `roles`, `user_roles`, `refresh_tokens` |
 | **2** | **Football Data (Synced from APIs)** | `competitions`, `seasons`, `season_teams`, `teams`, `players`, `player_positions`, `player_team_history`, `matches`, `player_match_statistics`, `player_season_statistics` |
 | **3** | **User-generated Data** | `shortlists`, `shortlist_players`, `squads`, `squad_players` |
-| **4** | **Synchronization & Audit** | `data_sync_jobs`, `data_sync_logs`, `audit_logs` |
+| **4** | **Synchronization & Audit** | `data_sync_jobs`, `data_sync_logs`, `audit_logs` *(PLANNED / Chưa triển khai)* |
+
+> **Ghi chú về Schema CSDL thực tế:**
+> CSDL PostgreSQL hiện có **20 bảng nghiệp vụ đã triển khai** cùng **1 bảng quản lý migration của TypeORM (`migrations`)**, tổng cộng 21 bảng trong PostgreSQL.
+> Bảng `audit_logs` thuộc kế hoạch phát triển (**Status: PLANNED / NOT IMPLEMENTED**), hiện chưa có bảng CSDL, TypeORM entity hay migration tương ứng.
 
 ---
 
@@ -123,7 +127,7 @@ Sơ đồ ERD của **ScoutBoard** được phân chia độc lập và rõ ràn
 | 30 | `competitions` | `data_sync_jobs` | 1–N | `data_sync_jobs.competition_id` | Giải đấu được đồng bộ dữ liệu (`SYNCED FOR COMPETITION`). |
 | 31 | `seasons` | `data_sync_jobs` | 1–N | `data_sync_jobs.season_id` | Mùa giải được đồng bộ dữ liệu (`SYNCED FOR SEASON`). |
 | 32 | `data_sync_jobs` | `data_sync_logs` | 1–N | `data_sync_logs.job_id` | Nhật ký chi tiết của từng tiến trình đồng bộ (`GENERATES LOGS`). |
-| 33 | `users` | `audit_logs` | 1–N | `audit_logs.actor_user_id` | Người dùng/Admin thực hiện hành động hệ thống (`PERFORMS ACTION`). |
+| 33 | `users` | `audit_logs` | 1–N | `audit_logs.actor_user_id` | Người dùng/Admin thực hiện hành động hệ thống (`PERFORMS ACTION`) — *(PLANNED / Chưa triển khai trong DB)*. |
 
 ### 3.2. Sơ đồ quan hệ dạng văn bản (ASCII Diagram)
 
@@ -152,12 +156,12 @@ VÙNG 4: SYNC & AUDIT
 users        (1) ─────── (N) data_sync_jobs (1) ─────── (N) data_sync_logs
 competitions (1) ─────── (N) data_sync_jobs
 seasons      (1) ─────── (N) data_sync_jobs
-users        (1) ─────── (N) audit_logs
+users        (1) ─────── (N) audit_logs [PLANNED ONLY — NOT IN DB]
 ```
 
 ---
 
-## 📑 4. ĐẶC TẢ CHI TIẾT 21 BẢNG DỮ LIỆU
+## 📑 4. ĐẶC TẢ CHI TIẾT CÁC BẢNG DỮ LIỆU (20 BẢNG THỰC TẾ + 1 BẢNG KẾ HOẠCH)
 
 ---
 
@@ -563,7 +567,9 @@ Ghi nhận chi tiết từng bước xử lý và các bản ghi lỗi trong m�
 
 ---
 
-#### 21. Bảng `audit_logs`
+#### 21. Bảng `audit_logs` (PLANNED / CHƯA TRIỂN KHAI)
+> **Trạng thái:** PLANNED ONLY — NOT PRESENT IN DATABASE (Nằm trong roadmap phát triển; hiện tại CSDL PostgreSQL chưa có bảng, TypeORM entity hoặc migration này).
+
 Ghi vết lịch sử bảo mật (Audit Trail) cho toàn bộ các hành động trọng yếu của hệ thống.
 
 | Thuộc tính | Kiểu dữ liệu | Cho phép NULL | Mặc định | Ràng buộc | Mô tả & Nghiệp vụ |
@@ -585,12 +591,13 @@ Ghi vết lịch sử bảo mật (Audit Trail) cho toàn bộ các hành độn
 ## 🔒 5. CÁC RÀNG BUỘC TOÀN VẸN (DATABASE CONSTRAINTS)
 
 ```sql
--- 1. Chống trùng lặp dữ liệu đồng bộ từ API bên ngoài
-CREATE UNIQUE INDEX uq_competitions_external_identity ON competitions (external_provider, external_id);
-CREATE UNIQUE INDEX uq_seasons_external_identity ON seasons (external_provider, external_id);
-CREATE UNIQUE INDEX uq_teams_external_identity ON teams (external_provider, external_id);
-CREATE UNIQUE INDEX uq_players_external_identity ON players (external_provider, external_id);
-CREATE UNIQUE INDEX uq_matches_external_identity ON matches (external_provider, external_id);
+-- 1. Chống trùng lặp dữ liệu đồng bộ từ API bên ngoài (UNIQUE constraint indexes)
+-- (Lưu ý: Task 5.4 đã dọn dẹp 4 index non-unique IDX_ trùng lặp qua migration 1789900000000; tính duy nhất được đảm bảo bởi các index UQ_)
+CREATE UNIQUE INDEX "UQ_competitions_provider_external_id" ON competitions (external_provider, external_id);
+CREATE UNIQUE INDEX "UQ_seasons_provider_external_id" ON seasons (external_provider, external_id);
+CREATE UNIQUE INDEX "UQ_teams_provider_external_id" ON teams (external_provider, external_id);
+CREATE UNIQUE INDEX "UQ_players_provider_external_id" ON players (external_provider, external_id);
+CREATE UNIQUE INDEX "UQ_matches_provider_external_id" ON matches (external_provider, external_id);
 
 -- 2. Đảm bảo tính duy nhất của mã mùa giải trong một giải đấu
 ALTER TABLE seasons ADD CONSTRAINT uq_competition_season_code UNIQUE (competition_id, season_code);
@@ -636,6 +643,8 @@ CREATE INDEX idx_player_stats_player_id ON player_season_statistics (player_id);
 -- Index thống kê theo trận đấu
 CREATE INDEX idx_player_match_stats_player_id ON player_match_statistics (player_id);
 CREATE INDEX idx_player_match_stats_match_id ON player_match_statistics (match_id);
+-- Index tối ưu truy vấn thống kê cầu thủ theo số phút thi đấu (Task 5.2 - migration 1789800000000):
+CREATE INDEX idx_pms_player_minutes ON player_match_statistics (player_id, minutes_played);
 
 -- Index phiên đăng nhập Refresh Token
 CREATE INDEX idx_refresh_tokens_user ON refresh_tokens (user_id);
@@ -644,14 +653,19 @@ CREATE INDEX idx_refresh_tokens_user ON refresh_tokens (user_id);
 CREATE INDEX idx_shortlists_owner ON shortlists (owner_id, updated_at DESC);
 CREATE INDEX idx_squads_owner ON squads (owner_id, updated_at DESC);
 
--- Index theo dõi tiến trình đồng bộ và audit log
+-- Index theo dõi tiến trình đồng bộ
 CREATE INDEX idx_sync_jobs_status_created ON data_sync_jobs (status, started_at DESC);
-CREATE INDEX idx_audit_logs_created ON audit_logs (created_at DESC);
+
+-- PLANNED ONLY — NOT PRESENT IN DATABASE
+-- CREATE INDEX idx_audit_logs_created ON audit_logs (created_at DESC);
 ```
 
 ---
 
 ## 📦 7. THỨ TỰ MIGRATION TỔNG QUÁT (V1 → V23)
+
+> **Lưu ý về Migrations thực tế:**
+> Danh sách V1–V23 thể hiện thứ tự thiết kế logic ban đầu. Trong thực tế, hệ thống TypeORM quản lý **19 migration files** chính thức (từ timestamp `1784991962668` đến `1789900000000`), tương ứng với **20 bảng nghiệp vụ + 1 bảng migrations**. Bảng `audit_logs` hiện ở trạng thái kế hoạch và chưa có migration vật lý.
 
 ```text
 V1  ── create table: users
@@ -674,7 +688,7 @@ V17 ── create table: squads
 V18 ── create table: squad_players
 V19 ── create table: data_sync_jobs
 V20 ── create table: data_sync_logs
-V21 ── create table: audit_logs
+V21 ── create table: audit_logs (PLANNED ONLY — NOT PRESENT IN DATABASE)
 V22 ── create performance indexes & constraints
 V23 ── seed initial data (roles: USER, ADMIN)
 ```
@@ -706,7 +720,7 @@ Sau đợt rà soát dữ liệu nhà cung cấp API-Football và thực hiện 
 ### 9.2. Normalized Fields (Trường chuẩn hóa kỹ thuật)
 * `height_cm`: Chuyển đổi từ raw `"183 cm"` sang integer `183`.
 * `weight_kg`: Chuyển đổi từ raw `"72 kg"` sang integer `72`.
-* `primary_position`: Chuẩn hóa vị trí danh mục thi đấu sang mã 15 vị trí cụ thể (`GK`, `CB`, `LB`, `RB`, `LWB`, `RWB`, `CDM`, `CM`, `CAM`, `LM`, `RM`, `LW`, `RW`, `CF`, `ST`) cùng 3 mã danh mục mở rộng bảo toàn nhóm (`DEF`, `MID`, `FWD`), tổng cộng 18 mã vị trí chuẩn tắc trong `CANONICAL_PLAYER_POSITIONS`.
+* `primary_position`: Vị trí thi đấu chính của cầu thủ được chuẩn hóa sang đúng 15 vị trí chuẩn tắc (Canonical Positions): `GK`, `LB`, `CB`, `RB`, `LWB`, `RWB`, `CM`, `CDM`, `CAM`, `LM`, `RM`, `LW`, `RW`, `CF`, `ST`. Các nhãn nhóm như `DEF`, `MID`, `ATT`/`FWD` chỉ được dùng làm thuật ngữ gom nhóm hiển thị trên giao diện người dùng (UI Grouping), không phải là vị trí chuẩn tắc backend.
 
 ### 9.3. ScoutBoard-Derived Metrics (Chỉ số nội suy do ScoutBoard tự tính toán)
 * **Per-90 Metrics**: Tỷ lệ trung bình chuẩn hóa mỗi 90 phút thi đấu (`goals_per_90`, `assists_per_90`, `shots_per_90`, `passes_per_90`, `tackles_per_90`, `interceptions_per_90`, `duels_won_per_90`, `saves_per_90`, `goals_conceded_per_90`). Công thức: $\text{stat\_per\_90} = \frac{\text{stat} \times 90}{\text{minutes\_played}}$ (chỉ tính khi `minutes_played > 0`, trả về `null` nếu `minutes_played = 0`).

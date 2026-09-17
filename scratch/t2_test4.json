@@ -1,0 +1,15 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "AND",
+    "conditions": [
+      { "kind": "CONDITION", "field": "age", "operator": "LTE", "value": 23 },
+      {
+        "kind": "MATCH_AGGREGATION",
+        "matchCriteria": { "kind": "CONDITION", "field": "match_rating", "operator": "GTE", "value": 7 },
+        "aggregation": { "type": "COUNT", "operator": "GTE", "value": 5 }
+      }
+    ]
+  },
+  "pagination": { "limit": 5, "offset": 0 }
+}

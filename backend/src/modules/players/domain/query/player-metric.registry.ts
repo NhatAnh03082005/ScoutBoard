@@ -24,7 +24,7 @@ import type { ConditionOperator } from './player-query.types';
  * Data type taxonomy for metric values.
  * Controls which operators are valid and what value type to expect.
  */
-export type MetricDataType = 'NUMBER' | 'ENUM' | 'STRING';
+export type MetricDataType = 'NUMBER' | 'ENUM' | 'STRING' | 'BOOLEAN';
 
 /**
  * Extensible source taxonomy.
@@ -44,6 +44,7 @@ export type MetricSourceType =
  * DERIVED    — computed on-the-fly via a SQL expression (e.g. pass_accuracy via CASE/NULLIF)
  */
 export type MetricKind = 'RAW' | 'NORMALIZED' | 'DERIVED';
+export type MetricRankingDirection = 'ASC' | 'DESC';
 
 /**
  * Full self-describing definition of a queryable player metric.
@@ -84,6 +85,9 @@ export interface PlayerMetricDefinition {
 
   /** Whether this metric supports sorting (informational for future use). */
   readonly sortable: boolean;
+
+  /** Direction used when assigning a relative rank; DESC is the default. */
+  readonly rankingDirection?: MetricRankingDirection;
 }
 
 // ---------------------------------------------------------------------------
@@ -108,12 +112,173 @@ const STRING_OPS: ReadonlyArray<ConditionOperator> = [
   'IN',
   'NOT_IN',
 ];
+const BOOLEAN_OPS: ReadonlyArray<ConditionOperator> = ['EQ', 'NE'];
 
 const POSITION_ENUM_VALUES: ReadonlyArray<string> = CANONICAL_PLAYER_POSITIONS;
 
 // ---------------------------------------------------------------------------
 // Registry Entries
 // ---------------------------------------------------------------------------
+
+const MATCH_METRIC_DEFINITIONS: PlayerMetricDefinition[] = [
+  {
+    key: 'match_rating',
+    label: 'Match Rating',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_minutes_played',
+    label: 'Match Minutes Played',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_is_starter',
+    label: 'Starter',
+    dataType: 'BOOLEAN',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: BOOLEAN_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_goals',
+    label: 'Match Goals',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_assists',
+    label: 'Match Assists',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_shots',
+    label: 'Match Shots',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_key_passes',
+    label: 'Match Key Passes',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_passes_attempted',
+    label: 'Match Passes Attempted',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_passes_completed',
+    label: 'Match Passes Completed',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_tackles',
+    label: 'Match Tackles',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_interceptions',
+    label: 'Match Interceptions',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_yellow_cards',
+    label: 'Match Yellow Cards',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_red_cards',
+    label: 'Match Red Cards',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    sortable: false,
+  },
+  {
+    key: 'match_saves',
+    label: 'Match Saves',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    applicablePositions: ['GK'],
+    sortable: false,
+  },
+  {
+    key: 'match_goals_conceded',
+    label: 'Match Goals Conceded',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    applicablePositions: ['GK'],
+    sortable: false,
+  },
+  {
+    key: 'match_clean_sheets',
+    label: 'Match Clean Sheets',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    applicablePositions: ['GK'],
+    sortable: false,
+  },
+  {
+    key: 'match_penalties_saved',
+    label: 'Match Penalties Saved',
+    dataType: 'NUMBER',
+    sourceType: 'MATCH_STAT',
+    kind: 'RAW',
+    allowedOperators: NUMBER_OPS,
+    applicablePositions: ['GK'],
+    sortable: false,
+  },
+];
 
 const METRIC_DEFINITIONS: PlayerMetricDefinition[] = [
   // ── Player Profile ────────────────────────────────────────────────────────
@@ -159,6 +324,24 @@ const METRIC_DEFINITIONS: PlayerMetricDefinition[] = [
     label: 'Nationality',
     dataType: 'STRING',
     sourceType: 'PLAYER',
+    kind: 'RAW',
+    allowedOperators: STRING_OPS,
+    sortable: false,
+  },
+  {
+    key: 'club',
+    label: 'Club',
+    dataType: 'STRING',
+    sourceType: 'PLAYER',
+    kind: 'RAW',
+    allowedOperators: STRING_OPS,
+    sortable: false,
+  },
+  {
+    key: 'competition',
+    label: 'Competition',
+    dataType: 'STRING',
+    sourceType: 'SEASON_STAT',
     kind: 'RAW',
     allowedOperators: STRING_OPS,
     sortable: false,
@@ -383,6 +566,7 @@ const METRIC_DEFINITIONS: PlayerMetricDefinition[] = [
     allowedOperators: NUMBER_OPS,
     applicablePositions: ['GK'],
     sortable: true,
+    rankingDirection: 'ASC',
   },
   {
     key: 'clean_sheets',
@@ -413,6 +597,7 @@ const METRIC_DEFINITIONS: PlayerMetricDefinition[] = [
     allowedOperators: NUMBER_OPS,
     applicablePositions: ['GK'],
     sortable: true,
+    rankingDirection: 'ASC',
   },
   {
     key: 'save_percentage',
@@ -424,6 +609,7 @@ const METRIC_DEFINITIONS: PlayerMetricDefinition[] = [
     applicablePositions: ['GK'],
     sortable: true,
   },
+  ...MATCH_METRIC_DEFINITIONS,
 ];
 
 // ---------------------------------------------------------------------------

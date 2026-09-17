@@ -7,6 +7,7 @@ export interface SeasonWriteRepository {
   findByExternalIdentity(
     externalProvider: string,
     externalId: string,
+    competitionId?: string,
   ): Promise<SeasonOrmEntity | null>;
 
   upsert(

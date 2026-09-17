@@ -12,6 +12,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
@@ -58,6 +59,7 @@ export class AuthController {
   ) {}
 
   @ApiOperation({ summary: 'Đăng ký tài khoản người dùng mới' })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     try {
@@ -85,6 +87,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Yêu cầu mã OTP đặt lại mật khẩu' })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
@@ -92,6 +95,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Đặt lại mật khẩu mới bằng mã OTP' })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @Post('reset-password')
   async resetPassword(@Body() dto: ResetPasswordDto) {
@@ -99,6 +103,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Đăng nhập hệ thống' })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() dto: LoginDto) {

@@ -19,6 +19,8 @@ import type {
 import {
   buildWhereClause,
   createBuildContext,
+  findRankMetric,
+  getMetricSqlExpression,
 } from 'src/modules/players/infrastructure/query/player-query.builder';
 
 @Injectable()
@@ -434,15 +436,16 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
       .leftJoinAndSelect('player.currentTeam', 'currentTeam')
       .leftJoinAndSelect('player.positions', 'positions');
 
-    // Optional scope filter: restrict season stats to a specific competition/season
-    // Applied as a pre-filter on the pss join if scope is provided.
-    // The stat join itself is added by buildWhereClause when metrics require it.
-    const context = createBuildContext();
+    // Optional scope filter: restrict season stats to a specific competition/season.
+    // Also propagated into BuildContext so that MATCH_AGGREGATION subqueries
+    // (Task 2) filter matches by the same scope via the EXISTS subquery's JOIN on `matches`.
+    const context = createBuildContext(scope);
 
-    // Apply the Boolean query tree
+    // Apply the Boolean query tree (adds pss join if needed, adds match EXISTS subqueries)
     buildWhereClause(queryNode, qb, context);
 
-    // If scope is provided and the stat join was added, filter by scope
+    // If scope is provided and the pss stat join was added, apply outer scope filters.
+    // Match aggregation scope is handled inside the EXISTS subquery (via BuildContext).
     if (scope && context.statJoinAdded) {
       if (scope.seasonId) {
         qb.andWhere('pss.season_id = :scopeSeasonId', {
@@ -459,12 +462,55 @@ export class TypeOrmPlayerReadRepository implements PlayerReadRepository {
     const limit = pagination.limit ?? 20;
     const offset = pagination.offset ?? 0;
 
-    qb.orderBy('player.name', 'ASC')
-      .addOrderBy('player.id', 'ASC')
-      .take(limit)
-      .skip(offset);
+    const rankInfo = findRankMetric(queryNode);
+    if (rankInfo && context.statJoinAdded) {
+      const metricSql =
+        getMetricSqlExpression(rankInfo.metric) ?? 'player.name';
 
-    const [items, total] = await qb.getManyAndCount();
-    return { items, total };
+      const countRes = await qb
+        .clone()
+        .select('COUNT(DISTINCT player.id)', 'count')
+        .getRawOne();
+      const total = parseInt(countRes?.count ?? '0', 10);
+
+      const idRows = await qb
+        .clone()
+        .select('player.id', 'id')
+        .addSelect(`AVG(${metricSql})`, 'rank_metric')
+        .groupBy('player.id, player.name')
+        .orderBy('rank_metric', rankInfo.direction)
+        .addOrderBy('player.name', 'ASC')
+        .addOrderBy('player.id', 'ASC')
+        .limit(limit)
+        .offset(offset)
+        .getRawMany();
+
+      const ids = idRows.map((r) => r.id);
+      if (ids.length === 0) {
+        return { items: [], total };
+      }
+
+      const players = await this.repository
+        .createQueryBuilder('player')
+        .leftJoinAndSelect('player.currentTeam', 'currentTeam')
+        .leftJoinAndSelect('player.positions', 'positions')
+        .where('player.id IN (:...ids)', { ids })
+        .getMany();
+
+      const playerMap = new Map(players.map((p) => [p.id, p]));
+      const items = ids
+        .map((id) => playerMap.get(id))
+        .filter((p): p is PlayerOrmEntity => p !== undefined);
+
+      return { items, total };
+    } else {
+      qb.orderBy('player.name', 'ASC')
+        .addOrderBy('player.id', 'ASC')
+        .take(limit)
+        .skip(offset);
+
+      const [items, total] = await qb.getManyAndCount();
+      return { items, total };
+    }
   }
 }

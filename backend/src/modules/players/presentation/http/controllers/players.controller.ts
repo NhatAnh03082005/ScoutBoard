@@ -6,8 +6,17 @@ import {
   Patch,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/modules/auth/presentation/http/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/modules/auth/presentation/http/guards/roles.guard';
+import { Roles } from 'src/modules/auth/presentation/http/decorators/roles.decorator';
 import { SearchPlayersUseCase } from 'src/modules/players/application/use-cases/search-players.use-case';
 import { GetPlayerByIdUseCase } from 'src/modules/players/application/use-cases/get-player-by-id.use-case';
 import { GetPlayerTeamHistoryUseCase } from 'src/modules/players/application/use-cases/get-player-team-history.use-case';
@@ -79,9 +88,17 @@ export class PlayersController {
     return this.getPlayerByIdUseCase.execute(id);
   }
 
-  @ApiOperation({ summary: 'Cập nhật vị trí chính của cầu thủ' })
+  @ApiOperation({ summary: 'Cập nhật vị trí chính của cầu thủ (Admin only)' })
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Đã cập nhật vị trí chính' })
+  @ApiResponse({ status: 401, description: 'Chưa xác thực' })
+  @ApiResponse({
+    status: 403,
+    description: 'Không có quyền truy cập (Yêu cầu ADMIN)',
+  })
   @ApiResponse({ status: 404, description: 'Cầu thủ không tồn tại' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Patch(':id/primary-position')
   async updatePrimaryPosition(
     @Param('id', ParseUUIDPipe) id: string,

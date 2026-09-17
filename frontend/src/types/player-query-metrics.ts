@@ -8,7 +8,15 @@
  */
 
 import { CANONICAL_PLAYER_POSITIONS } from './player.types';
-import type { QueryMetricDefinition, ConditionOperator } from './player.types';
+import type {
+  QueryMetricDefinition,
+  ConditionOperator,
+  PlayerPosition,
+  QueryNode,
+  FieldCondition,
+  MatchAggregationCondition,
+  CohortComparisonCondition,
+} from './player.types';
 
 const NUMBER_OPS: ConditionOperator[] = ['GT', 'GTE', 'LT', 'LTE', 'EQ', 'NE', 'BETWEEN'];
 const ENUM_OPS: ConditionOperator[] = ['EQ', 'NE', 'IN', 'NOT_IN'];
@@ -61,6 +69,20 @@ export const PLAYER_QUERY_METRICS: CategorizedMetric[] = [
   {
     key: 'nationality',
     label: 'Nationality',
+    category: 'Profile',
+    dataType: 'STRING',
+    allowedOperators: STRING_OPS,
+  },
+  {
+    key: 'club',
+    label: 'Club',
+    category: 'Profile',
+    dataType: 'STRING',
+    allowedOperators: STRING_OPS,
+  },
+  {
+    key: 'competition',
+    label: 'Competition',
     category: 'Profile',
     dataType: 'STRING',
     allowedOperators: STRING_OPS,
@@ -290,4 +312,360 @@ export const PLAYER_QUERY_METRICS_MAP: Map<string, CategorizedMetric> = new Map(
 
 export function getMetricByKey(key: string): CategorizedMetric | undefined {
   return PLAYER_QUERY_METRICS_MAP.get(key);
+}
+
+/** Persisted player_match_statistics fields available to Task 2 aggregations.
+ *
+ * Mirrors MATCH_METRIC_DEFINITIONS in the backend player-metric.registry.ts.
+ * `match_is_starter` is declared as BOOLEAN (not ENUM) — the backend validator
+ * expects an actual boolean value (true/false), not strings.
+ */
+export const PLAYER_MATCH_QUERY_METRICS: QueryMetricDefinition[] = [
+  { key: 'match_rating', label: 'Match Rating', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_minutes_played', label: 'Match Minutes Played', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_is_starter', label: 'Is Starter', dataType: 'BOOLEAN', allowedOperators: ['EQ', 'NE'] },
+  { key: 'match_goals', label: 'Match Goals', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_assists', label: 'Match Assists', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_shots', label: 'Match Shots', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_key_passes', label: 'Match Key Passes', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_passes_attempted', label: 'Match Passes Attempted', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_passes_completed', label: 'Match Passes Completed', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_tackles', label: 'Match Tackles', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_interceptions', label: 'Match Interceptions', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_yellow_cards', label: 'Match Yellow Cards', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_red_cards', label: 'Match Red Cards', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_saves', label: 'Match Saves (GK)', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_goals_conceded', label: 'Match Goals Conceded (GK)', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_clean_sheets', label: 'Match Clean Sheets (GK)', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+  { key: 'match_penalties_saved', label: 'Match Penalties Saved (GK)', dataType: 'NUMBER', allowedOperators: [...NUMBER_OPS] },
+];
+
+/**
+ * Shared serializer to strip internal tracking properties (like __id) before API dispatch.
+ * Pure function reusable across any UI builder implementation.
+ */
+export function stripQueryNodeIds(node: QueryNode): QueryNode {
+  if (node.kind === 'CONDITION') {
+    const { __id, ...rest } = node as any;
+    void __id;
+    return rest as FieldCondition;
+  }
+  if (node.kind === 'MATCH_AGGREGATION') {
+    const { __id, ...rest } = node as any;
+    void __id;
+    return rest as MatchAggregationCondition;
+  }
+  if (node.kind === 'COHORT_COMPARISON') {
+    const { __id, ...rest } = node as any;
+    void __id;
+    return rest as CohortComparisonCondition;
+  }
+  return {
+    kind: 'GROUP',
+    operator: node.operator,
+    conditions: node.conditions.map(stripQueryNodeIds),
+  };
+}
+
+/**
+ * Shared range operator converter:
+ * Converts From / To numeric inputs into a clean FieldCondition.
+ * - Both from & to defined: BETWEEN [from, to] (or EQ if from === to)
+ * - Only from defined: GTE from
+ * - Only to defined: LTE to
+ * - Neither defined: null
+ */
+export function buildRangeCondition(
+  field: string,
+  from?: number | null,
+  to?: number | null,
+): FieldCondition | null {
+  const hasFrom = from !== undefined && from !== null && !isNaN(from);
+  const hasTo = to !== undefined && to !== null && !isNaN(to);
+
+  if (hasFrom && hasTo) {
+    const min = Math.min(from, to);
+    const max = Math.max(from, to);
+    if (min === max) {
+      return { kind: 'CONDITION', field, operator: 'EQ', value: min };
+    }
+    return { kind: 'CONDITION', field, operator: 'BETWEEN', value: [min, max] };
+  }
+  if (hasFrom) {
+    return { kind: 'CONDITION', field, operator: 'GTE', value: from };
+  }
+  if (hasTo) {
+    return { kind: 'CONDITION', field, operator: 'LTE', value: to };
+  }
+  return null;
+}
+
+/**
+ * Canonical position -> relevant performance metric keys.
+ * Excludes non-performance Profile metrics (age, height, weight, nationality, position).
+ * Preserves the fixed 15 canonical positions (GK, LB, CB, RB, LWB, RWB, CM, CDM, CAM, LM, RM, LW, RW, CF, ST).
+ */
+export const POSITION_PERFORMANCE_METRIC_KEYS: Record<
+  PlayerPosition,
+  readonly string[]
+> = {
+  GK: [
+    'saves',
+    'goals_conceded',
+    'clean_sheets',
+    'saves_per90',
+    'goals_conceded_per90',
+    'save_percentage',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  CB: [
+    'tackles',
+    'interceptions',
+    'duels_won',
+    'tackles_per90',
+    'interceptions_per90',
+    'passes_attempted',
+    'passes_completed',
+    'pass_accuracy',
+    'goals',
+    'goals_per90',
+    'yellow_cards',
+    'red_cards',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  LB: [
+    'tackles',
+    'interceptions',
+    'duels_won',
+    'tackles_per90',
+    'interceptions_per90',
+    'key_passes',
+    'key_passes_per90',
+    'assists',
+    'assists_per90',
+    'passes_attempted',
+    'passes_completed',
+    'pass_accuracy',
+    'yellow_cards',
+    'red_cards',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  RB: [
+    'tackles',
+    'interceptions',
+    'duels_won',
+    'tackles_per90',
+    'interceptions_per90',
+    'key_passes',
+    'key_passes_per90',
+    'assists',
+    'assists_per90',
+    'passes_attempted',
+    'passes_completed',
+    'pass_accuracy',
+    'yellow_cards',
+    'red_cards',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  LWB: [
+    'tackles',
+    'interceptions',
+    'duels_won',
+    'tackles_per90',
+    'interceptions_per90',
+    'key_passes',
+    'key_passes_per90',
+    'assists',
+    'assists_per90',
+    'passes_attempted',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  RWB: [
+    'tackles',
+    'interceptions',
+    'duels_won',
+    'tackles_per90',
+    'interceptions_per90',
+    'key_passes',
+    'key_passes_per90',
+    'assists',
+    'assists_per90',
+    'passes_attempted',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  CDM: [
+    'tackles',
+    'interceptions',
+    'duels_won',
+    'tackles_per90',
+    'interceptions_per90',
+    'passes_attempted',
+    'passes_completed',
+    'pass_accuracy',
+    'key_passes',
+    'key_passes_per90',
+    'yellow_cards',
+    'red_cards',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  CM: [
+    'passes_attempted',
+    'passes_completed',
+    'pass_accuracy',
+    'key_passes',
+    'key_passes_per90',
+    'assists',
+    'assists_per90',
+    'tackles',
+    'interceptions',
+    'tackles_per90',
+    'interceptions_per90',
+    'goals',
+    'goals_per90',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  CAM: [
+    'key_passes',
+    'key_passes_per90',
+    'assists',
+    'assists_per90',
+    'goals',
+    'goals_per90',
+    'shots',
+    'shots_on_target',
+    'passes_attempted',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  LM: [
+    'key_passes',
+    'key_passes_per90',
+    'assists',
+    'assists_per90',
+    'goals',
+    'goals_per90',
+    'shots',
+    'shots_on_target',
+    'tackles',
+    'interceptions',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  RM: [
+    'key_passes',
+    'key_passes_per90',
+    'assists',
+    'assists_per90',
+    'goals',
+    'goals_per90',
+    'shots',
+    'shots_on_target',
+    'tackles',
+    'interceptions',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  LW: [
+    'goals',
+    'goals_per90',
+    'shots',
+    'shots_on_target',
+    'assists',
+    'assists_per90',
+    'key_passes',
+    'key_passes_per90',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  RW: [
+    'goals',
+    'goals_per90',
+    'shots',
+    'shots_on_target',
+    'assists',
+    'assists_per90',
+    'key_passes',
+    'key_passes_per90',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  CF: [
+    'goals',
+    'goals_per90',
+    'shots',
+    'shots_on_target',
+    'assists',
+    'assists_per90',
+    'key_passes',
+    'key_passes_per90',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+  ST: [
+    'goals',
+    'goals_per90',
+    'shots',
+    'shots_on_target',
+    'assists',
+    'assists_per90',
+    'key_passes',
+    'key_passes_per90',
+    'passes_completed',
+    'pass_accuracy',
+    'minutes',
+    'appearances',
+    'starts',
+  ],
+};
+
+/**
+ * Returns the list of performance metrics tailored for the given canonical position.
+ */
+export function getPositionPerformanceMetrics(
+  position: PlayerPosition,
+): CategorizedMetric[] {
+  const keys = POSITION_PERFORMANCE_METRIC_KEYS[position] ?? [];
+  return keys
+    .map((k) => PLAYER_QUERY_METRICS_MAP.get(k))
+    .filter((m): m is CategorizedMetric => m !== undefined);
 }

@@ -934,7 +934,7 @@ export function isPlayerInSquad(players: SquadPlayerItem[], playerId: string): b
 
 export function findStarterForSlot(
   players: SquadPlayerItem[],
-  slot: FormationSlot,
+  slot: Pick<FormationSlot, 'code'> & Partial<FormationSlot>,
 ): SquadPlayerItem | undefined {
   return players.find(
     (p) =>

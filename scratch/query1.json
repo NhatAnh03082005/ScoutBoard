@@ -1,0 +1,17 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "AND",
+    "conditions": [
+      {
+        "kind": "CONDITION",
+        "field": "goals",
+        "operator": "GTE",
+        "value": 10
+      }
+    ]
+  },
+  "pagination": {
+    "limit": 2
+  }
+}

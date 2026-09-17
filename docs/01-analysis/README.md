@@ -4,9 +4,9 @@
 
 ## Quy ước và phạm vi
 
-- `GUEST` có thể tìm kiếm, xem chi tiết và so sánh cầu thủ mà không cần đăng nhập.
-- `USER` kế thừa các chức năng công khai của `GUEST`, đồng thời có thể quản lý shortlist và đội hình mơ ước.
-- `ADMIN` đăng nhập vào khu vực quản trị để quản lý người dùng, đồng bộ dữ liệu và xem audit log.
+- `GUEST` có thể xem trang Giới thiệu và Tìm kiếm cầu thủ cơ bản mà không cần đăng nhập.
+- `USER` kế thừa quyền xem của `GUEST`, đồng thời có thể Tìm kiếm nâng cao (Advanced Search), quản lý shortlist cá nhân, xây dựng đội hình và quản lý hồ sơ.
+- `ADMIN` đăng nhập vào khu vực quản trị để quản lý người dùng, đồng bộ dữ liệu và quản lý hồ sơ cá nhân. Tài khoản ADMIN không truy cập các tính năng người dùng (About, Tìm kiếm, Shortlists, Squads). Chức năng xem audit log hiện thuộc kế hoạch phát triển (PLANNED / NOT IMPLEMENTED).
 - `External Football API` là tác nhân hệ thống bên ngoài cung cấp dữ liệu bóng đá.
 - Nhãn **“Thêm cầu thủ khỏi shortlist”** trên sơ đồ được chuẩn hóa thành **“Thêm cầu thủ vào shortlist”** để đúng ngữ nghĩa nghiệp vụ.
 
@@ -316,7 +316,9 @@
 
 ## 21. Xem audit log
 
-| Tên use case | Xem audit log |
+> **Trạng thái:** PLANNED / NOT IMPLEMENTED (Nằm trong roadmap phát triển hệ thống; tài liệu đặc tả bên dưới được bảo toàn để phục vụ triển khai trong tương lai, hiện tại chưa có bảng CSDL PostgreSQL, TypeORM entity, API backend hoặc màn hình frontend tương ứng).
+
+| Tên use case | Xem audit log (Kế hoạch / Planned) |
 | :---- | :---- |
 | **Tóm tắt** | UC cho phép ADMIN tra cứu lịch sử các hành động quan trọng được thực hiện trong hệ thống. |
 | **Tác nhân** | ADMIN |

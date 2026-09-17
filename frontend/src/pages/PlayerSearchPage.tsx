@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import type {
   PlayerItem,
   PlayerDetail,
@@ -7,43 +7,60 @@ import type {
   PaginationMetadata,
   ComparisonScopeType,
   GroupNode,
-} from '../types/player.types';
-import type { CompetitionItem, CompetitionTeamItem } from '../types/competition.types';
-import { searchPlayersApi, getAvailablePositionsApi, queryPlayersApi } from '../services/player.service';
-import { getCompetitionsApi, getCurrentTeamsByCompetitionApi } from '../services/competition.service';
-import { PlayerFilters } from '../components/player/PlayerFilters';
-import { PlayerCardGrid } from '../components/player/PlayerCardGrid';
-import { PlayerTable } from '../components/player/PlayerTable';
-import { AddToShortlistModal } from '../components/shortlist/AddToShortlistModal';
-import { PlayerPagination } from '../components/player/PlayerPagination';
-import { PlayerDetailPage } from './PlayerDetailPage';
-import { PlayerComparisonSetupPage } from './PlayerComparisonSetupPage';
-import { PlayerComparisonPage } from './PlayerComparisonPage';
+  PlayerQueryScope,
+} from "../types/player.types";
+import type {
+  CompetitionItem,
+  CompetitionTeamItem,
+} from "../types/competition.types";
 import {
-  PlayerAdvancedQueryBuilder,
-  defaultGroupNode,
-} from '../components/player/PlayerAdvancedQueryBuilder';
+  searchPlayersApi,
+  getAvailablePositionsApi,
+  queryPlayersApi,
+} from "../services/player.service";
+import {
+  getCompetitionsApi,
+  getCurrentTeamsByCompetitionApi,
+} from "../services/competition.service";
+import { PlayerFilters } from "../components/player/PlayerFilters";
+import { PlayerCardGrid } from "../components/player/PlayerCardGrid";
+import { PlayerTable } from "../components/player/PlayerTable";
+import { AddToShortlistModal } from "../components/shortlist/AddToShortlistModal";
+import { PlayerPagination } from "../components/player/PlayerPagination";
+import { PlayerDetailPage } from "./PlayerDetailPage";
+import { PlayerComparisonSetupPage } from "./PlayerComparisonSetupPage";
+import { PlayerComparisonPage } from "./PlayerComparisonPage";
+import { defaultGroupNode } from "../components/player/PlayerAdvancedQueryBuilder";
+import { PlayerAdvancedSearchContext } from "../components/player/PlayerAdvancedSearchContext";
 
-type ViewMode = 'SEARCH' | 'DETAIL' | 'COMPARISON_SETUP' | 'COMPARISON_VIEW';
+type ViewMode = "SEARCH" | "DETAIL" | "COMPARISON_SETUP" | "COMPARISON_VIEW";
 
 // Helper to parse numeric inputs cleanly and avoid Number("") === 0 pitfalls
-const parseNumericParam = (val?: number | string | null): number | undefined => {
-  if (val === undefined || val === null || val === '') return undefined;
-  const parsed = typeof val === 'number' ? val : Number(val);
+const parseNumericParam = (
+  val?: number | string | null,
+): number | undefined => {
+  if (val === undefined || val === null || val === "") return undefined;
+  const parsed = typeof val === "number" ? val : Number(val);
   return isNaN(parsed) ? undefined : parsed;
 };
 
 interface PlayerSearchPageProps {
   initialPlayerId?: string | null;
   onClearInitialPlayerId?: () => void;
+  isAuthenticated?: boolean;
+  onNavigateToLogin?: () => void;
 }
 
 export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   initialPlayerId,
   onClearInitialPlayerId,
+  isAuthenticated = false,
+  onNavigateToLogin: _onNavigateToLogin,
 }) => {
   // Navigation View Mode State
-  const [viewMode, setViewMode] = useState<ViewMode>(initialPlayerId ? 'DETAIL' : 'SEARCH');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    initialPlayerId ? "DETAIL" : "SEARCH",
+  );
 
   // Search Results & Pagination
   const [players, setPlayers] = useState<PlayerItem[]>([]);
@@ -52,22 +69,32 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // Selected Player for Detail View
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(initialPlayerId || null);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(
+    initialPlayerId || null,
+  );
 
   useEffect(() => {
     if (initialPlayerId) {
       setSelectedPlayerId(initialPlayerId);
-      setViewMode('DETAIL');
+      setViewMode("DETAIL");
     }
   }, [initialPlayerId]);
 
   // Comparison State
-  const [comparisonPlayerA, setComparisonPlayerA] = useState<PlayerDetail | null>(null);
-  const [comparisonSeasonStatsA, setComparisonSeasonStatsA] = useState<PlayerSeasonStatisticItem[]>([]);
-  const [comparisonPlayerB, setComparisonPlayerB] = useState<PlayerItem | null>(null);
-  const [comparisonScope, setComparisonScope] = useState<ComparisonScopeType>('COMPETITION');
-  const [comparisonSeasonId, setComparisonSeasonId] = useState<string>('');
-  const [comparisonCompetitionId, setComparisonCompetitionId] = useState<string | undefined>(undefined);
+  const [comparisonPlayerA, setComparisonPlayerA] =
+    useState<PlayerDetail | null>(null);
+  const [comparisonSeasonStatsA, setComparisonSeasonStatsA] = useState<
+    PlayerSeasonStatisticItem[]
+  >([]);
+  const [comparisonPlayerB, setComparisonPlayerB] = useState<PlayerItem | null>(
+    null,
+  );
+  const [comparisonScope, setComparisonScope] =
+    useState<ComparisonScopeType>("COMPETITION");
+  const [comparisonSeasonId, setComparisonSeasonId] = useState<string>("");
+  const [comparisonCompetitionId, setComparisonCompetitionId] = useState<
+    string | undefined
+  >(undefined);
 
   // Competition & Club state
   const [competitions, setCompetitions] = useState<CompetitionItem[]>([]);
@@ -76,21 +103,33 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   const [loadingTeams, setLoadingTeams] = useState<boolean>(false);
 
   // Results View Mode (Cards Grid vs Dense Table)
-  const [resultsViewMode, setResultsViewMode] = useState<'GRID' | 'TABLE'>('GRID');
+  const [resultsViewMode, setResultsViewMode] = useState<"GRID" | "TABLE">(
+    "GRID",
+  );
 
   // Search Mode Toggle
-  type SearchMode = 'BASIC' | 'ADVANCED';
-  const [searchMode, setSearchMode] = useState<SearchMode>('BASIC');
+  type SearchMode = "BASIC" | "ADVANCED";
+  const [searchMode, setSearchMode] = useState<SearchMode>("BASIC");
+
+  useEffect(() => {
+    if (!isAuthenticated && searchMode === "ADVANCED") {
+      setSearchMode("BASIC");
+    }
+  }, [isAuthenticated, searchMode]);
 
   // Advanced Query State (completely separate from Basic state)
   const [advancedPlayers, setAdvancedPlayers] = useState<PlayerItem[]>([]);
-  const [advancedPagination, setAdvancedPagination] = useState<PaginationMetadata | null>(null);
+  const [advancedPagination, setAdvancedPagination] =
+    useState<PaginationMetadata | null>(null);
   const [advancedLoading, setAdvancedLoading] = useState(false);
   const [advancedError, setAdvancedError] = useState<string | null>(null);
-  const [advancedCurrentQuery, setAdvancedCurrentQuery] = useState<GroupNode>(() => defaultGroupNode());
+  const [advancedCurrentQuery, setAdvancedCurrentQuery] = useState<GroupNode>(
+    () => defaultGroupNode(),
+  );
 
   // Shortlist Modal State for Table & Global Quick-Add
-  const [shortlistTargetPlayer, setShortlistTargetPlayer] = useState<PlayerItem | null>(null);
+  const [shortlistTargetPlayer, setShortlistTargetPlayer] =
+    useState<PlayerItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -99,21 +138,21 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   };
 
   // Controlled input value for typing search keyword
-  const [searchInput, setSearchInput] = useState<string>('');
+  const [searchInput, setSearchInput] = useState<string>("");
   // Applied search keyword currently active for API queries
-  const [appliedSearch, setAppliedSearch] = useState<string>('');
+  const [appliedSearch, setAppliedSearch] = useState<string>("");
 
   const [filters, setFilters] = useState<PlayerFilterParams>({
-    competitionId: '',
-    currentTeamId: '',
-    position: '',
-    nationality: '',
-    minAge: '',
-    maxAge: '',
-    minHeightCm: '',
-    maxHeightCm: '',
-    minWeightKg: '',
-    maxWeightKg: '',
+    competitionId: "",
+    currentTeamId: "",
+    position: "",
+    nationality: "",
+    minAge: "",
+    maxAge: "",
+    minHeightCm: "",
+    maxHeightCm: "",
+    minWeightKg: "",
+    maxWeightKg: "",
   });
 
   // Centralized API Fetch Helper
@@ -130,7 +169,10 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
       ...filterOverrides,
     };
 
-    const activeSearch = searchKeywordOverride !== undefined ? searchKeywordOverride : appliedSearch;
+    const activeSearch =
+      searchKeywordOverride !== undefined
+        ? searchKeywordOverride
+        : appliedSearch;
 
     // Parse numeric age, height, and weight parameters
     const minAgeNum = parseNumericParam(currentFilters.minAge);
@@ -141,18 +183,30 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
     const maxWeightNum = parseNumericParam(currentFilters.maxWeightKg);
 
     // Range Validation Checks
-    if (minAgeNum !== undefined && maxAgeNum !== undefined && minAgeNum > maxAgeNum) {
-      setError('Minimum age cannot be greater than maximum age.');
+    if (
+      minAgeNum !== undefined &&
+      maxAgeNum !== undefined &&
+      minAgeNum > maxAgeNum
+    ) {
+      setError("Minimum age cannot be greater than maximum age.");
       return;
     }
 
-    if (minHeightNum !== undefined && maxHeightNum !== undefined && minHeightNum > maxHeightNum) {
-      setError('Minimum height cannot be greater than maximum height.');
+    if (
+      minHeightNum !== undefined &&
+      maxHeightNum !== undefined &&
+      minHeightNum > maxHeightNum
+    ) {
+      setError("Minimum height cannot be greater than maximum height.");
       return;
     }
 
-    if (minWeightNum !== undefined && maxWeightNum !== undefined && minWeightNum > maxWeightNum) {
-      setError('Minimum weight cannot be greater than maximum weight.');
+    if (
+      minWeightNum !== undefined &&
+      maxWeightNum !== undefined &&
+      minWeightNum > maxWeightNum
+    ) {
+      setError("Minimum weight cannot be greater than maximum weight.");
       return;
     }
 
@@ -163,10 +217,17 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
       limit,
       offset,
       search: activeSearch ? activeSearch : undefined,
-      competitionId: currentFilters.competitionId ? currentFilters.competitionId : undefined,
-      currentTeamId: currentFilters.currentTeamId ? currentFilters.currentTeamId : undefined,
+      competitionId: currentFilters.competitionId
+        ? currentFilters.competitionId
+        : undefined,
+      currentTeamId: currentFilters.currentTeamId
+        ? currentFilters.currentTeamId
+        : undefined,
       position: currentFilters.position ? currentFilters.position : undefined,
-      nationality: currentFilters.nationality && currentFilters.nationality.trim() !== '' ? currentFilters.nationality.trim() : undefined,
+      nationality:
+        currentFilters.nationality && currentFilters.nationality.trim() !== ""
+          ? currentFilters.nationality.trim()
+          : undefined,
       minAge: minAgeNum,
       maxAge: maxAgeNum,
       minHeightCm: minHeightNum,
@@ -181,7 +242,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
         setPagination(data.pagination);
       })
       .catch((err: any) => {
-        setError(err.message || 'Failed to fetch player records.');
+        setError(err.message || "Failed to fetch player records.");
       })
       .finally(() => {
         setLoading(false);
@@ -195,7 +256,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
         setCompetitions(data);
       })
       .catch((err: any) => {
-        console.error('Failed to load competitions:', err);
+        console.error("Failed to load competitions:", err);
       });
 
     getAvailablePositionsApi()
@@ -203,7 +264,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
         setAvailablePositions(positions);
       })
       .catch((err: any) => {
-        console.error('Failed to load available positions:', err);
+        console.error("Failed to load available positions:", err);
       });
 
     fetchPlayersData(1);
@@ -214,7 +275,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
     const updatedFilters = {
       ...filters,
       competitionId,
-      currentTeamId: '', // Reset team when competition changes
+      currentTeamId: "", // Reset team when competition changes
     };
     setFilters(updatedFilters);
 
@@ -225,7 +286,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
           setTeams(data);
         })
         .catch((err: any) => {
-          console.error('Failed to load teams for competition:', err);
+          console.error("Failed to load teams for competition:", err);
           setTeams([]);
         })
         .finally(() => {
@@ -244,7 +305,10 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
     fetchPlayersData(1, updatedFilters);
   };
 
-  const handleFilterChange = (key: keyof PlayerFilterParams, value: string | number) => {
+  const handleFilterChange = (
+    key: keyof PlayerFilterParams,
+    value: string | number,
+  ) => {
     const updatedFilters = { ...filters, [key]: value };
     setFilters(updatedFilters);
     fetchPlayersData(1, updatedFilters);
@@ -259,17 +323,17 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
 
   const handlePageChange = (newPage: number) => {
     fetchPlayersData(newPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handlePlayerSelect = (playerId: string) => {
     setSelectedPlayerId(playerId);
-    setViewMode('DETAIL');
+    setViewMode("DETAIL");
   };
 
   const handleBackToSearch = () => {
     setSelectedPlayerId(null);
-    setViewMode('SEARCH');
+    setViewMode("SEARCH");
     if (onClearInitialPlayerId) {
       onClearInitialPlayerId();
     }
@@ -281,11 +345,11 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   ) => {
     setComparisonPlayerA(player);
     setComparisonSeasonStatsA(seasonStats);
-    setViewMode('COMPARISON_SETUP');
+    setViewMode("COMPARISON_SETUP");
   };
 
   const handleBackToDetailFromSetup = () => {
-    setViewMode('DETAIL');
+    setViewMode("DETAIL");
   };
 
   const handleProceedToComparison = (
@@ -299,62 +363,107 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
     setComparisonScope(scope);
     setComparisonSeasonId(seasonId);
     setComparisonCompetitionId(competitionId);
-    setViewMode('COMPARISON_VIEW');
+    setViewMode("COMPARISON_VIEW");
   };
 
   const handleBackToSetupFromComparison = () => {
-    setViewMode('COMPARISON_SETUP');
+    setViewMode("COMPARISON_SETUP");
   };
 
   const handleBackToDetailFromComparison = () => {
-    setViewMode('DETAIL');
+    setViewMode("DETAIL");
   };
 
   const handleResetFilters = () => {
     const defaultFilters: PlayerFilterParams = {
-      competitionId: '',
-      currentTeamId: '',
-      position: '',
-      nationality: '',
-      minAge: '',
-      maxAge: '',
-      minHeightCm: '',
-      maxHeightCm: '',
-      minWeightKg: '',
-      maxWeightKg: '',
+      competitionId: "",
+      currentTeamId: "",
+      position: "",
+      nationality: "",
+      minAge: "",
+      maxAge: "",
+      minHeightCm: "",
+      maxHeightCm: "",
+      minWeightKg: "",
+      maxWeightKg: "",
     };
 
-    setSearchInput('');
-    setAppliedSearch('');
+    setSearchInput("");
+    setAppliedSearch("");
     setFilters(defaultFilters);
     setTeams([]);
-    fetchPlayersData(1, defaultFilters, '');
+    fetchPlayersData(1, defaultFilters, "");
   };
 
-  // Advanced Query Handler
-  const handleAdvancedExecute = useCallback((query: GroupNode, page = 1) => {
-    const limit = advancedPagination?.limit ?? 20;
-    const offset = (page - 1) * limit;
-    setAdvancedCurrentQuery(query);
-    setAdvancedLoading(true);
-    setAdvancedError(null);
-    queryPlayersApi({ query, pagination: { limit, offset } })
-      .then((data) => {
-        setAdvancedPlayers(data.items);
-        setAdvancedPagination(data.pagination);
-      })
-      .catch((err: any) => {
-        setAdvancedError(err.message || 'Advanced query failed.');
-      })
-      .finally(() => setAdvancedLoading(false));
-  }, [advancedPagination?.limit]);
+  // Stored execution context for Advanced Search pagination
+  const [advancedScope, setAdvancedScope] = useState<PlayerQueryScope | undefined>(undefined);
 
-  const handleAdvancedPageChange = useCallback((newPage: number) => {
-    handleAdvancedExecute(advancedCurrentQuery, newPage);
-  }, [advancedCurrentQuery, handleAdvancedExecute]);
+  // Clear advanced search state immediately upon logout (Section 2 & 11)
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setAdvancedPlayers([]);
+      setAdvancedPagination(null);
+      setAdvancedError(null);
+      setAdvancedScope(undefined);
+    }
+  }, [isAuthenticated]);
+
+  // Advanced Query Handler with Scope support (Task 4.2.1 - pure server-side filtering)
+  const handleAdvancedContextExecute = useCallback(
+    (query: GroupNode, scope?: PlayerQueryScope) => {
+      if (!isAuthenticated) return;
+      const limit = advancedPagination?.limit ?? 20;
+      const offset = 0;
+      setAdvancedCurrentQuery(query);
+      setAdvancedScope(scope);
+      setAdvancedLoading(true);
+      setAdvancedError(null);
+
+      queryPlayersApi({ query, scope, pagination: { limit, offset } })
+        .then((data) => {
+          setAdvancedPlayers(data.items);
+          setAdvancedPagination({
+            ...data.pagination,
+            offset: 0,
+          });
+        })
+        .catch((err: any) => {
+          setAdvancedError(err.message || "Advanced query failed.");
+        })
+        .finally(() => setAdvancedLoading(false));
+    },
+    [advancedPagination?.limit, isAuthenticated],
+  );
+
+  const handleAdvancedPageChange = useCallback(
+    (newPage: number) => {
+      if (!isAuthenticated) return;
+      const limit = advancedPagination?.limit ?? 20;
+      const offset = (newPage - 1) * limit;
+      setAdvancedLoading(true);
+      setAdvancedError(null);
+      queryPlayersApi({
+        query: advancedCurrentQuery,
+        scope: advancedScope,
+        pagination: { limit, offset },
+      })
+        .then((data) => {
+          setAdvancedPlayers(data.items);
+          setAdvancedPagination({
+            ...data.pagination,
+            offset,
+          });
+        })
+        .catch((err: any) => {
+          setAdvancedError(err.message || "Advanced query failed.");
+        })
+        .finally(() => setAdvancedLoading(false));
+    },
+    [advancedCurrentQuery, advancedScope, advancedPagination?.limit, isAuthenticated],
+  );
 
   // 1. Render Side-by-Side Comparison View
-  if (viewMode === 'COMPARISON_VIEW' && selectedPlayerId && comparisonPlayerB) {
+  if (viewMode === "COMPARISON_VIEW" && selectedPlayerId && comparisonPlayerB) {
     return (
       <PlayerComparisonPage
         playerAId={selectedPlayerId}
@@ -369,7 +478,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   }
 
   // 2. Render Comparison Setup / Candidate Search View
-  if (viewMode === 'COMPARISON_SETUP' && comparisonPlayerA) {
+  if (viewMode === "COMPARISON_SETUP" && comparisonPlayerA) {
     return (
       <PlayerComparisonSetupPage
         playerA={comparisonPlayerA}
@@ -381,7 +490,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   }
 
   // 3. Render Detail View if a player is selected
-  if (viewMode === 'DETAIL' && selectedPlayerId) {
+  if (viewMode === "DETAIL" && selectedPlayerId) {
     return (
       <PlayerDetailPage
         playerId={selectedPlayerId}
@@ -402,39 +511,62 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
         </p>
       </div>
 
-      {/* Search Mode Tab Toggle */}
-      <div className="scout-search-mode-tabs" role="tablist" aria-label="Search mode">
-        <button
-          type="button"
-          role="tab"
-          id="tab-basic"
-          aria-selected={searchMode === 'BASIC'}
-          className={`scout-search-mode-tab ${searchMode === 'BASIC' ? 'active' : ''}`}
-          onClick={() => setSearchMode('BASIC')}
+      {/* Search Mode Tab Toggle — Only shown for authenticated users */}
+      {isAuthenticated && (
+        <div
+          className="scout-search-mode-tabs"
+          role="tablist"
+          aria-label="Search mode"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          Basic Search
-        </button>
-        <button
-          type="button"
-          role="tab"
-          id="tab-advanced"
-          aria-selected={searchMode === 'ADVANCED'}
-          className={`scout-search-mode-tab ${searchMode === 'ADVANCED' ? 'active' : ''}`}
-          onClick={() => setSearchMode('ADVANCED')}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-            <path d="M4 6h16M8 12h8M12 18h0" />
-          </svg>
-          Advanced Query
-          <span className="scout-search-mode-badge">β</span>
-        </button>
-      </div>
+          <button
+            type="button"
+            role="tab"
+            id="tab-basic"
+            aria-selected={searchMode === "BASIC"}
+            className={`scout-search-mode-tab ${searchMode === "BASIC" ? "active" : ""}`}
+            onClick={() => setSearchMode("BASIC")}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Basic Search
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="tab-advanced"
+            aria-selected={searchMode === "ADVANCED"}
+            className={`scout-search-mode-tab ${searchMode === "ADVANCED" ? "active" : ""}`}
+            onClick={() => setSearchMode("ADVANCED")}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            >
+              <path d="M4 6h16M8 12h8M12 18h0" />
+            </svg>
+            Advanced Query
+            <span className="scout-search-mode-badge">β</span>
+          </button>
+        </div>
+      )}
 
       {/* Error Alert Banner */}
-      {searchMode === 'BASIC' && error && (
+      {searchMode === "BASIC" && error && (
         <div className="scout-b2b-alert-error">
           <span>⚠️</span>
           <span>{error}</span>
@@ -442,47 +574,63 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
       )}
 
       {/* ── ADVANCED MODE ───────────────────────────────────────────────── */}
-      {searchMode === 'ADVANCED' && (
+      {isAuthenticated && searchMode === "ADVANCED" && (
         <>
-          <PlayerAdvancedQueryBuilder
-            onExecute={handleAdvancedExecute}
+          <PlayerAdvancedSearchContext
+            competitions={competitions}
+            onExecute={handleAdvancedContextExecute}
             loading={advancedLoading}
             error={advancedError}
           />
 
-          {/* Advanced results header */}
-          {advancedPagination && (
-            <div className="scout-b2b-results-header">
-              <div className="scout-b2b-results-title-group">
-                <div className="scout-b2b-results-count">
-                  <span className="scout-b2b-count-number">{advancedPagination.total}</span>
-                  <span className="scout-b2b-count-label">players matched</span>
+              {/* Advanced results header */}
+              {advancedPagination && (
+                <div className="scout-b2b-results-header">
+                  <div className="scout-b2b-results-title-group">
+                    <div className="scout-b2b-results-count">
+                      <span className="scout-b2b-count-number">
+                        {advancedPagination.total}
+                      </span>
+                      <span className="scout-b2b-count-label">players matched</span>
+                    </div>
+                  </div>
+                  <div className="scout-b2b-page-indicator">
+                    Page{" "}
+                    {Math.floor(
+                      advancedPagination.offset / advancedPagination.limit,
+                    ) + 1}{" "}
+                    /{" "}
+                    {Math.max(
+                      1,
+                      Math.ceil(
+                        advancedPagination.total / advancedPagination.limit,
+                      ),
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="scout-b2b-page-indicator">
-                Page {Math.floor(advancedPagination.offset / advancedPagination.limit) + 1} / {Math.max(1, Math.ceil(advancedPagination.total / advancedPagination.limit))}
-              </div>
-            </div>
+              )}
+
+              {/* Advanced results grid */}
+              <PlayerCardGrid
+                players={advancedPlayers}
+                loading={advancedLoading}
+                onPlayerSelect={handlePlayerSelect}
+                onResetFilters={() => {
+                  setAdvancedPlayers([]);
+                  setAdvancedPagination(null);
+                }}
+              />
+
+              {/* Advanced pagination */}
+              <PlayerPagination
+                pagination={advancedPagination}
+                onPageChange={handleAdvancedPageChange}
+              />
+            </>
           )}
 
-          {/* Advanced results grid */}
-          <PlayerCardGrid
-            players={advancedPlayers}
-            loading={advancedLoading}
-            onPlayerSelect={handlePlayerSelect}
-            onResetFilters={() => { setAdvancedPlayers([]); setAdvancedPagination(null); }}
-          />
-
-          {/* Advanced pagination */}
-          <PlayerPagination
-            pagination={advancedPagination}
-            onPageChange={handleAdvancedPageChange}
-          />
-        </>
-      )}
-
       {/* ── BASIC MODE ──────────────────────────────────────────────────── */}
-      {searchMode === 'BASIC' && (
+      {searchMode === "BASIC" && (
         <>
           {/* 2. Unified Control Panel (Search Bar + Filters Grid in ONE Card) */}
           <PlayerFilters
@@ -500,9 +648,9 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
             onTeamChange={handleTeamChange}
             onResetFilters={handleResetFilters}
             onClearSearch={() => {
-              setSearchInput('');
-              setAppliedSearch('');
-              fetchPlayersData(1, undefined, '');
+              setSearchInput("");
+              setAppliedSearch("");
+              fetchPlayersData(1, undefined, "");
             }}
           />
 
@@ -511,23 +659,32 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
             <div className="scout-b2b-results-title-group">
               {pagination && (
                 <div className="scout-b2b-results-count">
-                  <span className="scout-b2b-count-number">{pagination.total}</span>
+                  <span className="scout-b2b-count-number">
+                    {pagination.total}
+                  </span>
                   <span className="scout-b2b-count-label">players found</span>
                 </div>
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
               {/* View Mode Toggle: Cards vs Table */}
               <div className="scout-view-mode-segmented">
                 <button
                   type="button"
-                  className={`scout-view-mode-btn ${resultsViewMode === 'GRID' ? 'active' : ''}`}
-                  onClick={() => setResultsViewMode('GRID')}
+                  className={`scout-view-mode-btn ${resultsViewMode === "GRID" ? "active" : ""}`}
+                  onClick={() => setResultsViewMode("GRID")}
                   title="Cards View (Visual scouting cards)"
                   aria-label="Cards View"
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                  >
                     <rect x="3" y="3" width="7" height="7" rx="1" />
                     <rect x="14" y="3" width="7" height="7" rx="1" />
                     <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -537,12 +694,19 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
                 </button>
                 <button
                   type="button"
-                  className={`scout-view-mode-btn ${resultsViewMode === 'TABLE' ? 'active' : ''}`}
-                  onClick={() => setResultsViewMode('TABLE')}
+                  className={`scout-view-mode-btn ${resultsViewMode === "TABLE" ? "active" : ""}`}
+                  onClick={() => setResultsViewMode("TABLE")}
                   title="Table View (Dense analytical list)"
                   aria-label="Table View"
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                  >
                     <line x1="3" y1="6" x2="21" y2="6" />
                     <line x1="3" y1="12" x2="21" y2="12" />
                     <line x1="3" y1="18" x2="21" y2="18" />
@@ -553,7 +717,8 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
 
               {pagination && pagination.total > 0 && (
                 <div className="scout-b2b-page-indicator">
-                  Page {Math.floor(pagination.offset / pagination.limit) + 1} / {Math.ceil(pagination.total / pagination.limit)}
+                  Page {Math.floor(pagination.offset / pagination.limit) + 1} /{" "}
+                  {Math.ceil(pagination.total / pagination.limit)}
                 </div>
               )}
             </div>
@@ -568,7 +733,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
           )}
 
           {/* 4. Player Results View (Cards Grid vs High-Density Table) */}
-          {resultsViewMode === 'GRID' ? (
+          {resultsViewMode === "GRID" ? (
             <PlayerCardGrid
               players={players}
               loading={loading}
@@ -591,7 +756,9 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
             onClose={() => setShortlistTargetPlayer(null)}
             player={shortlistTargetPlayer}
             onSuccess={(shortlistName) => {
-              showToast(`Added ${shortlistTargetPlayer?.fullName || 'player'} to "${shortlistName}"`);
+              showToast(
+                `Added ${shortlistTargetPlayer?.fullName || "player"} to "${shortlistName}"`,
+              );
             }}
           />
 
@@ -605,4 +772,3 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
     </div>
   );
 };
-

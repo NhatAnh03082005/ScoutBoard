@@ -254,9 +254,19 @@ export async function getAvailablePositionsApi(): Promise<string[]> {
 export async function queryPlayersApi(
   request: PlayerAdvancedQueryRequest,
 ): Promise<PlayerListResponse> {
+  const token =
+    localStorage.getItem('scout_access_token') || localStorage.getItem('accessToken');
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}/players`, {
     method: 'QUERY',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(request),
   });
 

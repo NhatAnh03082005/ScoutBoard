@@ -15,13 +15,16 @@ export class TypeOrmSeasonWriteRepository implements SeasonWriteRepository {
   async findByExternalIdentity(
     externalProvider: string,
     externalId: string,
+    competitionId?: string,
   ): Promise<SeasonOrmEntity | null> {
-    return this.repository.findOne({
-      where: {
-        externalProvider: externalProvider.trim(),
-        externalId: externalId.trim(),
-      },
-    });
+    const where: any = {
+      externalProvider: externalProvider.trim(),
+      externalId: externalId.trim(),
+    };
+    if (competitionId) {
+      where.competitionId = competitionId.trim();
+    }
+    return this.repository.findOne({ where });
   }
 
   async upsert(
@@ -31,6 +34,7 @@ export class TypeOrmSeasonWriteRepository implements SeasonWriteRepository {
     const existing = await this.findByExternalIdentity(
       season.externalProvider,
       season.externalId,
+      competitionId,
     );
 
     if (!existing) {

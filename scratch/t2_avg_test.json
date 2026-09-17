@@ -1,0 +1,14 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "AND",
+    "conditions": [
+      {
+        "kind": "MATCH_AGGREGATION",
+        "matchCriteria": { "kind": "CONDITION", "field": "match_minutes_played", "operator": "GT", "value": 0 },
+        "aggregation": { "type": "AVG", "operator": "GTE", "value": 7.2, "field": "match_rating" }
+      }
+    ]
+  },
+  "pagination": { "limit": 3, "offset": 0 }
+}

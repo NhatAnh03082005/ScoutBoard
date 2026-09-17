@@ -1,0 +1,14 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "AND",
+    "conditions": [
+      {
+        "kind": "MATCH_AGGREGATION",
+        "matchCriteria": { "kind": "CONDITION", "field": "match_rating", "operator": "GTE", "value": 7 },
+        "aggregation": { "type": "QUALIFYING_RATE", "operator": "GTE", "value": 0.7 }
+      }
+    ]
+  },
+  "pagination": { "limit": 5, "offset": 0 }
+}

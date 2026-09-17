@@ -30,7 +30,7 @@
 - **Normalized Technical Fields**:
   - `height_cm`: Converted from raw string `"183 cm"` to integer `183`.
   - `weight_kg`: Converted from raw string `"72 kg"` to integer `72`.
-  - `primary_position`: Canonical player positions (15 specific positions: `GK`, `CB`, `LB`, `RB`, `LWB`, `RWB`, `CDM`, `CM`, `CAM`, `LM`, `RM`, `LW`, `RW`, `CF`, `ST`, plus 3 broad category fallbacks: `DEF`, `MID`, `FWD` in `CANONICAL_PLAYER_POSITIONS`, total 18 codes).
+  - `primary_position`: Canonical player positions (15 specific positions: `GK`, `CB`, `LB`, `RB`, `LWB`, `RWB`, `CDM`, `CM`, `CAM`, `LM`, `RM`, `LW`, `RW`, `CF`, `ST`; broad categories `DEF`, `MID`, `ATT`/`FWD` serve only as UI groupings).
 - **ScoutBoard-Derived Metrics** (Explicitly calculated by ScoutBoard domain layer, not raw provider fields):
   - **Per-90 metrics**: `(stat * 90) / minutes_played` (calculated for `goals_per_90`, `assists_per_90`, `shots_per_90`, `passes_per_90`, `tackles_per_90`, `interceptions_per_90`, `duels_won_per_90`, `saves_per_90`, `goals_conceded_per_90` strictly when `minutes_played > 0`).
   - **passAccuracy**: `(passes_completed / passes_attempted) * 100` (rounded to 2 decimal places; returns `null` when `passes_attempted <= 0`).

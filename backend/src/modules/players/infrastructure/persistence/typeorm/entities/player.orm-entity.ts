@@ -20,7 +20,6 @@ import { resolveNationalityFlagUrl } from 'src/modules/players/domain/services/n
 
 @Entity('players')
 @Unique('UQ_players_provider_external_id', ['externalProvider', 'externalId'])
-@Index('IDX_players_provider_external_id', ['externalProvider', 'externalId'])
 @Index('IDX_players_name', ['name'])
 @Index('IDX_players_primary_position', ['primaryPosition'])
 export class PlayerOrmEntity {

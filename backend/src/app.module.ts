@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { dataSourceOptions } from './database/data-source';
+import { validateEnvironment } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CompetitionsModule } from './modules/competitions/competitions.module';
@@ -13,13 +16,32 @@ import { ShortlistsModule } from './modules/shortlists/shortlists.module';
 import { SquadsModule } from './modules/squads/squads.module';
 import { ExternalFootballModule } from './modules/external-football/external-football.module';
 import { DataSyncModule } from './modules/data-sync/data-sync.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnvironment,
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          name: 'default',
+          ttl: parseInt(
+            config.get<string>('THROTTLE_GLOBAL_TTL_MS') || '60000',
+            10,
+          ),
+          limit: parseInt(
+            config.get<string>('THROTTLE_GLOBAL_LIMIT') || '100',
+            10,
+          ),
+        },
+      ],
+    }),
     AuthModule,
     UsersModule,
     CompetitionsModule,
@@ -31,6 +53,13 @@ import { DataSyncModule } from './modules/data-sync/data-sync.module';
     SquadsModule,
     ExternalFootballModule,
     DataSyncModule,
+    HealthModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

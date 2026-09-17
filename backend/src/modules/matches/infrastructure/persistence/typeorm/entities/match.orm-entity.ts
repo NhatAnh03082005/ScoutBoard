@@ -17,7 +17,6 @@ import type { PlayerMatchStatisticOrmEntity } from './player-match-statistic.orm
 
 @Entity('matches')
 @Unique('UQ_matches_provider_external_id', ['externalProvider', 'externalId'])
-@Index('IDX_matches_provider_external_id', ['externalProvider', 'externalId'])
 @Index('IDX_matches_competition_season', ['competitionId', 'seasonId'])
 export class MatchOrmEntity {
   @PrimaryGeneratedColumn('uuid')

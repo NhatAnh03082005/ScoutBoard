@@ -1,0 +1,23 @@
+{
+  "query": {
+    "kind": "GROUP",
+    "operator": "AND",
+    "conditions": [
+      {
+        "kind": "GROUP",
+        "operator": "OR",
+        "conditions": [
+          { "kind": "CONDITION", "field": "position", "operator": "EQ", "value": "CM" },
+          { "kind": "CONDITION", "field": "position", "operator": "EQ", "value": "CDM" }
+        ]
+      },
+      { "kind": "CONDITION", "field": "minutes", "operator": "GTE", "value": 900 },
+      {
+        "kind": "MATCH_AGGREGATION",
+        "matchCriteria": { "kind": "CONDITION", "field": "match_rating", "operator": "GTE", "value": 7 },
+        "aggregation": { "type": "COUNT", "operator": "GTE", "value": 5 }
+      }
+    ]
+  },
+  "pagination": { "limit": 5, "offset": 0 }
+}

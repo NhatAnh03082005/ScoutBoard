@@ -63,6 +63,7 @@ describe('TypeOrmSeasonWriteRepository', () => {
 
     expect(mockOrmRepository.findOne).toHaveBeenCalledWith({
       where: {
+        competitionId: mockCompetitionId,
         externalProvider: 'FOOTBALL_DATA_ORG',
         externalId: '2502',
       },

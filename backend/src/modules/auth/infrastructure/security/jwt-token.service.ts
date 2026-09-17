@@ -16,25 +16,29 @@ export class JwtTokenService implements TokenService {
   ) {}
 
   async generateTokens(payload: AccessTokenPayload): Promise<AuthTokens> {
-    const accessSecret =
-      this.configService.get<string>('JWT_SECRET') ||
-      'scoutboard_jwt_access_secret_key_2026_super_secure';
+    const accessSecret = this.configService.get<string>('JWT_SECRET');
+    if (!accessSecret && process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET is required in production.');
+    }
     const accessExpiresIn =
       this.configService.get<string>('JWT_EXPIRES_IN') || '15m';
 
-    const refreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET') ||
-      'scoutboard_jwt_refresh_secret_key_2026_super_secure';
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    if (!refreshSecret && process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_REFRESH_SECRET is required in production.');
+    }
     const refreshExpiresIn =
       this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
 
     const accessOptions: JwtSignOptions = {
-      secret: accessSecret,
+      secret:
+        accessSecret || 'scoutboard_jwt_access_secret_key_2026_super_secure',
       expiresIn: accessExpiresIn as unknown as JwtSignOptions['expiresIn'],
     };
 
     const refreshOptions: JwtSignOptions = {
-      secret: refreshSecret,
+      secret:
+        refreshSecret || 'scoutboard_jwt_refresh_secret_key_2026_super_secure',
       expiresIn: refreshExpiresIn as unknown as JwtSignOptions['expiresIn'],
     };
 
@@ -48,12 +52,14 @@ export class JwtTokenService implements TokenService {
   }
 
   async verifyRefreshToken(token: string): Promise<AccessTokenPayload> {
-    const refreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET') ||
-      'scoutboard_jwt_refresh_secret_key_2026_super_secure';
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    if (!refreshSecret && process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_REFRESH_SECRET is required in production.');
+    }
 
     return this.jwtService.verifyAsync<AccessTokenPayload>(token, {
-      secret: refreshSecret,
+      secret:
+        refreshSecret || 'scoutboard_jwt_refresh_secret_key_2026_super_secure',
     });
   }
 
