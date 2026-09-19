@@ -34,7 +34,8 @@
     "sync:transfers": "ts-node -r tsconfig-paths/register src/scripts/sync-club-transfers.ts",
     "sync:top-stars": "ts-node -r tsconfig-paths/register src/scripts/sync-top-stars-transfers.ts",
     "enrich:top3-profiles": "ts-node -r tsconfig-paths/register src/scripts/enrich-top3-leagues-profiles.ts",
-    "enrich:all-profiles": "ts-node -r tsconfig-paths/register src/scripts/enrich-all-remaining-profiles.ts"
+    "enrich:all-profiles": "ts-node -r tsconfig-paths/register src/scripts/enrich-all-remaining-profiles.ts",
+    "sync:top3-positions": "ts-node -r tsconfig-paths/register src/scripts/sync-top3-leagues-positions.ts"
   },
   "dependencies": {
     "@emnapi/core": "^1.11.3",
