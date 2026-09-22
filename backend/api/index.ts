@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import { AppModule } from '../src/app.module';
 import express, { Express, Request, Response } from 'express';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -10,6 +9,7 @@ let isReady = false;
 let bootstrapPromise: Promise<void> | null = null;
 
 async function bootstrap() {
+  const { AppModule } = await import('../src/app.module');
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   app.setGlobalPrefix('api', {
@@ -19,7 +19,6 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow all origins or match configured
       callback(null, true);
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS', 'QUERY'],
@@ -80,6 +79,7 @@ export default async function handler(req: Request, res: Response) {
       statusCode: 500,
       message: 'Serverless initialization error',
       error: err?.message || String(err),
+      details: err?.stack,
     });
   }
 }
