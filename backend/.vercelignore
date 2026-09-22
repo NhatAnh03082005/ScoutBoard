@@ -3,7 +3,6 @@
 !.env.example
 .npm-cache/
 .vercel-global/
-dist/
 node_modules/
 coverage/
 test/

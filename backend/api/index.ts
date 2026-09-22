@@ -1,3 +1,19 @@
+import 'reflect-metadata';
+import * as path from 'path';
+
+// Intercept 'src/' alias imports if any exist at runtime
+const Module = require('module');
+const originalResolveFilename = Module._resolveFilename;
+const backendRoot = path.resolve(__dirname, '..');
+
+Module._resolveFilename = function (request: string, parent: any, isMain: boolean, options: any) {
+  if (request.startsWith('src/')) {
+    const candidate = path.join(backendRoot, 'dist', request);
+    return originalResolveFilename.call(this, candidate, parent, isMain, options);
+  }
+  return originalResolveFilename.call(this, request, parent, isMain, options);
+};
+
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express, { Express, Request, Response } from 'express';
@@ -9,7 +25,7 @@ let isReady = false;
 let bootstrapPromise: Promise<void> | null = null;
 
 async function bootstrap() {
-  const { AppModule } = await import('../src/app.module');
+  const { AppModule } = require('../dist/src/app.module');
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   app.setGlobalPrefix('api', {
