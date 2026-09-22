@@ -7,8 +7,8 @@
  * next() for all other methods (GET, PATCH, etc.) so they continue to
  * the PlayersController unmodified.
  *
- * This preserves the legacy QUERY /players route for direct clients.
- * Browsers use POST /players/query because hosting proxies reject QUERY.
+ * This is the ONLY mechanism for routing QUERY /players. There is no
+ * POST fallback and no modification to the existing controller.
  */
 
 import {

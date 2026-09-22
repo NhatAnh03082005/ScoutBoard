@@ -8,8 +8,6 @@ import { GetPlayerMatchStatisticsUseCase } from 'src/modules/players/application
 import { GetComparisonCandidatesUseCase } from 'src/modules/players/application/use-cases/get-comparison-candidates.use-case';
 import { UpdatePlayerPrimaryPositionUseCase } from 'src/modules/players/application/use-cases/update-player-primary-position.use-case';
 import { GetAvailablePositionsUseCase } from 'src/modules/players/application/use-cases/get-available-positions.use-case';
-import { QueryPlayersUseCase } from 'src/modules/players/application/use-cases/query-players.use-case';
-import { PlayerQueryRequestDto } from '../dto/player-query-request.dto';
 import { SearchPlayersQueryDto } from '../dto/search-players-query.dto';
 import { ComparisonScope } from 'src/modules/players/domain/enums/comparison-scope.enum';
 import { JwtAuthGuard } from 'src/modules/auth/presentation/http/guards/jwt-auth.guard';
@@ -41,7 +39,6 @@ describe('PlayersController', () => {
   let mockGetAvailablePositionsUseCase: {
     execute: jest.Mock;
   };
-  let mockQueryPlayersUseCase: { execute: jest.Mock };
 
   beforeEach(async () => {
     mockSearchUseCase = {
@@ -68,7 +65,6 @@ describe('PlayersController', () => {
     mockGetAvailablePositionsUseCase = {
       execute: jest.fn(),
     };
-    mockQueryPlayersUseCase = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PlayersController],
@@ -105,10 +101,6 @@ describe('PlayersController', () => {
           provide: GetAvailablePositionsUseCase,
           useValue: mockGetAvailablePositionsUseCase,
         },
-        {
-          provide: QueryPlayersUseCase,
-          useValue: mockQueryPlayersUseCase,
-        },
       ],
     }).compile();
 
@@ -132,33 +124,6 @@ describe('PlayersController', () => {
 
       expect(mockSearchUseCase.execute).toHaveBeenCalledWith(query);
       expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('advancedSearch', () => {
-    it('passes the advanced query body to the shared use case', async () => {
-      const body: PlayerQueryRequestDto = {
-        query: {
-          kind: 'GROUP',
-          operator: 'AND',
-          conditions: [],
-        },
-        pagination: { limit: 20, offset: 0 },
-      };
-      const expectedResponse = {
-        items: [],
-        pagination: { limit: 20, offset: 0, total: 0 },
-      };
-      mockQueryPlayersUseCase.execute.mockResolvedValue(expectedResponse);
-
-      await expect(controller.advancedSearch(body)).resolves.toEqual(
-        expectedResponse,
-      );
-      expect(mockQueryPlayersUseCase.execute).toHaveBeenCalledWith({
-        queryNode: body.query,
-        pagination: body.pagination,
-        scope: undefined,
-      });
     });
   });
 
