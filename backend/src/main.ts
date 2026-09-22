@@ -33,6 +33,11 @@ async function bootstrap() {
         .filter(Boolean)
     : ['http://localhost'];
 
+  const productionFrontendOrigins = [
+    'https://scout-board-git-main-nhat-anh.vercel.app',
+    ...configuredOrigins,
+  ];
+
   const devAllowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
@@ -50,8 +55,8 @@ async function bootstrap() {
         return callback(null, true);
       }
       const allowedList = isProduction
-        ? configuredOrigins
-        : [...configuredOrigins, ...devAllowedOrigins];
+        ? productionFrontendOrigins
+        : [...productionFrontendOrigins, ...devAllowedOrigins];
 
       if (allowedList.includes(origin)) {
         return callback(null, true);
