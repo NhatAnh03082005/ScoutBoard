@@ -1454,19 +1454,6 @@ body {
   cursor: pointer;
 }
 
-.scout-auth-forgot-link {
-  color: #60a5fa;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.scout-auth-forgot-link:hover {
-  color: #1459b8;
-  text-decoration: underline;
-}
-
 .scout-auth-btn-primary {
   width: 100%;
   height: 48px;

@@ -3,8 +3,6 @@ import {
   getMeApi,
   refreshTokenApi,
   logoutApi,
-  verifyEmailApi,
-  resendVerificationOtpApi,
   getAdminUsersApi,
   updateUserStatusApi,
   unlockUserApi,
@@ -68,10 +66,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  // Inline OTP verification state on Profile Tab
-  const [profileOtpCode, setProfileOtpCode] = useState('');
-  const [profileOtpLoading, setProfileOtpLoading] = useState(false);
 
   // Admin Management State
   const [adminSubTab, setAdminSubTab] = useState<'data-sync' | 'users'>('users');
@@ -238,45 +232,6 @@ export default function App() {
     clearTokens();
     setSuccess('Signed out successfully!');
     setLoading(false);
-  };
-
-  // Inline OTP verification on Profile tab (for unverified accounts)
-  const handleVerifyEmailOnProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user?.email || !profileOtpCode) return;
-    setProfileOtpLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const res = await verifyEmailApi(user.email, profileOtpCode);
-      setSuccess(res.message || 'Email verified successfully!');
-      if (accessToken) {
-        const refreshed = await getMeApi(accessToken);
-        setUser(refreshed);
-      }
-      setProfileOtpCode('');
-    } catch (err: any) {
-      setError(err.message || 'OTP verification failed.');
-    } finally {
-      setProfileOtpLoading(false);
-    }
-  };
-
-  const handleResendOtpOnProfile = async () => {
-    if (!user?.email) return;
-    setProfileOtpLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const res = await resendVerificationOtpApi(user.email);
-      setSuccess(res.message || 'OTP code resent successfully.');
-    } catch (err: any) {
-      setError(err.message || 'Failed to resend OTP code.');
-    } finally {
-      setProfileOtpLoading(false);
-    }
   };
 
   // --- Admin Actions ---
@@ -738,55 +693,6 @@ export default function App() {
             </div>
           ) : (
             <div className="scout-profile-container" style={{ maxWidth: '800px', margin: '32px auto', padding: '0 16px' }}>
-              {user.isEmailVerified ? (
-                <div className="alert-banner alert-success" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>🛡️ <strong>Verified Account:</strong> {user.email}</span>
-                  <span className="scout-badge scout-badge-active" style={{ fontSize: '11px' }}>VERIFIED</span>
-                </div>
-              ) : (
-                <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '20px' }}>⚠️</span>
-                      <div>
-                        <h4 style={{ margin: 0, color: '#fca5a5', fontSize: '15px', fontWeight: 700 }}>Email Not Verified</h4>
-                        <p style={{ margin: '2px 0 0', color: '#fecaca', fontSize: '13px' }}>Please verify the 6-digit OTP code sent to <strong>{user.email}</strong> to unlock full features.</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleResendOtpOnProfile}
-                      disabled={profileOtpLoading}
-                      className="scout-btn scout-btn-sm scout-btn-secondary"
-                      style={{ whiteSpace: 'nowrap', margin: 0 }}
-                    >
-                      {profileOtpLoading ? 'Sending...' : 'Resend OTP'}
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleVerifyEmailOnProfile} style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                    <input
-                      type="text"
-                      className="scout-input"
-                      style={{ letterSpacing: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px', maxWidth: '180px' }}
-                      placeholder="6-digit OTP"
-                      maxLength={6}
-                      value={profileOtpCode}
-                      onChange={(e) => setProfileOtpCode(e.target.value.replace(/\D/g, ''))}
-                      required
-                    />
-                    <button
-                      type="submit"
-                      className="scout-btn scout-btn-sm"
-                      disabled={profileOtpLoading || profileOtpCode.length !== 6}
-                      style={{ margin: 0 }}
-                    >
-                      {profileOtpLoading ? 'Verifying...' : 'Verify Now'}
-                    </button>
-                  </form>
-                </div>
-              )}
-
               <div className="card scout-card" style={{ background: 'var(--scout-surface-card)', borderRadius: '16px', padding: '24px', border: '1px solid var(--scout-border-default)', boxShadow: 'var(--scout-shadow-subtle)' }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#ffffff', fontWeight: 700 }}>Account Profile</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '13px' }}>

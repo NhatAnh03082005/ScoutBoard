@@ -85,7 +85,6 @@ describe('Admin Data Sync REST API Integration Tests (Live PostgreSQL)', () => {
         passwordHash: '$2b$10$hashedpassadmin1234567890',
         fullName: 'Executive Sync Admin',
         status: 'ACTIVE',
-        isEmailVerified: true,
       }),
     );
     await userRoleRepo.save(
@@ -99,7 +98,6 @@ describe('Admin Data Sync REST API Integration Tests (Live PostgreSQL)', () => {
         passwordHash: '$2b$10$hashedpassuser1234567890',
         fullName: 'Regular Scout',
         status: 'ACTIVE',
-        isEmailVerified: true,
       }),
     );
     await userRoleRepo.save(

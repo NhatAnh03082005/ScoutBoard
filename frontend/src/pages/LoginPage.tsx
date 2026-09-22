@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  loginApi,
-  registerApi,
-  verifyEmailApi,
-  resendVerificationOtpApi,
-  forgotPasswordApi,
-  resetPasswordApi,
-} from '../services/api';
+import { loginApi, registerApi } from '../services/api';
 import type { UserProfile } from '../services/api';
 
-type AuthSubMode =
-  | 'login'
-  | 'register'
-  | 'verify-email'
-  | 'forgot-password'
-  | 'reset-password';
+type AuthSubMode = 'login' | 'register';
 
 interface LoginPageProps {
   initialMode?: 'login' | 'register';
@@ -35,9 +23,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [fullName, setFullName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
-  const [otpCode, setOtpCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   // Password visibility states
   const [showPassword, setShowPassword] = useState(false);
@@ -138,122 +123,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       localStorage.setItem('scout_refresh_token', data.refreshToken);
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
+        onLoginSuccess(data.user);
       }
-      setSuccess('Registration successful! Please enter the 6-digit OTP sent to your email to activate your account.');
-      setAuthSubMode('verify-email');
-      setOtpCode('');
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 3. Handle Verify Email OTP
-  const handleVerifyEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    const activeEmail = email.trim() || localStorage.getItem('scout_auth_email') || '';
-    if (!activeEmail) {
-      setError('Please enter your email address to verify OTP.');
-      return;
-    }
-    if (!otpCode || otpCode.trim().length !== 6) {
-      setError('OTP code must be exactly 6 digits.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await verifyEmailApi(activeEmail, otpCode.trim());
-      setSuccess(res.message || 'Email verified successfully! You can now sign in.');
-      setAuthSubMode('login');
-      setPassword('');
-      setOtpCode('');
-    } catch (err: any) {
-      setError(err.message || 'Invalid or expired OTP code.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 4. Handle Resend OTP
-  const handleResendOtp = async () => {
-    setError(null);
-    setSuccess(null);
-    const activeEmail = email.trim() || localStorage.getItem('scout_auth_email') || '';
-    if (!activeEmail) {
-      setError('Please enter an email before requesting a new code.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await resendVerificationOtpApi(activeEmail);
-      setSuccess(res.message || 'New OTP code sent. Please check your inbox.');
-    } catch (err: any) {
-      setError(err.message || 'Resending OTP failed.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 5. Handle Forgot Password
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    if (!email.trim()) {
-      setError('Please enter your account email to receive a reset code.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await forgotPasswordApi(email.trim());
-      setSuccess(res.message || 'Password reset OTP sent to your email.');
-      setAuthSubMode('reset-password');
-      setOtpCode('');
-      setNewPassword('');
-      setConfirmNewPassword('');
-    } catch (err: any) {
-      setError(err.message || 'Failed to request password reset.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 6. Handle Reset Password
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    if (!otpCode || otpCode.trim().length !== 6) {
-      setError('Password reset OTP must be 6 digits.');
-      return;
-    }
-    if (newPassword !== confirmNewPassword) {
-      setError('New password and confirmation do not match.');
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError('New password must be at least 6 characters.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await resetPasswordApi(email.trim(), otpCode.trim(), newPassword);
-      setSuccess(res.message || 'Password reset successfully! Please sign in with your new password.');
-      setAuthSubMode('login');
-      setPassword('');
-      setOtpCode('');
-    } catch (err: any) {
-      setError(err.message || 'Password reset failed.');
     } finally {
       setLoading(false);
     }
@@ -309,16 +182,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               <h2 className="scout-auth-card-title">
                 {authSubMode === 'login' && 'Sign In'}
                 {authSubMode === 'register' && 'Create an Account'}
-                {authSubMode === 'verify-email' && 'Verify Email'}
-                {authSubMode === 'forgot-password' && 'Forgot Password'}
-                {authSubMode === 'reset-password' && 'Reset Password'}
               </h2>
               <p className="scout-auth-card-sub">
                 {authSubMode === 'login' && 'Please sign in to continue'}
                 {authSubMode === 'register' && 'Sign up to unlock advanced features.'}
-                {authSubMode === 'verify-email' && 'Enter the 6-digit OTP code sent to your email inbox'}
-                {authSubMode === 'forgot-password' && 'Enter your email address to receive a password reset code'}
-                {authSubMode === 'reset-password' && 'Enter the OTP code and set your new secure password'}
               </p>
             </div>
 
@@ -391,7 +258,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   </div>
                 </div>
 
-                {/* Remember me + Forgot Password Row */}
+                {/* Remember me */}
                 <div className="scout-auth-row-options">
                   <label className="scout-auth-checkbox-label">
                     <input
@@ -402,17 +269,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     />
                     <span>Remember me</span>
                   </label>
-
-                  <span
-                    onClick={() => {
-                      setAuthSubMode('forgot-password');
-                      setError(null);
-                      setSuccess(null);
-                    }}
-                    className="scout-auth-forgot-link"
-                  >
-                    Forgot password?
-                  </span>
                 </div>
 
                 {/* Lockout Warning Banners */}
@@ -584,186 +440,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </form>
             )}
 
-            {/* =================================================================
-                3. VERIFY EMAIL OTP FORM
-                ================================================================= */}
-            {authSubMode === 'verify-email' && (
-              <form onSubmit={handleVerifyEmail}>
-                <div className="scout-auth-input-group">
-                  <label className="scout-auth-label">Email Address *</label>
-                  <input
-                    type="email"
-                    className="scout-auth-input"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="scout-auth-input-group">
-                  <label className="scout-auth-label">6-digit OTP Code *</label>
-                  <input
-                    type="text"
-                    className="scout-auth-input"
-                    style={{ textAlign: 'center', letterSpacing: '8px', fontSize: '20px', fontWeight: 'bold' }}
-                    placeholder="••••••"
-                    maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="scout-auth-btn-primary"
-                >
-                  {loading ? 'Verifying...' : 'Verify OTP →'}
-                </button>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-                  <span
-                    onClick={handleResendOtp}
-                    className="scout-auth-link-text"
-                    style={{ fontSize: '13px' }}
-                  >
-                    🔄 Resend OTP Code
-                  </span>
-                  <span
-                    onClick={() => {
-                      setAuthSubMode('login');
-                      setError(null);
-                      setSuccess(null);
-                    }}
-                    className="scout-auth-link-text"
-                    style={{ fontSize: '13px' }}
-                  >
-                    ← Sign In
-                  </span>
-                </div>
-              </form>
-            )}
-
-            {/* =================================================================
-                4. FORGOT PASSWORD FORM
-                ================================================================= */}
-            {authSubMode === 'forgot-password' && (
-              <form onSubmit={handleForgotPassword}>
-                <div className="scout-auth-input-group">
-                  <label className="scout-auth-label">Email Address *</label>
-                  <input
-                    type="email"
-                    className="scout-auth-input"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="scout-auth-btn-primary"
-                >
-                  {loading ? 'Sending code...' : 'Send Reset Code →'}
-                </button>
-
-                <div className="scout-auth-switch-footer">
-                  <span
-                    onClick={() => {
-                      setAuthSubMode('login');
-                      setError(null);
-                      setSuccess(null);
-                    }}
-                    className="scout-auth-link-text"
-                  >
-                    ← Back to Sign In
-                  </span>
-                </div>
-              </form>
-            )}
-
-            {/* =================================================================
-                5. RESET PASSWORD FORM
-                ================================================================= */}
-            {authSubMode === 'reset-password' && (
-              <form onSubmit={handleResetPassword}>
-                <div className="scout-auth-input-group">
-                  <label className="scout-auth-label">Email Address *</label>
-                  <input
-                    type="email"
-                    className="scout-auth-input"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="scout-auth-input-group">
-                  <label className="scout-auth-label">6-digit OTP Code *</label>
-                  <input
-                    type="text"
-                    className="scout-auth-input"
-                    style={{ textAlign: 'center', letterSpacing: '8px', fontSize: '20px', fontWeight: 'bold' }}
-                    placeholder="••••••"
-                    maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                    required
-                  />
-                </div>
-
-                <div className="scout-auth-input-group">
-                  <label className="scout-auth-label">New Password * (Min 6 characters)</label>
-                  <input
-                    type="password"
-                    className="scout-auth-input"
-                    placeholder="••••••••"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    minLength={6}
-                    required
-                  />
-                </div>
-
-                <div className="scout-auth-input-group">
-                  <label className="scout-auth-label">Confirm New Password *</label>
-                  <input
-                    type="password"
-                    className="scout-auth-input"
-                    placeholder="Confirm new password"
-                    value={confirmNewPassword}
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    minLength={6}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="scout-auth-btn-primary"
-                >
-                  {loading ? 'Updating password...' : 'Reset & Sign In →'}
-                </button>
-
-                <div className="scout-auth-switch-footer">
-                  <span
-                    onClick={() => {
-                      setAuthSubMode('login');
-                      setError(null);
-                      setSuccess(null);
-                    }}
-                    className="scout-auth-link-text"
-                  >
-                    ← Back to Sign In
-                  </span>
-                </div>
-              </form>
-            )}
           </div>
         </div>
 

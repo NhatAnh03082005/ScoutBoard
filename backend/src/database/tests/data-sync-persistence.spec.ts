@@ -64,7 +64,6 @@ describe('Data Sync Jobs & Logs Persistence Integration Test (Live PostgreSQL)',
           passwordHash: '$2b$10$hashedpasswordforexecuteadmin1234567890',
           fullName: 'Lead Data Administrator',
           status: 'ACTIVE',
-          isEmailVerified: true,
         }),
       );
     }
