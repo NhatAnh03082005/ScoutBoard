@@ -73,7 +73,8 @@ export default async function handler(req: Request, res: Response) {
     res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, X-Api-Version');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.status(204).end();
+    res.statusCode = 204;
+    res.end();
     return;
   }
 
@@ -91,11 +92,15 @@ export default async function handler(req: Request, res: Response) {
     server(req, res);
   } catch (err: any) {
     console.error('[Vercel Serverless Function Error]:', err);
-    res.status(500).json({
-      statusCode: 500,
-      message: 'Serverless initialization error',
-      error: err?.message || String(err),
-      details: err?.stack,
-    });
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(
+      JSON.stringify({
+        statusCode: 500,
+        message: 'Serverless initialization error',
+        error: err?.message || String(err),
+        details: err?.stack,
+      }),
+    );
   }
 }
