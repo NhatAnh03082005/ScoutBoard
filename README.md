@@ -59,7 +59,7 @@ Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên 
 - **GUEST:** Khách chưa đăng nhập có thể xem trang Giới thiệu (About/Home) và Tìm kiếm cầu thủ cơ bản (Find Players Basic).
 - **USER:** Người dùng đã đăng nhập có quyền:
   - Xem trang Giới thiệu (About/Home)
-  - Tìm kiếm cầu thủ cơ bản & Tìm kiếm nâng cao (Find Players Basic + Advanced Search qua `QUERY /api/players`)
+  - Tìm kiếm cầu thủ cơ bản & Tìm kiếm nâng cao (Find Players Basic + Advanced Search qua `POST /api/players/query`)
   - Quản lý danh sách theo dõi cá nhân (My Shortlists)
   - Xây dựng đội hình chiến thuật (My Squads)
   - Quản lý hồ sơ cá nhân (Profile)
@@ -142,7 +142,7 @@ Hệ thống kết hợp nhiều nhà cung cấp dữ liệu bóng đá chuyên 
 1. **Tìm kiếm Cầu thủ Cơ bản (`GET /players`):**
    - Endpoint công khai (Public), hỗ trợ phân trang và lọc theo tên, giải đấu, CLB, quốc tịch, độ tuổi, chiều cao, cân nặng.
    - **Hỗ trợ Any Position Filter:** Khớp cả vị trí chính (`primaryPosition`) và các vị trí phụ liên kết (`player.positions`).
-2. **Tìm kiếm Nâng cao (`QUERY /api/players`):**
+2. **Tìm kiếm Nâng cao (`POST /api/players/query`):**
    - Yêu cầu xác thực JWT (`Authorization: Bearer <token>`, cho phép `USER` và `ADMIN`).
    - Hỗ trợ cây logic Boolean (AND/OR), lọc chỉ số mùa giải, gom nhóm thống kê trận đấu (Match Aggregation) và xếp hạng phân vị theo vị trí (Cohort Comparison).
 3. **Đảm bảo tính toàn vẹn vị trí (Position Integrity & Single Primary Rule):**

@@ -233,7 +233,7 @@ export interface ComparisonCandidateParams {
 }
 
 // =============================================================================
-// Advanced Query Types (QUERY /players)
+// Advanced Query Types (POST /players/query)
 // Added additively — do not modify types above this line.
 // =============================================================================
 
@@ -320,7 +320,7 @@ export interface PlayerQueryScope {
   seasonId?: string;
 }
 
-/** The full request body for QUERY /players. Root must always be a GroupNode. */
+/** The full request body for POST /players/query. Root must always be a GroupNode. */
 export interface PlayerAdvancedQueryRequest {
   scope?: PlayerQueryScope;
   query: GroupNode;

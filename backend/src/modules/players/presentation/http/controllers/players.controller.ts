@@ -4,10 +4,12 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiTags,
   ApiOperation,
@@ -33,6 +35,8 @@ import { PlayerMatchStatisticListResponseDto } from '../dto/player-match-statist
 import { UpdatePlayerPrimaryPositionDto } from '../dto/update-player-primary-position.dto';
 import { UpdatePlayerPrimaryPositionUseCase } from 'src/modules/players/application/use-cases/update-player-primary-position.use-case';
 import { GetAvailablePositionsUseCase } from 'src/modules/players/application/use-cases/get-available-positions.use-case';
+import { QueryPlayersUseCase } from 'src/modules/players/application/use-cases/query-players.use-case';
+import { PlayerQueryRequestDto } from '../dto/player-query-request.dto';
 
 @ApiTags('Players')
 @Controller('players')
@@ -46,6 +50,7 @@ export class PlayersController {
     private readonly getComparisonCandidatesUseCase: GetComparisonCandidatesUseCase,
     private readonly updatePlayerPrimaryPositionUseCase: UpdatePlayerPrimaryPositionUseCase,
     private readonly getAvailablePositionsUseCase: GetAvailablePositionsUseCase,
+    private readonly queryPlayersUseCase: QueryPlayersUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Tìm kiếm & danh sách cầu thủ cơ bản' })
@@ -59,6 +64,28 @@ export class PlayersController {
     @Query() query: SearchPlayersQueryDto,
   ): Promise<PlayerListResponseDto> {
     return this.searchPlayersUseCase.execute(query);
+  }
+
+  @ApiOperation({ summary: 'Tìm kiếm cầu thủ nâng cao' })
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: PlayerListResponseDto })
+  @ApiResponse({ status: 401, description: 'Chưa xác thực' })
+  @UseGuards(JwtAuthGuard)
+  @Throttle({
+    default: {
+      limit: parseInt(process.env.THROTTLE_QUERY_LIMIT || '60', 10),
+      ttl: parseInt(process.env.THROTTLE_QUERY_TTL_MS || '60000', 10),
+    },
+  })
+  @Post('query')
+  async advancedSearch(
+    @Body() body: PlayerQueryRequestDto,
+  ): Promise<PlayerListResponseDto> {
+    return this.queryPlayersUseCase.execute({
+      queryNode: body.query,
+      pagination: body.pagination,
+      scope: body.scope,
+    });
   }
 
   @ApiOperation({

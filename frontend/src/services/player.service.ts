@@ -248,8 +248,7 @@ export async function getAvailablePositionsApi(): Promise<string[]> {
 }
 
 /**
- * Executes an Advanced Query against QUERY /api/players.
- * Uses the real HTTP QUERY method — not POST.
+ * Executes an advanced player search through a proxy-compatible endpoint.
  */
 export async function queryPlayersApi(
   request: PlayerAdvancedQueryRequest,
@@ -264,8 +263,8 @@ export async function queryPlayersApi(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}/players`, {
-    method: 'QUERY',
+  const response = await fetch(`${API_BASE_URL}/players/query`, {
+    method: 'POST',
     headers,
     body: JSON.stringify(request),
   });

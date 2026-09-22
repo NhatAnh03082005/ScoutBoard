@@ -1,7 +1,7 @@
 /**
  * ScoutBoard — Player Query Request DTO
  *
- * Typed shape of the QUERY /players request body.
+ * Typed shape of the advanced player search request body.
  * Shallow class-validator decorators handle the top-level structure.
  * Deep recursive tree validation is performed by PlayerQueryValidator in the use-case.
  */

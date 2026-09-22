@@ -19,7 +19,7 @@ import { resolveNationalityFlagUrl } from '../../domain/services/nationality-fla
 /**
  * QueryPlayersUseCase
  *
- * Executes a dynamic Boolean query against the player dataset via QUERY /players.
+ * Executes a dynamic Boolean query against the player dataset.
  * Responsibility chain:
  *   1. Validate the query node tree (domain validator — pure, no SQL)
  *   2. Validate pagination params
