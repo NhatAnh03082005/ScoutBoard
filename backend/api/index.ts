@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import * as path from 'path';
+import express, { Express, Request, Response } from 'express';
 
 // Intercept 'src/' alias imports if any exist at runtime
 const Module = require('module');
@@ -14,18 +15,17 @@ Module._resolveFilename = function (request: string, parent: any, isMain: boolea
   return originalResolveFilename.call(this, request, parent, isMain, options);
 };
 
-import { NestFactory } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express, { Express, Request, Response } from 'express';
-import { ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
 const server: Express = express();
 let isReady = false;
 let bootstrapPromise: Promise<void> | null = null;
 
 async function bootstrap() {
+  const { NestFactory } = require('@nestjs/core');
+  const { ExpressAdapter } = require('@nestjs/platform-express');
+  const { ValidationPipe } = require('@nestjs/common');
+  const { DocumentBuilder, SwaggerModule } = require('@nestjs/swagger');
   const { AppModule } = require('../dist/src/app.module');
+
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   app.setGlobalPrefix('api', {
