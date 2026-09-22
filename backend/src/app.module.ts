@@ -24,7 +24,10 @@ import { HealthModule } from './modules/health/health.module';
       isGlobal: true,
       validate: validateEnvironment,
     }),
-    TypeOrmModule.forRoot(dataSourceOptions),
+    TypeOrmModule.forRoot({
+      ...dataSourceOptions,
+      autoLoadEntities: true,
+    }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

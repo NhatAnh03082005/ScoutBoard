@@ -36,3 +36,8 @@ temp/
 *.db
 *.db-journal
 *.sql
+
+# Local Vercel deployment state
+**/.vercel/
+**/.vercel-global/
+**/.npm-cache/
