@@ -50,11 +50,36 @@ async function bootstrap() {
 }
 
 export default async function handler(req: Request, res: Response) {
-  if (!isReady) {
-    if (!bootstrapPromise) {
-      bootstrapPromise = bootstrap();
-    }
-    await bootstrapPromise;
+  const origin = (req.headers.origin as string) || 'https://scout-board-three.vercel.app';
+
+  // Instant response for CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, X-Api-Version');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.status(204).end();
+    return;
   }
-  server(req, res);
+
+  // Ensure CORS headers on all responses
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  try {
+    if (!isReady) {
+      if (!bootstrapPromise) {
+        bootstrapPromise = bootstrap();
+      }
+      await bootstrapPromise;
+    }
+    server(req, res);
+  } catch (err: any) {
+    console.error('[Vercel Serverless Function Error]:', err);
+    res.status(500).json({
+      statusCode: 500,
+      message: 'Serverless initialization error',
+      error: err?.message || String(err),
+    });
+  }
 }

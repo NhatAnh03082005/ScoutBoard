@@ -26,6 +26,7 @@ import { HealthModule } from './modules/health/health.module';
     }),
     TypeOrmModule.forRoot({
       ...dataSourceOptions,
+      entities: [],
       autoLoadEntities: true,
     }),
     ThrottlerModule.forRootAsync({
