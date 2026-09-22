@@ -108,7 +108,10 @@ export default async function handler(req: Request, res: Response) {
   try {
     if (!isReady) {
       if (!bootstrapPromise) {
-        bootstrapPromise = bootstrap();
+        bootstrapPromise = bootstrap().catch((err) => {
+          bootstrapPromise = null;
+          throw err;
+        });
       }
       await bootstrapPromise;
     }
@@ -124,15 +127,16 @@ export default async function handler(req: Request, res: Response) {
     });
   } catch (err: any) {
     console.error('[Vercel Serverless Function Error]:', err);
-    res.statusCode = 500;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(
-      JSON.stringify({
-        statusCode: 500,
-        message: 'Serverless initialization error',
-        error: err?.message || String(err),
-        details: err?.stack,
-      }),
-    );
+    if (!res.headersSent) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(
+        JSON.stringify({
+          statusCode: 500,
+          message: 'Serverless initialization error (Kiểm tra biến môi trường trên Vercel)',
+          error: err?.message || String(err),
+        }),
+      );
+    }
   }
 }
