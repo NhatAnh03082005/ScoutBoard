@@ -34,7 +34,7 @@ graph LR
 | **Backend API** | **Vercel** | [https://scoutboard-backend.vercel.app/api](https://scoutboard-backend.vercel.app/api) | 🟢 LIVE | Serverless API (Production Domain vĩnh viễn) |
 | **Swagger API Docs** | **Vercel** | [https://scoutboard-backend.vercel.app/api/docs](https://scoutboard-backend.vercel.app/api/docs) | 🟢 LIVE | Tài liệu đặc tả RESTful APIs + Bearer Auth JWT |
 | **Trang chủ Backend** | **Vercel** | [https://scoutboard-backend.vercel.app](https://scoutboard-backend.vercel.app) | 🟢 LIVE | Tự động Redirect 302 sang `/api/docs` |
-| **Backend (Cũ)** | **Render** | [https://scoutboard-backend.onrender.com](https://scoutboard-backend.onrender.com) | 🟡 Dự phòng | Service cũ trên Render (có thể pause để tiết kiệm) |
+| **Backend (Render cũ)** | **Render** | `https://scoutboard-backend.onrender.com` | ⚪ Đã gỡ bỏ | Đã chuyển toàn bộ sang Vercel Serverless |
 | **Database Cloud** | **Supabase** | `aws-0-ap-south-1.pooler.supabase.com:5432` | 🟢 LIVE | 3.017 cầu thủ, 606 CLB, 21 TypeORM migrations |
 | **Source Code** | **GitHub** | [https://github.com/NhatAnh03082005/ScoutBoard](https://github.com/NhatAnh03082005/ScoutBoard) | 🟢 LIVE | Nhánh chính: `main`, nhánh phát triển: `dev` |
 
