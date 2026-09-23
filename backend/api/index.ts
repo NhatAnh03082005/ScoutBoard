@@ -100,6 +100,7 @@ export default async function handler(req: Request, res: Response) {
         postgresSsl: process.env.POSTGRES_SSL || 'MISSING',
         jwtSecretLen: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0,
         nodeEnv: process.env.NODE_ENV || 'MISSING',
+        allEnvKeys: Object.keys(process.env).sort(),
       }),
     );
     return;
