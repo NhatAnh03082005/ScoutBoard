@@ -5,6 +5,18 @@
       "includeFiles": "dist/**"
     }
   },
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/api/docs",
+      "permanent": false
+    },
+    {
+      "source": "/api",
+      "destination": "/api/docs",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
