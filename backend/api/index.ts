@@ -82,29 +82,6 @@ export default async function handler(req: Request, res: Response) {
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  if (req.url && (req.url.includes('debug-probe') || req.url === '/debug')) {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    const fs = require('fs');
-    res.end(
-      JSON.stringify({
-        __dirname,
-        cwd: process.cwd(),
-        url: req.url,
-        distInCwd: fs.existsSync(path.join(process.cwd(), 'dist')),
-        distFromDirname: fs.existsSync(path.resolve(__dirname, '../dist')),
-        filesInCwd: fs.existsSync(process.cwd()) ? fs.readdirSync(process.cwd()) : [],
-        postgresHost: process.env.POSTGRES_HOST || 'MISSING',
-        postgresDb: process.env.POSTGRES_DB || 'MISSING',
-        postgresUser: process.env.POSTGRES_USER || 'MISSING',
-        postgresSsl: process.env.POSTGRES_SSL || 'MISSING',
-        jwtSecretLen: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0,
-        nodeEnv: process.env.NODE_ENV || 'MISSING',
-        allEnvKeys: Object.keys(process.env).sort(),
-      }),
-    );
-    return;
-  }
 
   try {
     if (!isReady) {
