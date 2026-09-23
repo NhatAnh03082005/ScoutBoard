@@ -82,8 +82,14 @@ export default async function handler(req: Request, res: Response) {
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  // Root redirect to Swagger Documentation
-  if (!req.url || req.url === '/' || req.url === '') {
+  // Root and /api redirect to Swagger Documentation
+  if (
+    !req.url ||
+    req.url === '/' ||
+    req.url === '' ||
+    req.url === '/api' ||
+    req.url === '/api/'
+  ) {
     res.statusCode = 302;
     res.setHeader('Location', '/api/docs');
     res.end();
