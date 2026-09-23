@@ -6,7 +6,8 @@
 node_modules/
 coverage/
 test/
-scripts/
+scripts/*
+!scripts/postbuild.js
 src/scripts/
 **/*.spec.ts
 **/*.e2e-spec.ts
