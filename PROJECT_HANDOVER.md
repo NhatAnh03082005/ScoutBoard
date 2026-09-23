@@ -22,9 +22,9 @@ ScoutBoard được xây dựng theo mô hình Monorepo:
 | Thành phần | Nền tảng | Link trực tiếp | Trạng thái |
 | :--- | :--- | :--- | :--- |
 | **Frontend Web** | **Vercel** | [https://scout-board-three.vercel.app](https://scout-board-three.vercel.app) | 🟢 LIVE (100% hoạt động) |
-| **Backend API (Vercel)** | **Vercel** | `https://scoutboard-backend.vercel.app/api` (Tùy tên project đặt trên Vercel) | 🚀 Sẵn sàng deploy |
+| **Backend API (Vercel)** | **Vercel** | [https://scoutboard-backend.vercel.app/api](https://scoutboard-backend.vercel.app/api) | 🟢 LIVE (100% hoạt động) |
 | **Backend API (Render - Cũ)** | **Render** | [https://scoutboard-backend.onrender.com](https://scoutboard-backend.onrender.com) | 🟢 Hoạt động dự phòng |
-| **Swagger API Docs** | **Vercel / Render**| `.../api/docs` | 🟢 LIVE (Đầy đủ RESTful APIs) |
+| **Swagger API Docs** | **Vercel** | [https://scoutboard-backend.vercel.app/api/docs](https://scoutboard-backend.vercel.app/api/docs) | 🟢 LIVE (Đầy đủ RESTful APIs) |
 | **Database Cloud** | **Supabase** | `aws-0-ap-south-1.pooler.supabase.com:5432` | 🟢 LIVE (3.017 cầu thủ, 606 CLB, 21 migrations) |
 | **Source Code** | **GitHub** | [https://github.com/NhatAnh03082005/ScoutBoard](https://github.com/NhatAnh03082005/ScoutBoard) | 🟢 Nhánh `main` & `dev` |
 
