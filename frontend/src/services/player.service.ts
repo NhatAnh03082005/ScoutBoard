@@ -9,6 +9,7 @@ import type {
   PlayerSeasonStatisticItem,
   PlayerAdvancedQueryRequest,
 } from '../types/player.types';
+import { refreshTokenApi } from './api';
 
 // Use Vite environment variable with fallback to local development URL
 const API_BASE_URL =
@@ -254,21 +255,44 @@ export async function getAvailablePositionsApi(): Promise<string[]> {
 export async function queryPlayersApi(
   request: PlayerAdvancedQueryRequest,
 ): Promise<PlayerListResponse> {
-  const token =
+  let token =
     localStorage.getItem('scout_access_token') || localStorage.getItem('accessToken');
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  const executeQuery = (accessToken: string | null): Promise<Response> => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
 
-  const response = await fetch(`${API_BASE_URL}/players`, {
-    method: 'QUERY',
-    headers,
-    body: JSON.stringify(request),
-  });
+    return fetch(`${API_BASE_URL}/players`, {
+      method: 'QUERY',
+      headers,
+      body: JSON.stringify(request),
+    });
+  };
+
+  let response = await executeQuery(token);
+
+  if (response.status === 401) {
+    const storedRefreshToken =
+      localStorage.getItem('scout_refresh_token') || localStorage.getItem('refreshToken');
+
+    if (storedRefreshToken) {
+      try {
+        const refreshed = await refreshTokenApi(storedRefreshToken);
+        localStorage.setItem('scout_access_token', refreshed.accessToken);
+        localStorage.setItem('scout_refresh_token', refreshed.refreshToken);
+        localStorage.setItem('accessToken', refreshed.accessToken);
+        localStorage.setItem('refreshToken', refreshed.refreshToken);
+        token = refreshed.accessToken;
+        response = await executeQuery(token);
+      } catch {
+        throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      }
+    }
+  }
 
   const data = await response.json();
 

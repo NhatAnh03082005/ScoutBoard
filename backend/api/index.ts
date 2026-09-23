@@ -19,6 +19,25 @@ const server: Express = express();
 let isReady = false;
 let bootstrapPromise: Promise<void> | null = null;
 
+const corsMethods = 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS,QUERY';
+const defaultFrontendOrigins = [
+  'https://scout-board-three.vercel.app',
+  'https://scout-board-git-main-nhat-anh.vercel.app',
+];
+
+function getAllowedOrigins(): string[] {
+  const configuredOrigins = (process.env.FRONTEND_ORIGIN || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return [...new Set([...defaultFrontendOrigins, ...configuredOrigins])];
+}
+
+function isAllowedOrigin(origin?: string): boolean {
+  return !origin || getAllowedOrigins().includes(origin);
+}
+
 async function bootstrap() {
   const { NestFactory } = require('@nestjs/core');
   const { ExpressAdapter } = require('@nestjs/platform-express');
@@ -35,11 +54,14 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      callback(null, true);
+      callback(
+        isAllowedOrigin(origin) ? null : new Error(`CORS origin is not allowed: ${origin}`),
+        isAllowedOrigin(origin),
+      );
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS', 'QUERY'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
-    credentials: true,
+    credentials: false,
   });
 
   app.useGlobalPipes(
@@ -65,22 +87,28 @@ async function bootstrap() {
 }
 
 export default async function handler(req: Request, res: Response) {
-  const origin = (req.headers.origin as string) || 'https://scout-board-three.vercel.app';
+  const origin = req.headers.origin as string | undefined;
+
+  if (!isAllowedOrigin(origin)) {
+    res.statusCode = 403;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ statusCode: 403, message: 'Origin is not allowed by CORS' }));
+    return;
+  }
+
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
 
   // Instant response for CORS preflight
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', corsMethods);
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, X-Api-Version');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.statusCode = 204;
     res.end();
     return;
   }
-
-  // Ensure CORS headers on all responses
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   // Root and /api redirect to Swagger Documentation
   if (
