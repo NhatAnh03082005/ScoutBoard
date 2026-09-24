@@ -9,6 +9,7 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   fullName: string;
+  avatarUrl: string | null;
   status: string;
   roles: string[];
   userRoles: { role: { code: string; name: string } }[];
@@ -58,6 +59,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: user.id,
       email: user.getEmail(),
       fullName: user.getFullName(),
+      avatarUrl: user.getAvatarUrl(),
       status: user.getStatus(),
       roles,
       // Backward-compatible helper for legacy components

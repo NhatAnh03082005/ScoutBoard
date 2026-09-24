@@ -14,6 +14,7 @@ import type {
   FormationCode,
 } from '../../types/squad.types';
 import type { PlayerItem } from '../../types/player.types';
+import type { NotificationVariant } from '../common/Notification';
 import {
   FORMATION_CONFIGS,
   applyMoveStarter,
@@ -29,8 +30,9 @@ export interface UseSquadDetailResult {
   error: string | null;
   isSaving: boolean;
   toastMessage: string | null;
-  toastType: 'success' | 'error';
-  showToast: (message: string, type?: 'success' | 'error') => void;
+  toastType: NotificationVariant;
+  showToast: (message: string, type?: NotificationVariant) => void;
+  dismissToast: () => void;
   fetchSquadData: () => Promise<void>;
 
   // Inline rename state
@@ -68,19 +70,18 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [toastType, setToastType] = useState<NotificationVariant>('success');
 
   // Inline Rename State
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [nameInputValue, setNameInputValue] = useState<string>('');
 
-  const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+  const showToast = useCallback((message: string, type: NotificationVariant = 'success') => {
     setToastMessage(message);
     setToastType(type);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3500);
   }, []);
+
+  const dismissToast = useCallback(() => setToastMessage(null), []);
 
   const fetchSquadData = useCallback(async () => {
     setLoading(true);
@@ -117,7 +118,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
 
     try {
       await updateSquadApi(squad.id, { formationCode: newFormation });
-      showToast(`Đã chuyển sơ đồ chiến thuật sang ${newFormation}`);
+      showToast(`Tactical formation changed to ${newFormation}.`);
     } catch (err: any) {
       setSquad((prev) => (prev ? { ...prev, formationCode: previousFormation } : prev));
       showToast(err.message || 'Failed to update formation.', 'error');
@@ -145,7 +146,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
 
     try {
       await updateSquadApi(squad.id, { name: trimmed });
-      showToast('Đã lưu tên đội hình thành công.');
+      showToast('Squad name saved successfully.');
     } catch (err: any) {
       setSquad((prev) => (prev ? { ...prev, name: prevName } : prev));
       showToast(err.message || 'Failed to update name.', 'error');
@@ -188,9 +189,9 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
             slotCode: targetSlotCode,
           });
           showToast(
-            `Đã thêm ${selectedPlayer.fullName || 'cầu thủ'} vào vị trí ${
+            `Added ${selectedPlayer.fullName || 'player'} to ${
               pickerTargetSlot?.displayRole || pickerTargetSlot?.label
-            }`,
+            } position.`,
           );
         } catch (err: any) {
           showToast(err.message || 'Failed to move player.', 'error');
@@ -206,7 +207,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
             role: 'SUBSTITUTE',
             slotCode: null,
           });
-          showToast(`Đã chuyển ${selectedPlayer.fullName || 'cầu thủ'} sang ghế dự bị.`);
+          showToast(`Moved ${selectedPlayer.fullName || 'player'} to the substitutes bench.`);
         } catch (err: any) {
           showToast(err.message || 'Failed to move to bench.', 'error');
           void fetchSquadData();
@@ -257,7 +258,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
         role: isStarter ? 'STARTER' : 'SUBSTITUTE',
         slotCode: targetSlotCode,
       });
-      showToast(`Đã thêm ${selectedPlayer.fullName || 'cầu thủ'} vào đội hình.`);
+      showToast(`Added ${selectedPlayer.fullName || 'player'} to the squad.`);
       void fetchSquadData();
     } catch (err: any) {
       showToast(err.message || 'Failed to add player.', 'error');
@@ -269,7 +270,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
   const handleMoveStarterToBench = async (playerId: string) => {
     const currentSubs = players.filter((p) => p.role === 'SUBSTITUTE');
     if (currentSubs.length >= 7) {
-      showToast('Substitutes bench is already full (max 7 players).', 'error');
+      showToast('Substitutes bench is already full (max 7 players).', 'warning');
       return;
     }
 
@@ -297,7 +298,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
     if (!emptySlot) {
       showToast(
         `No empty tactical slot available for ${benchPlayer.player?.name || 'player'}.`,
-        'error',
+        'warning',
       );
       return;
     }
@@ -329,7 +330,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
 
     try {
       await updateSquadPlayerApi(squadId, playerId, { isCaptain: true });
-      showToast('Đã chỉ định đội trưởng mới.');
+      showToast('New captain assigned.');
     } catch (err: any) {
       setPlayers(previousSnapshot);
       showToast(err.message || 'Failed to update captain.', 'error');
@@ -343,7 +344,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
 
     try {
       await removePlayerFromSquadApi(squadId, playerId);
-      showToast('Đã xóa cầu thủ khỏi đội hình.');
+      showToast('Player removed from the squad.');
     } catch (err: any) {
       setPlayers(prev);
       showToast(err.message || 'Failed to remove player.', 'error');
@@ -360,7 +361,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
         formationCode: squad.formationCode,
         visibility: squad.visibility,
       });
-      showToast('Đã lưu cấu hình đội hình thành công!');
+      showToast('Squad configuration saved successfully.');
     } catch (err: any) {
       showToast(err.message || 'Failed to save squad.', 'error');
     } finally {
@@ -390,6 +391,7 @@ export function useSquadDetail(squadId: string): UseSquadDetailResult {
     toastMessage,
     toastType,
     showToast,
+    dismissToast,
     fetchSquadData,
     isEditingName,
     setIsEditingName,

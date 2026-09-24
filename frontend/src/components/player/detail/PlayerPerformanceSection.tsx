@@ -4,6 +4,7 @@ import { getPositionRoleInfo } from "../../../utils/position.utils";
 import { getRadarMetrics } from "../../../utils/radar.utils";
 import { PlayerRadarChart } from "../PlayerRadarChart";
 import { PerformanceCards } from "../PerformanceCards";
+import { Notification } from "../../common/Notification";
 
 export interface PlayerPerformanceSectionProps {
   player: PlayerDetail;
@@ -135,12 +136,12 @@ export const PlayerPerformanceSection: React.FC<PlayerPerformanceSectionProps> =
       )}
 
       {statsError && (
-        <div
-          className="scout-b2b-alert-error"
-          style={{ fontSize: "13px", margin: "14px 0" }}
-        >
-          ⚠️ {statsError}
-        </div>
+        <Notification
+          variant="error"
+          message={statsError}
+          compact
+          style={{ margin: "14px 0" }}
+        />
       )}
 
       {!statsLoading && selectedStatistic && (

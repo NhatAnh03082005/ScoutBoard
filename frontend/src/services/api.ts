@@ -1,4 +1,4 @@
-const API_BASE_URL =
+export const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api';
 
 // ─── Shared token helpers ────────────────────────────────────────────────────
@@ -22,23 +22,58 @@ export async function refreshTokenApi(
   return data;
 }
 
+let refreshInFlight: ReturnType<typeof refreshTokenApi> | null = null;
+
+function expireBrowserSession(): void {
+  localStorage.removeItem('scout_access_token');
+  localStorage.removeItem('scout_refresh_token');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  window.dispatchEvent(new Event('scout:session-expired'));
+}
+
+function refreshStoredSession() {
+  if (refreshInFlight) return refreshInFlight;
+
+  const refreshToken = getStoredRefreshToken();
+  if (!refreshToken) return Promise.reject(new Error('UNAUTHORIZED'));
+
+  refreshInFlight = refreshTokenApi(refreshToken)
+    .then((tokens) => {
+      localStorage.setItem('scout_access_token', tokens.accessToken);
+      localStorage.setItem('scout_refresh_token', tokens.refreshToken);
+      window.dispatchEvent(
+        new CustomEvent('scout:tokens-refreshed', {
+          detail: { accessToken: tokens.accessToken },
+        }),
+      );
+      return tokens;
+    })
+    .finally(() => {
+      refreshInFlight = null;
+    });
+
+  return refreshInFlight;
+}
+
 /**
  * Authenticated fetch with automatic one-shot token refresh.
  * Mirrors the same pattern in shortlist.service.ts / squad.service.ts.
  * Throws Error('UNAUTHORIZED') when refresh also fails → caller should logout.
  */
-async function authFetch(
+export async function authFetch(
   url: string,
   options: RequestInit = {},
   accessToken?: string,
 ): Promise<Response> {
-  let token = accessToken || getStoredAccessToken();
+  const token = getStoredAccessToken() || accessToken;
   if (!token) throw new Error('UNAUTHORIZED');
 
   const buildHeaders = (tok: string): Headers => {
     const h = new Headers(options.headers || {});
     h.set('Authorization', `Bearer ${tok}`);
-    if (!h.has('Content-Type') && options.method && options.method !== 'GET') {
+    const isFormData = options.body instanceof FormData;
+    if (!isFormData && !h.has('Content-Type') && options.method && options.method !== 'GET') {
       h.set('Content-Type', 'application/json');
     }
     return h;
@@ -48,17 +83,14 @@ async function authFetch(
 
   // One-shot refresh on 401
   if (res.status === 401) {
-    const refresh = getStoredRefreshToken();
-    if (refresh) {
-      try {
-        const refreshData = await refreshTokenApi(refresh);
-        localStorage.setItem('scout_access_token', refreshData.accessToken);
-        localStorage.setItem('scout_refresh_token', refreshData.refreshToken);
-        res = await fetch(url, { ...options, headers: buildHeaders(refreshData.accessToken) });
-      } catch {
-        throw new Error('UNAUTHORIZED');
-      }
-    } else {
+    try {
+      const refreshData = await refreshStoredSession();
+      res = await fetch(url, {
+        ...options,
+        headers: buildHeaders(refreshData.accessToken),
+      });
+    } catch {
+      expireBrowserSession();
       throw new Error('UNAUTHORIZED');
     }
   }
@@ -70,6 +102,7 @@ export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
+  avatarUrl?: string | null;
   status: string;
   roles?: string[];
   createdAt?: string;

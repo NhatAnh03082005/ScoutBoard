@@ -1,4 +1,4 @@
-import { SearchInput } from "../components/common";
+import { Notification, SearchInput } from "../components/common";
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Squad, SquadVisibility, FormationCode, SquadPlayerItem } from '../types/squad.types';
 import {
@@ -14,7 +14,7 @@ import {
   FormationSelector,
   VisibilitySelector,
   ModalFooter,
-  AlertCircleIcon,
+  LockIcon,
 } from '../components/modal';
 import {
   FORMATION_DEFINITIONS,
@@ -72,10 +72,9 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
 
   const showToast = (message: string) => {
     setToastMessage(message);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3500);
   };
+
+  const dismissToast = () => setToastMessage(null);
 
   const fetchSquads = async () => {
     setLoading(true);
@@ -299,7 +298,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
 
   return (
     <div
-      className="scout-b2b-page-container"
+      className="scout-b2b-page-container scout-squads-page"
       style={{
         maxWidth: '1380px',
         margin: '0 auto',
@@ -308,32 +307,18 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
     >
       {/* Toast Notification */}
       {toastMessage && (
-        <div
-          className="scout-toast scout-toast-success"
-          style={{
-            position: 'fixed',
-            top: '24px',
-            right: '24px',
-            zIndex: 99999,
-            padding: '12px 20px',
-            borderRadius: '10px',
-            color: '#ffffff',
-            background: '#10b981',
-            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontWeight: 700,
-            fontSize: '13.5px',
-          }}
-        >
-          <span>✓</span>
-          <span>{toastMessage}</span>
-        </div>
+        <Notification
+          variant="success"
+          mode="toast"
+          message={toastMessage}
+          onDismiss={dismissToast}
+          autoDismissMs={3500}
+        />
       )}
 
       {/* Header Banner - Modern Tactical Workspace */}
       <div
+        className="scout-squads-header"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -343,8 +328,9 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
           gap: '20px',
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+        <div className="scout-squads-heading-copy">
+          <div className="scout-page-eyebrow">Tactical workspace</div>
+          <div className="scout-squads-title-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
             <h1
               style={{
                 fontSize: '32px',
@@ -359,6 +345,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
               MY SQUADS
             </h1>
             <span
+              className="scout-squads-title-badge"
               style={{
                 fontSize: '11px',
                 fontWeight: 800,
@@ -369,10 +356,11 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                 letterSpacing: '0.04em',
               }}
             >
-              TACTICAL HUB
+              34 FORMATIONS
             </span>
           </div>
           <p
+            className="scout-squads-subtitle"
             style={{
               color: '#64748b',
               fontSize: '14px',
@@ -384,8 +372,9 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
 
           {/* Quick Metrics Bar */}
           {!loading && !error && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div className="scout-squads-metrics">
               <div
+                className="scout-squads-metric"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -399,13 +388,16 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                   color: '#60a5fa',
                 }}
               >
-                <span>📋</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 6h16M4 12h16M4 18h10" />
+                </svg>
                 <span>
                   <strong>{stats.totalSquads}</strong> {stats.totalSquads === 1 ? 'Squad' : 'Squads'}
                 </span>
               </div>
 
               <div
+                className="scout-squads-metric"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -419,13 +411,16 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                   color: '#4ade80',
                 }}
               >
-                <span>⚡</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="m13 2-9 12h8l-1 8 9-12h-8z" />
+                </svg>
                 <span>
                   <strong>{stats.uniqueFormations}</strong> Active Formations
                 </span>
               </div>
 
               <div
+                className="scout-squads-metric"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -439,7 +434,9 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                   color: '#6b21a8',
                 }}
               >
-                <span>👤</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
                 <span>
                   <strong>{stats.totalPlayersCount}</strong> Players Assigned
                 </span>
@@ -449,7 +446,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
         </div>
 
         {/* Action Controls: Search & New Squad Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div className="scout-squads-header-actions">
           {squads.length > 0 && (
             <SearchInput
               placeholder="Search squads..."
@@ -462,7 +459,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
 
           <button
             type="button"
-            className="scout-btn scout-btn-primary"
+            className="scout-btn scout-btn-primary scout-squads-create-btn"
             id="btn-create-new-squad"
             onClick={handleOpenCreateModal}
           >
@@ -474,6 +471,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
       {/* 1. UNAUTHORIZED STATE */}
       {error === 'UNAUTHORIZED' || (!isAuthenticated && !loading) ? (
         <div
+          className="scout-auth-guard-card scout-squads-auth-card"
           style={{
             maxWidth: '600px',
             margin: '40px auto',
@@ -485,7 +483,8 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
             boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
           }}
         >
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
+          <div className="scout-auth-guard-icon" aria-hidden="true"><LockIcon size={28} /></div>
+          <div className="scout-page-eyebrow">Tactical workspace</div>
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px' }}>
             Authentication Required
           </h3>
@@ -507,45 +506,26 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
 
       {/* 2. ERROR STATE */}
       {error && error !== 'UNAUTHORIZED' ? (
-        <div
-          style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '16px',
-            padding: '24px',
-            marginBottom: '28px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '12px',
-          }}
-        >
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <span style={{ fontSize: '24px' }}>⚠️</span>
-            <div>
-              <h4 style={{ margin: '0 0 2px', color: '#991b1b', fontSize: '15px', fontWeight: 700 }}>
-                Failed to load squads
-              </h4>
-              <p style={{ margin: 0, color: '#b91c1c', fontSize: '13px' }}>
-                {error}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="scout-btn scout-btn-secondary"
-            onClick={fetchSquads}
-            style={{ padding: '8px 16px', fontSize: '13px' }}
-          >
-            ↻ Retry
-          </button>
-        </div>
+        <Notification
+          variant="error"
+          message={error}
+          style={{ marginBottom: '28px' }}
+          actions={(
+            <button
+              type="button"
+              className="scout-btn scout-btn-secondary"
+              onClick={fetchSquads}
+            >
+              Retry
+            </button>
+          )}
+        />
       ) : null}
 
       {/* 3. LOADING SKELETON */}
       {loading ? (
         <div
+          className="scout-squads-grid scout-squads-loading-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
@@ -555,6 +535,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
           {[1, 2, 3].map((n) => (
             <div
               key={n}
+              className="scout-squad-overview-card scout-squad-card-skeleton"
               style={{
                 background: 'var(--scout-surface-card)',
                 border: '1px solid var(--scout-border-default)',
@@ -580,8 +561,13 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
 
       {/* 4. EMPTY STATE (No squads created yet) */}
       {!loading && !error && squads.length === 0 ? (
-        <div className="scout-empty-state" style={{ maxWidth: '680px', margin: '40px auto' }}>
-          <div className="scout-empty-state-icon">📋</div>
+        <div className="scout-empty-state scout-squads-empty-state" style={{ maxWidth: '680px', margin: '40px auto' }}>
+          <div className="scout-empty-state-icon scout-squads-empty-icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="12" cy="12" r="3" /><path d="M3 9h3l2-3M21 9h-3l-2-3M3 15h3l2 3M21 15h-3l-2 3" />
+            </svg>
+          </div>
+          <div className="scout-page-eyebrow">Tactical workspace</div>
           <h3 className="scout-empty-state-title" style={{ fontSize: '20px' }}>
             No Tactical Squads Yet
           </h3>
@@ -603,6 +589,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
         <>
           {filteredSquads.length === 0 ? (
             <div
+              className="scout-empty-state scout-squads-search-empty"
               style={{
                 background: 'var(--scout-surface-card)',
                 border: '1px dashed #cbd5e1',
@@ -633,6 +620,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
             </div>
           ) : (
             <div
+              className="scout-squads-grid"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
@@ -654,7 +642,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                 return (
                   <div
                     key={squad.id}
-                    className="scout-shortlist-card"
+                    className="scout-squad-overview-card"
                     style={{
                       background: 'var(--scout-surface-card)',
                       border: '1px solid var(--scout-border-default)',
@@ -691,6 +679,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                       >
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <h3
+                            className="scout-squad-card-title"
                             style={{
                               fontSize: '17px',
                               fontWeight: 800,
@@ -722,7 +711,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                                 border: '1px solid rgba(59, 130, 246, 0.3)',
                               }}
                             >
-                              ⚡ {squad.formationCode}
+                              {squad.formationCode}
                             </span>
 
                             <span
@@ -887,6 +876,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
 
                       {/* Tactical Mini Pitch (Lush green pitch with 11 dots, occupied dots glowing) */}
                       <div
+                        className="scout-squad-mini-pitch"
                         style={{
                           height: '140px',
                           margin: '12px 0',
@@ -904,7 +894,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                       </div>
 
                       {/* Starting XI Completion Status & Bench Count */}
-                      <div style={{ marginBottom: '12px' }}>
+                      <div className="scout-squad-completion" style={{ marginBottom: '12px' }}>
                         <div
                           style={{
                             display: 'flex',
@@ -950,6 +940,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
                       {/* Tactical Description if present */}
                       {squad.description && (
                         <p
+                          className="scout-squad-card-description"
                           style={{
                             color: '#64748b',
                             fontSize: '12px',
@@ -968,6 +959,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
 
                     {/* Card Footer: Updated Date & Open Tactics CTA */}
                     <div
+                      className="scout-squad-card-footer"
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1054,10 +1046,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
             />
 
             {editError && (
-              <div className="scout-modal-alert-error" role="alert">
-                <AlertCircleIcon size={16} />
-                <span>{editError}</span>
-              </div>
+              <Notification variant="error" message={editError} compact />
             )}
 
             <form onSubmit={handleEditSubmit} className="scout-modal-clean-form">
@@ -1145,12 +1134,7 @@ export const MySquadsPage: React.FC<MySquadsPageProps> = ({
             </p>
 
             {deleteError && (
-              <div
-                className="alert-banner alert-error"
-                style={{ margin: '0 0 16px', padding: '10px 14px', fontSize: '12.5px' }}
-              >
-                ⚠️ {deleteError}
-              </div>
+              <Notification variant="error" message={deleteError} compact />
             )}
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>

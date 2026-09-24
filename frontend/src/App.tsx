@@ -12,6 +12,9 @@ import type { UserProfile } from './services/api';
 
 import { LoadingState } from './components/common/LoadingState';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { Notification } from './components/common/Notification';
+import { LockIcon } from './components/modal/ModalIcons';
+import { AccountMenu } from './components/account/AccountMenu';
 
 // Eagerly loaded landing page (lightweight, ensures instant FCP for root visitor)
 import { HomePage } from './pages/HomePage';
@@ -38,6 +41,9 @@ const SquadDetailPage = lazy(() =>
 const AdminDataSyncPage = lazy(() =>
   import('./pages/AdminDataSyncPage').then((m) => ({ default: m.AdminDataSyncPage })),
 );
+const ProfilePage = lazy(() =>
+  import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })),
+);
 
 export type TabType =
   | 'home'
@@ -52,7 +58,7 @@ export type TabType =
   | 'register';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabType>('players');
+  const [activeTab, setActiveTab] = useState<TabType>('home');
   const [selectedShortlistId, setSelectedShortlistId] = useState<string | null>(null);
   const [selectedSquadId, setSelectedSquadId] = useState<string | null>(null);
   const [selectedPlayerIdForSearch, setSelectedPlayerIdForSearch] = useState<string | null>(null);
@@ -81,7 +87,6 @@ export default function App() {
     user?.roles?.includes('ADMIN') ??
     user?.userRoles?.some((ur) => ur.role?.code === 'ADMIN') ??
     false;
-  const isUser = !!user && !isAdmin;
   const isGuest = !user;
 
   // Initial Auth Check
@@ -167,6 +172,30 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleTokensRefreshed = (event: Event) => {
+      const refreshedEvent = event as CustomEvent<{ accessToken: string }>;
+      if (refreshedEvent.detail?.accessToken) {
+        setAccessToken(refreshedEvent.detail.accessToken);
+      }
+    };
+    const handleSessionExpired = () => {
+      setAccessToken(null);
+      setUser(null);
+      setActiveTab('login');
+      window.history.pushState({}, '', '/login');
+      setSuccess(null);
+      setError('Your session has expired. Please log in again.');
+    };
+
+    window.addEventListener('scout:tokens-refreshed', handleTokensRefreshed);
+    window.addEventListener('scout:session-expired', handleSessionExpired);
+    return () => {
+      window.removeEventListener('scout:tokens-refreshed', handleTokensRefreshed);
+      window.removeEventListener('scout:session-expired', handleSessionExpired);
+    };
+  }, []);
+
   // Guard activeTab whenever auth state (user / role) changes
   useEffect(() => {
     if (isAdmin) {
@@ -215,7 +244,7 @@ export default function App() {
     localStorage.removeItem('refreshToken');
     setAccessToken(null);
     setUser(null);
-    setActiveTab('players');
+    setActiveTab('home');
   };
 
   const handleLogout = async () => {
@@ -322,7 +351,8 @@ export default function App() {
           <div
             className="scout-navbar-brand"
             onClick={() => {
-              setActiveTab(isAdmin ? 'users' : 'players');
+              setActiveTab(isAdmin ? 'users' : 'home');
+              window.history.pushState({}, '', isAdmin ? '/admin/users' : '/');
               setError(null);
               setSuccess(null);
             }}
@@ -330,13 +360,11 @@ export default function App() {
             tabIndex={0}
           >
             <div className="scout-navbar-logo-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="m4.93 4.93 4.24 4.24" />
-                <path d="m14.83 9.17 4.24-4.24" />
-                <path d="m14.83 14.83 4.24 4.24" />
-                <path d="m9.17 14.83-4.24 4.24" />
-                <polygon points="12,7 16,10 14.5,15 9.5,15 8,10" />
+              <svg viewBox="0 0 44 48" fill="none" aria-hidden="true">
+                <path d="M22 2.5 39 8v13.2c0 11.1-6.5 19.3-17 24.3C11.5 40.5 5 32.3 5 21.2V8L22 2.5Z" fill="#09213b" stroke="#f4b740" strokeWidth="2.5" />
+                <circle cx="22" cy="23" r="10.5" fill="#f8fafc" />
+                <path d="m22 15 4.2 3-1.6 4.9h-5.2L17.8 18 22 15Z" fill="#0a1d34" />
+                <path d="m17.8 18-4.2 1.2-1.2 4.7 3.3 3.2 3.7-4.2M26.2 18l4.2 1.2 1.2 4.7-3.3 3.2-3.7-4.2M15.7 27.1l.9 4.4 4.1 2 1.3-4.7M28.3 27.1l-.9 4.4-4.1 2-1.3-4.7" stroke="#0a1d34" strokeWidth="1.5" strokeLinejoin="round" />
               </svg>
             </div>
             <span className="scout-navbar-brand-name">ScoutBoard</span>
@@ -357,7 +385,7 @@ export default function App() {
                   setSuccess(null);
                 }}
               >
-                About
+                Home
               </button>
             )}
 
@@ -374,12 +402,12 @@ export default function App() {
                   setSuccess(null);
                 }}
               >
-                Find Players
+                Players
               </button>
             )}
 
-            {/* USER ONLY: My Shortlists */}
-            {isUser && (
+            {/* Guest and user shortlist navigation */}
+            {!isAdmin && (
               <button
                 type="button"
                 id="nav-link-shortlists"
@@ -392,12 +420,12 @@ export default function App() {
                   setSuccess(null);
                 }}
               >
-                My Shortlists
+                Shortlists
               </button>
             )}
 
-            {/* USER ONLY: My Squads */}
-            {isUser && (
+            {/* Guest and user squad navigation */}
+            {!isAdmin && (
               <button
                 type="button"
                 id="nav-link-squads"
@@ -410,27 +438,13 @@ export default function App() {
                   setSuccess(null);
                 }}
               >
-                My Squads
+                Squads
               </button>
             )}
 
-            {/* ADMIN ONLY: Profile, User Management, Data Sync */}
+            {/* ADMIN ONLY: User Management and Data Sync */}
             {isAdmin && (
               <>
-                <button
-                  type="button"
-                  id="nav-link-admin-profile"
-                  className={`scout-nav-link ${activeTab === 'profile' ? 'active' : ''}`}
-                  onClick={() => {
-                    setActiveTab('profile');
-                    window.history.pushState({}, '', '/profile');
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                >
-                  Profile
-                </button>
-
                 <button
                   type="button"
                   id="nav-link-admin-users"
@@ -461,63 +475,45 @@ export default function App() {
               </>
             )}
 
-            {/* USER ONLY: Profile */}
-            {isUser && (
-              <button
-                type="button"
-                id="nav-link-profile"
-                className={`scout-nav-link ${activeTab === 'profile' ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveTab('profile');
-                  window.history.pushState({}, '', '/profile');
-                  setError(null);
-                  setSuccess(null);
-                }}
-              >
-                Profile
-              </button>
-            )}
           </nav>
 
           {/* Right Auth / Account Actions */}
           <div className="scout-navbar-auth">
             {user ? (
-              <div className="scout-navbar-user-group">
-                <span className="scout-navbar-user-email">
-                  {user.fullName || user.email}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="scout-navbar-btn-logout"
-                  disabled={loading}
-                >
-                  Logout
-                </button>
-              </div>
+              <AccountMenu
+                user={user}
+                loading={loading}
+                onProfile={() => {
+                  setActiveTab('profile');
+                  window.history.pushState({}, '', '/profile');
+                  setError(null);
+                  setSuccess(null);
+                }}
+                onLogout={() => void handleLogout()}
+              />
             ) : (
               <div className="scout-navbar-guest-group">
                 <button
                   type="button"
-                  className={`scout-navbar-btn-text ${activeTab === 'register' ? 'active' : ''}`}
-                  onClick={() => {
-                    setActiveTab('register');
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                >
-                  Sign Up
-                </button>
-                <button
-                  type="button"
-                  className="scout-navbar-btn-primary"
+                  className="scout-navbar-btn-text"
                   onClick={() => {
                     setActiveTab('login');
                     setError(null);
                     setSuccess(null);
                   }}
                 >
-                  Login
+                  Log in
+                </button>
+                <button
+                  type="button"
+                  className={`scout-navbar-btn-primary ${activeTab === 'register' ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveTab('register');
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                >
+                  Get started
                 </button>
               </div>
             )}
@@ -527,8 +523,22 @@ export default function App() {
 
       {/* Global Alerts */}
       <div className="scout-shell-content">
-        {error && <div className="alert-banner alert-error" style={{ maxWidth: '1360px', margin: '16px auto' }}>⚠️ {error}</div>}
-        {success && <div className="alert-banner alert-success" style={{ maxWidth: '1360px', margin: '16px auto' }}>✅ {success}</div>}
+        {error && (
+          <Notification
+            variant="error"
+            message={error}
+            onDismiss={() => setError(null)}
+            style={{ maxWidth: '1360px', margin: '16px auto' }}
+          />
+        )}
+        {success && (
+          <Notification
+            variant="success"
+            message={success}
+            onDismiss={() => setSuccess(null)}
+            style={{ maxWidth: '1360px', margin: '16px auto' }}
+          />
+        )}
 
         <ErrorBoundary>
           <Suspense fallback={<LoadingState message="Loading page..." />}>
@@ -547,7 +557,20 @@ export default function App() {
             </div>
           ) : (
             <HomePage
-              onNavigateToSearch={() => setActiveTab('players')}
+              onNavigateToSearch={() => {
+                setActiveTab('players');
+                window.history.pushState({}, '', '/players');
+              }}
+              onNavigateToShortlists={() => {
+                setActiveTab('shortlists');
+                setSelectedShortlistId(null);
+                window.history.pushState({}, '', '/MyShortlists');
+              }}
+              onNavigateToSquads={() => {
+                setActiveTab('squads');
+                setSelectedSquadId(null);
+                window.history.pushState({}, '', '/MySquads');
+              }}
               onNavigateToLogin={() => setActiveTab('login')}
               isAuthenticated={!!user}
             />
@@ -591,15 +614,20 @@ export default function App() {
               </button>
             </div>
           ) : !user ? (
-            <div className="scout-auth-guard-card" id="auth-guard-shortlists" style={{ maxWidth: '600px', margin: '48px auto', textAlign: 'center', padding: '40px 24px', background: 'var(--scout-surface-card)', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-              <h2 style={{ color: '#ffffff', marginBottom: '8px', fontSize: '20px', fontWeight: 700 }}>Authentication Required</h2>
-              <p style={{ color: 'var(--scout-text-secondary)', marginBottom: '24px', fontSize: '14px' }}>
-                Please log in to manage your scouting shortlists.
-              </p>
-              <button type="button" className="scout-btn scout-btn-primary" onClick={() => setActiveTab('login')}>
-                Log In
-              </button>
+            <div className="scout-shortlists-page scout-shortlists-auth-shell" id="auth-guard-shortlists">
+              <div className="scout-auth-guard-card scout-shortlists-auth-card">
+                <div className="scout-auth-guard-icon" aria-hidden="true">
+                  <LockIcon size={28} />
+                </div>
+                <div className="scout-page-eyebrow">Scouting workspace</div>
+                <h2 className="scout-auth-guard-title">Authentication Required</h2>
+                <p className="scout-auth-guard-desc">
+                  Please log in to manage your scouting shortlists.
+                </p>
+                <button type="button" className="scout-btn scout-btn-primary" onClick={() => setActiveTab('login')}>
+                  Log In
+                </button>
+              </div>
             </div>
           ) : selectedShortlistId ? (
             <ShortlistDetailPage
@@ -646,15 +674,20 @@ export default function App() {
               </button>
             </div>
           ) : !user ? (
-            <div className="scout-auth-guard-card" id="auth-guard-squads" style={{ maxWidth: '600px', margin: '48px auto', textAlign: 'center', padding: '40px 24px', background: 'var(--scout-surface-card)', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-              <h2 style={{ color: '#ffffff', marginBottom: '8px', fontSize: '20px', fontWeight: 700 }}>Authentication Required</h2>
-              <p style={{ color: 'var(--scout-text-secondary)', marginBottom: '24px', fontSize: '14px' }}>
-                Please log in to manage your tactical squads.
-              </p>
-              <button type="button" className="scout-btn scout-btn-primary" onClick={() => setActiveTab('login')}>
-                Log In
-              </button>
+            <div className="scout-squads-page scout-squads-auth-shell" id="auth-guard-squads">
+              <div className="scout-auth-guard-card scout-squads-auth-card">
+                <div className="scout-auth-guard-icon" aria-hidden="true">
+                  <LockIcon size={28} />
+                </div>
+                <div className="scout-page-eyebrow">Tactical workspace</div>
+                <h2 className="scout-auth-guard-title">Authentication Required</h2>
+                <p className="scout-auth-guard-desc">
+                  Please log in to manage your tactical squads.
+                </p>
+                <button type="button" className="scout-btn scout-btn-primary" onClick={() => setActiveTab('login')}>
+                  Log In
+                </button>
+              </div>
             </div>
           ) : selectedSquadId ? (
             <SquadDetailPage
@@ -681,45 +714,34 @@ export default function App() {
         {/* 5. PROFILE TAB */}
         {activeTab === 'profile' && (
           !user ? (
-            <div className="scout-auth-guard-card" id="auth-guard-profile" style={{ maxWidth: '600px', margin: '48px auto', textAlign: 'center', padding: '40px 24px', background: 'var(--scout-surface-card)', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-              <h2 style={{ color: '#ffffff', marginBottom: '8px', fontSize: '20px', fontWeight: 700 }}>Authentication Required</h2>
-              <p style={{ color: 'var(--scout-text-secondary)', marginBottom: '24px', fontSize: '14px' }}>
-                Please log in to view your profile.
-              </p>
-              <button type="button" className="scout-btn scout-btn-primary" onClick={() => setActiveTab('login')}>
-                Log In
-              </button>
-            </div>
-          ) : (
-            <div className="scout-profile-container" style={{ maxWidth: '800px', margin: '32px auto', padding: '0 16px' }}>
-              <div className="card scout-card" style={{ background: 'var(--scout-surface-card)', borderRadius: '16px', padding: '24px', border: '1px solid var(--scout-border-default)', boxShadow: 'var(--scout-shadow-subtle)' }}>
-                <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#ffffff', fontWeight: 700 }}>Account Profile</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '13px' }}>
-                  <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Email</span>
-                    <strong style={{ color: '#ffffff' }}>{user.email}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Full Name</span>
-                    <strong style={{ color: '#ffffff' }}>{user.fullName || '—'}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Status</span>
-                    <span className="scout-badge scout-badge-active" style={{ marginTop: '4px' }}>{user.status}</span>
-                  </div>
-                  <div>
-                    <span style={{ color: '#64748b', display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Roles</span>
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                      {user.roles?.map((r) => (
-                        <span key={r} className="scout-badge" style={{ background: 'rgba(37, 99, 235, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)' }}>{r}</span>
-                      ))}
-                    </div>
-                  </div>
+            <div className="scout-profile-page scout-profile-auth-shell" id="auth-guard-profile">
+              <div className="scout-auth-guard-card scout-profile-auth-card">
+                <div className="scout-auth-guard-icon" aria-hidden="true">
+                  <LockIcon size={28} />
                 </div>
+                <span className="scout-page-eyebrow">Account workspace</span>
+                <h2 className="scout-auth-guard-title">Authentication Required</h2>
+                <p className="scout-auth-guard-desc">
+                Please log in to view your profile.
+                </p>
+                <button type="button" className="scout-btn scout-btn-primary" onClick={() => setActiveTab('login')}>
+                  Log In
+                </button>
               </div>
             </div>
-          )
+          ) : accessToken ? (
+            <ProfilePage
+              user={user}
+              accessToken={accessToken}
+              onUserUpdated={setUser}
+              onPasswordChanged={(message) => {
+                clearTokens();
+                setActiveTab('login');
+                window.history.pushState({}, '', '/login');
+                setSuccess(message);
+              }}
+            />
+          ) : null
         )}
 
         {/* 6. USER MANAGEMENT TAB */}

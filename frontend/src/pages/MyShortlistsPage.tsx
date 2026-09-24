@@ -12,11 +12,11 @@ import {
   ModalHeader,
   VisibilitySelector,
   ModalFooter,
-  AlertCircleIcon,
   JerseyIcon,
   LockIcon,
   GlobeIcon,
 } from '../components/modal';
+import { Notification } from '../components/common/Notification';
 
 interface MyShortlistsPageProps {
   onOpenShortlist?: (id: string) => void;
@@ -89,9 +89,6 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
 
   const showToast = (message: string) => {
     setToastMessage(message);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3500);
   };
 
   const fetchShortlists = async () => {
@@ -284,13 +281,16 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
   // Unauthorized State
   if (error === 'UNAUTHORIZED' || !isAuthenticated) {
     return (
-      <div style={{ maxWidth: '600px', margin: '60px auto', padding: '0 16px', textAlign: 'center' }}>
-        <div style={{ background: 'var(--scout-surface-card)', border: '1px solid var(--scout-border-default)', borderRadius: '16px', padding: '40px 24px', boxShadow: 'var(--scout-shadow-subtle)' }}>
-          <div style={{ fontSize: '42px', marginBottom: '12px' }}>🔒</div>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0' }}>
+      <div className="scout-shortlists-page scout-shortlists-auth-shell">
+        <div className="scout-auth-guard-card scout-shortlists-auth-card">
+          <div className="scout-auth-guard-icon" aria-hidden="true">
+            <LockIcon size={28} />
+          </div>
+          <div className="scout-page-eyebrow">Scouting workspace</div>
+          <h2 className="scout-auth-guard-title">
             Authentication Required
           </h2>
-          <p style={{ fontSize: '14px', color: 'var(--scout-text-secondary)', marginBottom: '24px', lineHeight: 1.5 }}>
+          <p className="scout-auth-guard-desc">
             Please log in to view and manage your scouting shortlists.
           </p>
           <button
@@ -306,19 +306,23 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
   }
 
   return (
-    <div className="scout-b2b-page-container" style={{ maxWidth: '1360px', margin: '0 auto', padding: '32px 24px' }}>
+    <div className="scout-b2b-page-container scout-shortlists-page" style={{ maxWidth: '1360px', margin: '0 auto', padding: '32px 24px' }}>
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="scout-toast">
-          <span style={{ color: '#34d399' }}>✓</span>
-          <span>{toastMessage}</span>
-        </div>
+        <Notification
+          variant="success"
+          mode="toast"
+          message={toastMessage}
+          autoDismissMs={3500}
+          onDismiss={() => setToastMessage(null)}
+        />
       )}
 
       {/* 1. Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <div>
+      <div className="scout-shortlists-header">
+        <div className="scout-shortlists-heading-row">
+          <div className="scout-shortlists-heading-copy">
+            <div className="scout-page-eyebrow">Scouting workspace</div>
             <h1 className="scout-b2b-title" style={{ margin: 0, textTransform: 'uppercase' }}>
               My Shortlists
             </h1>
@@ -329,6 +333,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
 
           {!loading && !error && shortlists.length > 0 && (
             <div
+              className="scout-shortlists-summary"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -343,12 +348,16 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                 boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
               }}
             >
-              <span style={{ color: '#2563eb' }}>
-                📋 {shortlists.length} {shortlists.length === 1 ? 'Shortlist' : 'Shortlists'}
+              <span className="scout-shortlists-summary-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 6h16M4 12h16M4 18h10" />
+                </svg>
+                {shortlists.length} {shortlists.length === 1 ? 'Shortlist' : 'Shortlists'}
               </span>
-              <span style={{ color: '#cbd5e1' }}>•</span>
-              <span style={{ color: '#059669' }}>
-                🎯 {shortlists.reduce((acc, s) => acc + (shortlistPlayersMap[s.id]?.length || s.playerCount || 0), 0)} Targets
+              <span className="scout-shortlists-summary-divider" aria-hidden="true" />
+              <span className="scout-shortlists-summary-item scout-shortlists-summary-targets">
+                <JerseyIcon size={14} />
+                {shortlists.reduce((acc, s) => acc + (shortlistPlayersMap[s.id]?.length || s.playerCount || 0), 0)} Targets
               </span>
             </div>
           )}
@@ -357,7 +366,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
         <button
           type="button"
           onClick={handleOpenCreateModal}
-          className="scout-btn scout-btn-primary"
+          className="scout-btn scout-btn-primary scout-shortlists-create-btn"
         >
           <span>+</span>
           <span>New Shortlist</span>
@@ -367,12 +376,12 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
       {/* 2. Loading State */}
       {loading && (
         <div>
-          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '16px', fontWeight: 600 }}>
+          <p className="scout-shortlists-loading-label">
             Loading your shortlists...
           </p>
           <div className="scout-shortlist-grid">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="scout-shortlist-card" style={{ height: '180px', pointerEvents: 'none', background: 'var(--scout-surface-card)' }}>
+              <div key={n} className="scout-shortlist-card scout-shortlist-card-skeleton" style={{ height: '180px', pointerEvents: 'none', background: 'var(--scout-surface-card)' }}>
                 <div style={{ height: '20px', width: '60%', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '6px', marginBottom: '10px' }} />
                 <div style={{ height: '14px', width: '90%', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '4px', marginBottom: '6px' }} />
                 <div style={{ height: '14px', width: '40%', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '4px' }} />
@@ -384,29 +393,25 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
 
       {/* 3. Error State */}
       {!loading && error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', maxWidth: '540px', margin: '40px auto' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚠️</div>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#991b1b', margin: '0 0 8px 0' }}>
-            Unable to load your shortlists.
-          </h3>
-          <p style={{ fontSize: '13.5px', color: '#b91c1c', marginBottom: '20px', lineHeight: 1.5 }}>
-            {error}
-          </p>
-          <button
-            type="button"
-            onClick={fetchShortlists}
-            className="scout-btn scout-btn-primary"
-          >
-            Retry
-          </button>
-        </div>
+        <Notification
+          variant="error"
+          message={<>Unable to load your shortlists. {error}</>}
+          actions={(
+            <button type="button" onClick={fetchShortlists} className="scout-btn scout-btn-primary">
+              Retry
+            </button>
+          )}
+          style={{ maxWidth: '640px', margin: '40px auto' }}
+        />
       )}
 
       {/* 4. Empty State */}
       {!loading && !error && shortlists.length === 0 && (
-        <div className="scout-empty-state">
-          <div className="scout-empty-state-icon">📋</div>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+        <div className="scout-empty-state scout-shortlists-empty-state">
+          <div className="scout-empty-state-icon scout-shortlists-empty-icon" aria-hidden="true">
+            <JerseyIcon size={28} />
+          </div>
+          <div className="scout-page-eyebrow">
             MY SHORTLISTS
           </div>
           <h3 className="scout-empty-state-title" style={{ fontSize: '20px' }}>
@@ -425,7 +430,6 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
         </div>
       )}
 
-      {/* 5. Shortlists Cards Grid */}
       {/* 5. Shortlists Cards Grid */}
       {!loading && !error && shortlists.length > 0 && (
         <div className="scout-shortlist-grid">
@@ -463,7 +467,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
             return (
               <div
                 key={sl.id}
-                className="scout-shortlist-card"
+                className="scout-shortlist-card scout-shortlist-overview-card"
                 style={{
                   position: 'relative',
                   display: 'flex',
@@ -506,6 +510,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
                     }}
                   >
                     <h3
+                      className="scout-shortlist-card-title"
                       onClick={() => onOpenShortlist && onOpenShortlist(sl.id)}
                       style={{
                         fontSize: '16px',
@@ -550,6 +555,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
 
                   {/* Description: 1-line compact text */}
                   <p
+                    className="scout-shortlist-card-description"
                     style={{
                       fontSize: '12.5px',
                       color: sl.description ? '#64748b' : '#94a3b8',
@@ -984,10 +990,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
             />
 
             {editError && (
-              <div className="scout-modal-alert-error" role="alert">
-                <AlertCircleIcon size={16} />
-                <span>{editError}</span>
-              </div>
+              <Notification variant="error" message={editError} compact />
             )}
 
             <form onSubmit={handleEditSubmit} className="scout-modal-clean-form">
@@ -1066,9 +1069,7 @@ export const MyShortlistsPage: React.FC<MyShortlistsPageProps> = ({
             </p>
 
             {deleteError && (
-              <div className="alert-banner alert-error" style={{ margin: '0 0 16px 0', padding: '10px 14px', fontSize: '12.5px' }}>
-                ⚠️ {deleteError}
-              </div>
+              <Notification variant="error" message={deleteError} compact />
             )}
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>

@@ -1,4 +1,5 @@
 import { SearchInput } from "../components/common";
+import { Notification } from "../components/common/Notification";
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Shortlist, ShortlistVisibility, ShortlistPlayerItem } from '../types/shortlist.types';
 import {
@@ -12,9 +13,10 @@ import {
   ModalHeader,
   VisibilitySelector,
   ModalFooter,
-  AlertCircleIcon,
   JerseyIcon,
   CloseIcon,
+  LockIcon,
+  GlobeIcon,
 } from '../components/modal';
 import { getNationalityFlagUrl } from '../utils/nationality-flag.util';
 
@@ -109,9 +111,6 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
 
   const showToast = (message: string) => {
     setToastMessage(message);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3500);
   };
 
   useEffect(() => {
@@ -376,13 +375,16 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
   // Unauthorized State
   if (error === 'UNAUTHORIZED' || !isAuthenticated) {
     return (
-      <div style={{ maxWidth: '600px', margin: '60px auto', padding: '0 16px', textAlign: 'center' }}>
-        <div style={{ background: 'var(--scout-surface-card)', border: '1px solid var(--scout-border-default)', borderRadius: '16px', padding: '40px 24px', boxShadow: 'var(--scout-shadow-subtle)' }}>
-          <div style={{ fontSize: '42px', marginBottom: '12px' }}>🔒</div>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0' }}>
+      <div className="scout-shortlist-detail-page scout-shortlists-auth-shell">
+        <div className="scout-auth-guard-card scout-shortlists-auth-card">
+          <div className="scout-auth-guard-icon" aria-hidden="true">
+            <LockIcon size={28} />
+          </div>
+          <div className="scout-page-eyebrow">Scouting workspace</div>
+          <h2 className="scout-auth-guard-title">
             Authentication Required
           </h2>
-          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
+          <p className="scout-auth-guard-desc">
             Please log in to view this scouting shortlist.
           </p>
           <button
@@ -399,17 +401,20 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
   }
 
   return (
-    <div className="scout-b2b-page-container" style={{ maxWidth: '1360px', margin: '0 auto', padding: '32px 24px' }}>
+    <div className="scout-b2b-page-container scout-shortlist-detail-page" style={{ maxWidth: '1360px', margin: '0 auto', padding: '32px 24px' }}>
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="scout-toast">
-          <span style={{ color: '#34d399' }}>✓</span>
-          <span>{toastMessage}</span>
-        </div>
+        <Notification
+          variant="success"
+          mode="toast"
+          message={toastMessage}
+          autoDismissMs={3500}
+          onDismiss={() => setToastMessage(null)}
+        />
       )}
 
       {/* 1. Header Navigation with Breadcrumbs & Edit Shortlist Action */}
-      <div className="scout-sports-topbar" style={{ marginBottom: '20px' }}>
+      <div className="scout-sports-topbar scout-shortlist-detail-topbar" style={{ marginBottom: '20px' }}>
         <div className="scout-detail-breadcrumb">
           <button
             type="button"
@@ -441,7 +446,10 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
             className="scout-btn scout-btn-secondary"
             title="Edit shortlist name, description, and visibility"
           >
-            <span>✏️</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
             <span>Edit Shortlist</span>
           </button>
         )}
@@ -449,15 +457,11 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
 
       {/* 2. Error State */}
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', maxWidth: '540px', margin: '20px auto' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>⛔</div>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#991b1b', margin: '0 0 8px 0' }}>
-            Shortlist Unavailable
-          </h3>
-          <p style={{ fontSize: '13.5px', color: '#b91c1c', marginBottom: '20px', lineHeight: 1.5 }}>
-            {error}
-          </p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+        <Notification
+          variant="error"
+          message={<>Shortlist unavailable. {error}</>}
+          actions={(
+            <>
             <button
               type="button"
               onClick={onBack}
@@ -472,8 +476,10 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
             >
               Try Again
             </button>
-          </div>
-        </div>
+            </>
+          )}
+          style={{ maxWidth: '680px', margin: '20px auto' }}
+        />
       )}
 
       {/* 3. Loading State */}
@@ -500,7 +506,8 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
       {!loading && !error && shortlist && (
         <div>
           {/* Sports Gradient Header Banner */}
-          <div className="scout-sport-banner">
+          <div className="scout-sport-banner scout-shortlist-detail-hero">
+            <div className="scout-page-eyebrow">Target watchlist</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '12px' }}>
               <div style={{ flex: 1, minWidth: '280px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
@@ -523,7 +530,11 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                       gap: '4px',
                     }}
                   >
-                    {shortlist.visibility === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}
+                    {shortlist.visibility === 'PUBLIC' ? (
+                      <><GlobeIcon size={12} /> Public</>
+                    ) : (
+                      <><LockIcon size={12} /> Private</>
+                    )}
                   </span>
                   <span
                     style={{
@@ -537,7 +548,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
                       letterSpacing: '0.04em',
                     }}
                   >
-                    🎯 {players.length} {players.length === 1 ? 'Target' : 'Targets'}
+                    <JerseyIcon size={12} /> {players.length} {players.length === 1 ? 'Target' : 'Targets'}
                   </span>
                 </div>
 
@@ -587,9 +598,9 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
           </div>
 
           {/* Scout Action Bar (Toolbar: Filter, Search, Sort & View Switcher) */}
-          <div className="scout-action-bar">
+          <div className="scout-shortlist-detail-toolbar">
             {/* Position Filter Pills */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <div className="scout-shortlist-position-filters">
               <button
                 type="button"
                 onClick={() => setPositionFilter('ALL')}
@@ -637,7 +648,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
             </div>
 
             {/* Right Controls: Search, Sort & View Switcher */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <div className="scout-shortlist-detail-controls">
               {/* Search Box */}
               <SearchInput
                 size="compact"
@@ -649,7 +660,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
               />
 
               {/* Sort Selector (Real Data Only) */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="scout-shortlist-sort-control">
                 <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Sort:</span>
                 <select
                   value={sortOption}
@@ -699,9 +710,9 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
 
           {/* Empty Shortlist Area */}
           {players.length === 0 && (
-            <div className="scout-empty-state">
-              <div className="scout-empty-state-icon">⚽</div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+            <div className="scout-empty-state scout-shortlist-detail-empty-state">
+              <div className="scout-empty-state-icon scout-shortlists-empty-icon" aria-hidden="true"><JerseyIcon size={28} /></div>
+              <div className="scout-page-eyebrow">
                 TARGET WATCHLIST
               </div>
               <h3 className="scout-empty-state-title" style={{ fontSize: '20px' }}>
@@ -723,8 +734,12 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
 
           {/* Filtered Empty State */}
           {players.length > 0 && filteredAndSortedPlayers.length === 0 && (
-            <div className="scout-empty-state">
-              <div className="scout-empty-state-icon">🔍</div>
+            <div className="scout-empty-state scout-shortlist-detail-empty-state">
+              <div className="scout-empty-state-icon scout-shortlists-empty-icon" aria-hidden="true">
+                <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+                </svg>
+              </div>
               <h3 className="scout-empty-state-title">
                 No targets match filter criteria
               </h3>
@@ -1289,10 +1304,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
             />
 
             {editShortlistError && (
-              <div className="scout-modal-alert-error" role="alert">
-                <AlertCircleIcon size={16} />
-                <span>{editShortlistError}</span>
-              </div>
+              <Notification variant="error" message={editShortlistError} compact />
             )}
 
             <form onSubmit={handleEditShortlistSubmit} className="scout-modal-clean-form">
@@ -1458,10 +1470,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
             </div>
 
             {noteError && (
-              <div className="scout-modal-alert-error" role="alert" style={{ marginBottom: '14px' }}>
-                <AlertCircleIcon size={16} />
-                <span>{noteError}</span>
-              </div>
+              <Notification variant="error" message={noteError} compact />
             )}
 
             <form onSubmit={handleSaveNoteSubmit}>
@@ -1546,9 +1555,7 @@ export const ShortlistDetailPage: React.FC<ShortlistDetailPageProps> = ({
             </p>
 
             {removeError && (
-              <div className="alert-banner alert-error" style={{ margin: '0 0 16px 0', padding: '10px 14px', fontSize: '12.5px' }}>
-                ⚠️ {removeError}
-              </div>
+              <Notification variant="error" message={removeError} compact />
             )}
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>

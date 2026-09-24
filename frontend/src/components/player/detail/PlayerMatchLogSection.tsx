@@ -1,6 +1,7 @@
 import React from "react";
 import type { PlayerMatchStatisticItem } from "../../../types/player.types";
 import { getMatchContext } from "./player-detail.utils";
+import { Notification } from "../../common/Notification";
 
 export interface PlayerMatchLogSectionProps {
   isGoalkeeper: boolean;
@@ -100,10 +101,7 @@ export const PlayerMatchLogSection: React.FC<PlayerMatchLogSectionProps> = ({
       )}
 
       {matchError && (
-        <div className="scout-error-banner">
-          <span className="scout-error-banner-icon">⚠️</span>
-          <div className="scout-error-banner-body">{matchError}</div>
-        </div>
+        <Notification variant="error" message={matchError} compact />
       )}
 
       {!matchLoading && !matchError && matchStatistics.length === 0 && (

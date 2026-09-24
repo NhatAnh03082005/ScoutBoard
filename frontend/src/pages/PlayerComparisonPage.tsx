@@ -11,6 +11,7 @@ import {
   ComparisonMetricsTable,
   ComparisonBottomBar,
 } from '../components/player/comparison';
+import { Notification } from '../components/common/Notification';
 
 interface PlayerComparisonPageProps {
   playerAId: string;
@@ -80,12 +81,11 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
   if (error || !playerA || !playerB) {
     return (
       <div className="scout-b2b-page-container" style={{ minHeight: '100vh', padding: '24px 20px' }}>
-        <div
-          className="scout-b2b-alert-error"
-          style={{ marginBottom: '20px', fontSize: '13.5px' }}
-        >
-          ⚠️ {error || 'Unable to display player comparison'}
-        </div>
+        <Notification
+          variant="error"
+          message={error || 'Unable to display player comparison'}
+          style={{ marginBottom: '20px' }}
+        />
         <button
           type="button"
           className="scout-sports-back-btn"
@@ -228,10 +228,13 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border border-slate-800 animate-slideUp">
-          <span className="text-emerald-400">✓</span>
-          <span>{toastMessage}</span>
-        </div>
+        <Notification
+          variant="success"
+          mode="toast"
+          message={toastMessage}
+          autoDismissMs={3500}
+          onDismiss={() => setToastMessage(null)}
+        />
       )}
 
       {/* 4. Bottom Next Actions Bar (Evaluation Handoff) */}
@@ -252,7 +255,6 @@ export const PlayerComparisonPage: React.FC<PlayerComparisonPageProps> = ({
           setToastMessage(
             `Added ${shortlistTargetPlayer?.fullName || shortlistTargetPlayer?.name} to "${shortlistName}"`,
           );
-          setTimeout(() => setToastMessage(null), 3500);
         }}
       />
     </div>

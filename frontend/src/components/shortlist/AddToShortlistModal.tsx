@@ -11,8 +11,11 @@ import {
   CloseIcon,
   LockIcon,
   GlobeIcon,
-  AlertCircleIcon,
 } from '../modal/ModalIcons';
+import {
+  Notification,
+  type NotificationVariant,
+} from '../common/Notification';
 
 export interface AddToShortlistPlayerInfo {
   id: string;
@@ -56,6 +59,7 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
   // Submitting
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionVariant, setActionVariant] = useState<NotificationVariant>('error');
 
   // Inline Quick Create State
   const [showInlineCreate, setShowInlineCreate] = useState<boolean>(false);
@@ -81,6 +85,7 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
       void fetchUserShortlists();
       setScoutNote('');
       setActionError(null);
+      setActionVariant('error');
       setMembershipMap({});
     }
   }, [isOpen]);
@@ -166,12 +171,14 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
     setActionError(null);
 
     if (!selectedShortlistId) {
+      setActionVariant('warning');
       setActionError('Please select a target shortlist');
       return;
     }
 
     if (membershipMap[selectedShortlistId]) {
-      setActionError(`⚠️ ${playerName} is already in this shortlist.`);
+      setActionVariant('warning');
+      setActionError(`${playerName} is already in this shortlist.`);
       return;
     }
 
@@ -194,8 +201,10 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
     } catch (err: any) {
       const msg = err.message || 'Failed to add player to shortlist';
       if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('duplicate')) {
-        setActionError(`⚠️ ${playerName} is already in this shortlist.`);
+        setActionVariant('warning');
+        setActionError(`${playerName} is already in this shortlist.`);
       } else {
+        setActionVariant('error');
         setActionError(msg);
       }
     } finally {
@@ -375,10 +384,7 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
               }}
             >
             {actionError && (
-              <div className="scout-modal-alert-error" role="alert">
-                <AlertCircleIcon size={16} />
-                <span>{actionError}</span>
-              </div>
+              <Notification variant={actionVariant} message={actionError} compact />
             )}
 
             {/* 2. Select Target Shortlist with Quick Create Drawer */}
@@ -418,9 +424,7 @@ export const AddToShortlistModal: React.FC<AddToShortlistModalProps> = ({
                     Create & Select New Shortlist
                   </div>
                   {createListError && (
-                    <div style={{ fontSize: '11px', color: '#f87171' }}>
-                      ⚠️ {createListError}
-                    </div>
+                    <Notification variant="error" message={createListError} compact />
                   )}
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <input

@@ -15,6 +15,7 @@ import { PlayerCard } from '../components/player/PlayerCard';
 import { PlayerPagination } from '../components/player/PlayerPagination';
 import { getPositionRoleInfo } from '../utils/position.utils';
 import { getNationalityFlagUrl } from '../utils/nationality-flag.util';
+import { Notification } from '../components/common/Notification';
 
 interface PlayerComparisonSetupPageProps {
   playerA: PlayerDetail;
@@ -885,10 +886,7 @@ export const PlayerComparisonSetupPage: React.FC<PlayerComparisonSetupPageProps>
 
       {/* Error Banner */}
       {error && (
-        <div className="scout-b2b-alert-error" style={{ marginBottom: '24px' }}>
-          <span>⚠️</span>
-          <span>{error}</span>
-        </div>
+        <Notification variant="error" message={error} style={{ marginBottom: '24px' }} />
       )}
 
       {/* 3. Unified Control Panel (Search Bar + Filters Grid in ONE Card matching PlayerSearchPage) */}

@@ -363,6 +363,8 @@ async function main() {
     competition_id: string;
   }> = [];
 
+  const leagueCandidates: Record<string, any[]> = {};
+
   for (const league of TARGET_LEAGUES) {
     const candidates = await localClient.query(
       `
@@ -391,7 +393,22 @@ async function main() {
     );
 
     console.log(`Found ${candidates.rows.length} pending priority matches for ${league.name}.`);
-    candidates.rows.forEach((r) => selectedMatches.push(r));
+    leagueCandidates[league.name] = candidates.rows;
+  }
+
+  // Interleave round-robin so matches from all 3 leagues are evenly distributed across the quota budget
+  let hasMore = true;
+  let round = 0;
+  while (hasMore) {
+    hasMore = false;
+    for (const league of TARGET_LEAGUES) {
+      const list = leagueCandidates[league.name] || [];
+      if (round < list.length) {
+        selectedMatches.push(list[round]);
+        hasMore = true;
+      }
+    }
+    round++;
   }
 
   console.log(`\nTotal candidate matches selected for stat retrieval: ${selectedMatches.length}`);
@@ -430,6 +447,15 @@ async function main() {
       const res = await callApi('/fixtures/players', {
         fixture: match.external_id,
       });
+
+      if (res?.errors && (Array.isArray(res.errors) ? res.errors.length > 0 : Object.keys(res.errors).length > 0)) {
+        const errStr = JSON.stringify(res.errors);
+        console.log(`API returned error: ${errStr}`);
+        if (errStr.includes('limit') || errStr.includes('requests') || errStr.includes('rate')) {
+          console.warn('⚠️ Quota limit detected from API error response. Stopping match loop.');
+          break;
+        }
+      }
 
       const teamResponses = res?.response || [];
       let matchPlayersPersisted = 0;
@@ -597,7 +623,8 @@ async function main() {
         tackles, interceptions, yellow_cards, red_cards, duels_won,
         advanced_statistics, goals_per_90, assists_per_90, key_passes_per_90,
         tackles_per_90, interceptions_per_90, saves, goals_conceded,
-        clean_sheets, penalties_saved, created_at, updated_at
+        clean_sheets, penalties_saved, penalties_faced, saves_per_90,
+        goals_conceded_per_90, save_percentage, created_at, updated_at
       ) VALUES (
         $1, $2, $3, $4, $5,
         $6, $7, $8, $9, $10,
@@ -605,7 +632,8 @@ async function main() {
         $16, $17, $18, $19, $20,
         $21, $22, $23, $24,
         $25, $26, $27, $28,
-        $29, $30, NOW(), NOW()
+        $29, $30, $31, $32,
+        $33, $34, NOW(), NOW()
       )
       ON CONFLICT (player_id, season_id, competition_id, team_id) DO UPDATE SET
         matches_played = EXCLUDED.matches_played,
@@ -633,6 +661,10 @@ async function main() {
         goals_conceded = EXCLUDED.goals_conceded,
         clean_sheets = EXCLUDED.clean_sheets,
         penalties_saved = EXCLUDED.penalties_saved,
+        penalties_faced = EXCLUDED.penalties_faced,
+        saves_per_90 = EXCLUDED.saves_per_90,
+        goals_conceded_per_90 = EXCLUDED.goals_conceded_per_90,
+        save_percentage = EXCLUDED.save_percentage,
         updated_at = NOW()
     `,
       [
@@ -641,31 +673,35 @@ async function main() {
         s.season_id,
         s.competition_id,
         s.team_id,
-        s.matches_played,
-        s.starts,
-        s.minutes_played,
-        s.goals,
-        s.assists,
-        s.shots,
-        s.shots_on_target,
-        s.key_passes,
-        s.passes_attempted,
-        s.passes_completed,
-        s.tackles,
-        s.interceptions,
-        s.yellow_cards,
-        s.red_cards,
-        s.duels_won,
+        s.matches_played ?? 0,
+        s.starts ?? 0,
+        s.minutes_played ?? 0,
+        s.goals ?? 0,
+        s.assists ?? 0,
+        s.shots ?? 0,
+        s.shots_on_target ?? 0,
+        s.key_passes ?? 0,
+        s.passes_attempted ?? 0,
+        s.passes_completed ?? 0,
+        s.tackles ?? 0,
+        s.interceptions ?? 0,
+        s.yellow_cards ?? 0,
+        s.red_cards ?? 0,
+        s.duels_won ?? 0,
         s.advanced_statistics ? JSON.stringify(s.advanced_statistics) : null,
-        s.goals_per_90,
-        s.assists_per_90,
-        s.key_passes_per_90,
-        s.tackles_per_90,
-        s.interceptions_per_90,
+        s.goals_per_90 ?? 0,
+        s.assists_per_90 ?? 0,
+        s.key_passes_per_90 ?? 0,
+        s.tackles_per_90 ?? 0,
+        s.interceptions_per_90 ?? 0,
         s.saves,
         s.goals_conceded,
         s.clean_sheets,
         s.penalties_saved,
+        s.penalties_faced,
+        s.saves_per_90,
+        s.goals_conceded_per_90,
+        s.save_percentage,
       ],
     );
     pushedSeasonStats++;

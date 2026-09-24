@@ -1,6 +1,7 @@
 import React from "react";
 import type { PlayerItem } from "../../types/player.types";
 import { getNationalityFlagUrl } from "../../utils/nationality-flag.util";
+import { Notification } from "../common/Notification";
 
 interface PlayerComparisonCandidateListProps {
   candidates: PlayerItem[];
@@ -75,22 +76,11 @@ export const PlayerComparisonCandidateList: React.FC<
 
   if (error) {
     return (
-      <div
-        role="alert"
-        style={{
-          background: 'rgba(239, 68, 68, 0.12)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          color: '#f87171',
-          padding: '16px 20px',
-          borderRadius: '16px',
-          marginBottom: '24px',
-          fontSize: '13px',
-          fontWeight: 700,
-          textAlign: 'center',
-        }}
-      >
-        ⚠️ {error}
-      </div>
+      <Notification
+        variant="error"
+        message={error}
+        style={{ marginBottom: '24px' }}
+      />
     );
   }
 

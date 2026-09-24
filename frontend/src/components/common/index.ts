@@ -9,6 +9,7 @@ export * from './Table';
 export * from './Pagination';
 export * from './EmptyState';
 export * from './LoadingState';
+export * from './Notification';
 export * from './Skeleton';
 export * from './ErrorState';
 export * from './Dialog';

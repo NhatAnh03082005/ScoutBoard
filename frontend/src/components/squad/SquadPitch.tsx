@@ -195,7 +195,7 @@ export const SquadPitch: React.FC<SquadPitchProps> = ({
                       e.stopPropagation();
                       onToggleMenuSlot(isMenuOpen ? null : slot.code);
                     }}
-                    title={`Quản lý ${assignedPlayer.player?.name || 'Cầu thủ'}`}
+                    title={`Manage ${assignedPlayer.player?.name || 'player'}`}
                   >
                     {/* Position Pill Badge */}
                     <span className="scout-card-pos-badge" style={{ background: pillColor }}>
@@ -219,7 +219,7 @@ export const SquadPitch: React.FC<SquadPitchProps> = ({
                         </div>
                       )}
                       {assignedPlayer.isCaptain && (
-                        <span className="scout-card-captain-badge" title="Đội trưởng">
+                        <span className="scout-card-captain-badge" title="Captain">
                           C
                         </span>
                       )}
@@ -245,16 +245,16 @@ export const SquadPitch: React.FC<SquadPitchProps> = ({
                         className="tactical-action-item"
                         onClick={() => onOpenSwapForSlot(slot, assignedPlayer)}
                       >
-                        <span className="tactical-action-icon">🔄</span>
-                        <span>Đổi cầu thủ</span>
+                        <span className="tactical-action-icon" aria-hidden="true">↔</span>
+                        <span>Replace Player</span>
                       </button>
                       <button
                         type="button"
                         className="tactical-action-item"
                         onClick={() => onMoveStarterToBench(assignedPlayer.playerId)}
                       >
-                        <span className="tactical-action-icon">⬇️</span>
-                        <span>Cho ra ghế dự bị</span>
+                        <span className="tactical-action-icon" aria-hidden="true">↓</span>
+                        <span>Move to Bench</span>
                       </button>
                       {!assignedPlayer.isCaptain && (
                         <button
@@ -262,8 +262,8 @@ export const SquadPitch: React.FC<SquadPitchProps> = ({
                           className="tactical-action-item"
                           onClick={() => onSetCaptain(assignedPlayer.playerId)}
                         >
-                          <span className="tactical-action-icon">⭐</span>
-                          <span>Chọn làm Đội trưởng</span>
+                          <span className="tactical-action-icon" aria-hidden="true">★</span>
+                          <span>Make Captain</span>
                         </button>
                       )}
                       <button
@@ -271,8 +271,8 @@ export const SquadPitch: React.FC<SquadPitchProps> = ({
                         className="tactical-action-item destructive"
                         onClick={() => onRemovePlayer(assignedPlayer.playerId)}
                       >
-                        <span className="tactical-action-icon">🗑️</span>
-                        <span>Bỏ khỏi đội</span>
+                        <span className="tactical-action-icon" aria-hidden="true">×</span>
+                        <span>Remove from Squad</span>
                       </button>
                     </div>
                   )}
@@ -283,7 +283,7 @@ export const SquadPitch: React.FC<SquadPitchProps> = ({
                   type="button"
                   className="scout-empty-slot-marker"
                   onClick={() => onOpenPickerForSlot(slot)}
-                  title={`Chọn cầu thủ cho vị trí ${cleanPos}`}
+                  title={`Choose a player for ${cleanPos}`}
                 >
                   <div className="scout-marker-plus">+</div>
                   <div className="scout-marker-role" style={{ color: pillColor }}>

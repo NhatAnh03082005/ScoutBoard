@@ -41,7 +41,7 @@ export const SquadHeader: React.FC<SquadHeaderProps> = ({
             type="button"
             onClick={onBack}
             className="scout-hud-back-btn"
-            title="Quay lại danh sách đội hình"
+            title="Back to squad list"
           >
             <svg
               width="15"
@@ -55,7 +55,7 @@ export const SquadHeader: React.FC<SquadHeaderProps> = ({
             >
               <path d="m15 18-6-6 6-6" />
             </svg>
-            <span>Quay lại</span>
+            <span>Back</span>
           </button>
         )}
 
@@ -86,21 +86,21 @@ export const SquadHeader: React.FC<SquadHeaderProps> = ({
                   onClick={onSaveSquadName}
                   className="scout-btn scout-btn-sm scout-btn-primary"
                 >
-                  Lưu
+                  Save
                 </button>
                 <button
                   type="button"
                   onClick={onCancelEditName}
                   className="scout-btn scout-btn-sm scout-btn-secondary"
                 >
-                  Hủy
+                  Cancel
                 </button>
               </div>
             ) : (
               <h1
                 className="scout-hud-title"
                 onClick={onStartEditName}
-                title="Nhấp để đổi tên đội"
+                title="Click to rename squad"
               >
                 <span>{squad.name}</span>
                 <svg
@@ -125,13 +125,13 @@ export const SquadHeader: React.FC<SquadHeaderProps> = ({
                 type="button"
                 className="scout-hud-formation-btn"
                 onClick={onOpenFormationModal}
-                title="Nhấp để đổi sơ đồ chiến thuật"
+                title="Click to change tactical formation"
               >
                 <span>{squad.formationCode}</span>
                 <span style={{ fontSize: '9px' }}>▾</span>
               </button>
               <span className="scout-hud-starters-badge">
-                STARTERS {startingXI.length}/11
+                STARTING XI {startingXI.length}/11
               </span>
             </div>
           )}
@@ -139,13 +139,13 @@ export const SquadHeader: React.FC<SquadHeaderProps> = ({
       </div>
 
       {/* Right: Save Button + Delete Button */}
-      <div className="scout-hud-right">
+      {squad && <div className="scout-hud-right">
         <button
           type="button"
           className="scout-hud-save-btn"
           onClick={onSaveSquad}
           disabled={isSaving}
-          title="Lưu cấu hình đội hình"
+          title="Save squad configuration"
         >
           <svg
             width="15"
@@ -161,14 +161,14 @@ export const SquadHeader: React.FC<SquadHeaderProps> = ({
             <polyline points="17 21 17 13 7 13 7 21" />
             <polyline points="7 3 7 8 15 8" />
           </svg>
-          <span>{isSaving ? 'Đang lưu...' : 'SAVE SQUAD'}</span>
+          <span>{isSaving ? 'Saving...' : 'SAVE SQUAD'}</span>
         </button>
 
         <button
           type="button"
           className="scout-hud-delete-btn"
           onClick={onOpenDeleteModal}
-          title="Xóa đội hình này"
+          title="Delete this squad"
         >
           <svg
             width="16"
@@ -185,7 +185,7 @@ export const SquadHeader: React.FC<SquadHeaderProps> = ({
             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
           </svg>
         </button>
-      </div>
+      </div>}
     </div>
   );
 };

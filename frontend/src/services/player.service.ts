@@ -143,9 +143,15 @@ export async function getPlayerMatchStatisticsApi(
   const queryParams = new URLSearchParams();
 
   if (params) {
-    if (params.seasonId) queryParams.append('seasonId', params.seasonId);
-    if (params.competitionId) queryParams.append('competitionId', params.competitionId);
-    if (params.teamId) queryParams.append('teamId', params.teamId);
+    if (params.seasonId && params.seasonId.trim() && params.seasonId !== 'undefined' && params.seasonId !== 'null') {
+      queryParams.append('seasonId', params.seasonId.trim());
+    }
+    if (params.competitionId && params.competitionId.trim() && params.competitionId !== 'undefined' && params.competitionId !== 'null') {
+      queryParams.append('competitionId', params.competitionId.trim());
+    }
+    if (params.teamId && params.teamId.trim() && params.teamId !== 'undefined' && params.teamId !== 'null') {
+      queryParams.append('teamId', params.teamId.trim());
+    }
     if (params.limit !== undefined) queryParams.append('limit', String(params.limit));
     if (params.offset !== undefined) queryParams.append('offset', String(params.offset));
   }

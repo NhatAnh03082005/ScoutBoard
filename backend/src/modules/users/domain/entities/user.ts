@@ -16,6 +16,7 @@ export class User {
     private roles: Role[] = [],
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
+    private avatarUrl: string | null = null,
   ) {}
 
   getEmail(): string {
@@ -28,6 +29,22 @@ export class User {
 
   getFullName(): string {
     return this.fullName;
+  }
+
+  getAvatarUrl(): string | null {
+    return this.avatarUrl;
+  }
+
+  updateFullName(fullName: string): void {
+    this.fullName = fullName.trim();
+  }
+
+  updatePasswordHash(passwordHash: string): void {
+    this.passwordHash = passwordHash;
+  }
+
+  updateAvatarUrl(avatarUrl: string | null): void {
+    this.avatarUrl = avatarUrl;
   }
 
   getStatus(): UserStatus {
@@ -79,6 +96,7 @@ export class User {
       id: this.id,
       email: this.email,
       fullName: this.fullName,
+      avatarUrl: this.avatarUrl,
       status: this.status,
       failedLoginAttempts: this.failedLoginAttempts,
       lockoutCount: this.lockoutCount,

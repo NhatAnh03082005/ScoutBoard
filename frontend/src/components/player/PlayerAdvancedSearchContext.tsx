@@ -26,6 +26,7 @@ import {
   StatisticRangesSection,
   TopNSection,
 } from './search-context';
+import { Notification } from '../common/Notification';
 
 export type { StatisticRangeRow, TopNConfig };
 export { TOP_N_PRESETS } from './search-context';
@@ -418,63 +419,45 @@ export const PlayerAdvancedSearchContext: React.FC<
         </div>
       </div>
 
-      {/* ── Error Banner ── */}
+      {/* ── Error Notification ── */}
       {(localError || error) && (
-        <div className="scout-context-alert scout-context-alert--error" role="alert">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          <span>{localError || error}</span>
-        </div>
+        <Notification
+          variant="error"
+          message={localError || error}
+          style={{ marginBottom: 0 }}
+        />
       )}
 
-      {/* ── Club-Competition Mismatch Warning ── */}
+      {/* ── Club-Competition Mismatch Notification ── */}
       {mismatchedClubs.length > 0 && (
-        <div className="scout-context-alert scout-context-alert--warning" role="alert">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          >
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
-          <span style={{ flex: 1 }}>
-            <strong>Scope Mismatch:</strong>{' '}
-            {mismatchedClubs.map((c) => c.name).join(', ')} is not part of the selected
-            competition(s). This combination will return 0 matching results.
-          </span>
-          <button
-            type="button"
-            className="scout-context-sub-clear"
-            style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}
-            onClick={() => {
-              const mismatchedIds = new Set(
-                mismatchedClubs.map((c) => (c as any).id || (c as any).teamId),
-              );
-              setSelectedClubIds((prev) =>
-                prev.filter((id) => !mismatchedIds.has(id)),
-              );
-            }}
-          >
-            Remove Mismatched ({mismatchedClubs.length})
-          </button>
-        </div>
+        <Notification
+          variant="warning"
+          message={(
+            <>
+              <strong>Scope Mismatch:</strong>{' '}
+              {mismatchedClubs.map((c) => c.name).join(', ')} is not part of the selected
+              competition(s). This combination will return 0 matching results.
+            </>
+          )}
+          actions={(
+            <button
+              type="button"
+              className="scout-context-sub-clear"
+              style={{ whiteSpace: 'nowrap' }}
+              onClick={() => {
+                const mismatchedIds = new Set(
+                  mismatchedClubs.map((c) => (c as any).id || (c as any).teamId),
+                );
+                setSelectedClubIds((prev) =>
+                  prev.filter((id) => !mismatchedIds.has(id)),
+                );
+              }}
+            >
+              Remove Mismatched ({mismatchedClubs.length})
+            </button>
+          )}
+          style={{ marginBottom: 0 }}
+        />
       )}
 
       <div className="scout-context-body">

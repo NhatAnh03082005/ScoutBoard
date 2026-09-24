@@ -31,6 +31,7 @@ export class UserMapper {
       roles,
       entity.createdAt,
       entity.updatedAt,
+      entity.avatarUrl ?? null,
     );
   }
 
@@ -40,6 +41,7 @@ export class UserMapper {
     entity.email = domain.getEmail();
     entity.passwordHash = domain.getPasswordHash();
     entity.fullName = domain.getFullName();
+    entity.avatarUrl = domain.getAvatarUrl();
     entity.status = domain.getStatus();
     entity.failedLoginAttempts = domain.getFailedLoginAttempts();
     entity.lockoutCount = domain.getLockoutCount();

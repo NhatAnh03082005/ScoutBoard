@@ -1,5 +1,6 @@
 import React from "react";
 import type { PlayerTeamHistoryItem } from "../../../types/player.types";
+import { Notification } from "../../common/Notification";
 
 export interface PlayerCareerHistorySectionProps {
   teamHistory: PlayerTeamHistoryItem[];
@@ -33,12 +34,12 @@ export const PlayerCareerHistorySection: React.FC<PlayerCareerHistorySectionProp
       )}
 
       {historyError && (
-        <div
-          className="scout-b2b-alert-error"
-          style={{ fontSize: "13px", marginTop: "14px" }}
-        >
-          ⚠️ {historyError}
-        </div>
+        <Notification
+          variant="error"
+          message={historyError}
+          compact
+          style={{ marginTop: "14px" }}
+        />
       )}
 
       {!loadingHistory && !historyError && teamHistory.length === 0 && (

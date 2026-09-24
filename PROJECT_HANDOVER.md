@@ -187,3 +187,48 @@ curl.exe -i "https://scoutboard-backend.vercel.app/api/players?limit=5&offset=0"
 # 4. Kiểm tra tài liệu Swagger
 curl.exe -i "https://scoutboard-backend.vercel.app/api/docs"
 ```
+
+---
+
+## 6. Trạng thái đồng bộ dữ liệu trận đấu & chỉ số mùa giải (Bundesliga, Serie A, Ligue 1)
+
+### 6.1. Kết quả đồng bộ chi tiết
+Đã tiến hành đồng bộ các trận đấu ưu tiên (đại chiến giữa các CLB hàng đầu) và chỉ số hiệu suất trận đấu (`player_match_statistics`) kèm chỉ số tổng hợp mùa giải (`player_season_statistics`) theo cơ chế chia đều vòng tròn (Round-Robin) cho 3 giải đấu:
+* **Bundesliga (Đức)**: 308 lịch thi đấu, 65+ trận có chỉ số chi tiết, 321 bản ghi thống kê mùa giải.
+* **Serie A (Ý)**: 380 lịch thi đấu, 60+ trận có chỉ số chi tiết, 247 bản ghi thống kê mùa giải.
+* **Ligue 1 (Pháp)**: 308 lịch thi đấu, 59+ trận có chỉ số chi tiết, 270 bản ghi thống kê mùa giải.
+
+### 6.2. Đối soát dữ liệu (Database Parity Audit)
+Toàn bộ dữ liệu được đồng bộ song song 100% giữa **Local Docker PostgreSQL** và **Supabase Cloud Pooler**:
+
+| Danh mục dữ liệu | Local PostgreSQL | Supabase Cloud | Trạng thái đồng bộ |
+| :--- | :---: | :---: | :---: |
+| **Tổng số trận (3 giải)** | 996 | 996 | ✅ 100% Khớp |
+| **Chỉ số trận đấu (`player_match_statistics`) (3 giải)** | 5,214 | 5,214 | ✅ 100% Khớp |
+| **Chỉ số mùa giải (`player_season_statistics`) (3 giải)** | 838 | 838 | ✅ 100% Khớp |
+| **Tổng số CLB toàn hệ thống (Top 5 giải)** | 606 | 606 | ✅ 100% Khớp |
+| **Tổng số cầu thủ toàn hệ thống** | 3,017 | 3,017 | ✅ 100% Khớp |
+| **Tổng số trận đấu toàn hệ thống** | 1,756 | 1,756 | ✅ 100% Khớp |
+| **Tổng số bản ghi hiệu suất trận đấu toàn hệ thống** | 24,231 | 24,231 | ✅ 100% Khớp |
+| **Tổng số bản ghi thống kê mùa giải toàn hệ thống** | 1,575 | 1,575 | ✅ 100% Khớp |
+
+* **Lưu ý hạn mức API**: Đã sử dụng 98/100 request API-Football trong ngày (giữ 2 request an toàn). Script đồng bộ `sync:top3-matches-stats` có thể tiếp tục chạy khi sang ngày mới (hồi phục 100 req vào 00:00 UTC / 07:00 sáng VN).
+
+---
+
+## 7. Khắc phục lỗi "seasonId must be a UUID" khi xem trang Player Detail
+
+### 7.1. Nguyên nhân gốc rễ (Root Cause)
+* Bảng `seasons` trước đây chứa 1 bản ghi mùa giải Premier League 2024/2025 có ID nhân tạo: `39202400-0000-0000-0000-000000002024` (do quá trình tạo seed cũ đặt theo mã giải 39 và năm 2024).
+* Dù PostgreSQL chấp nhận chuỗi này dưới kiểu dữ liệu `uuid`, thư viện `class-validator` (dựa trên `validator.isUUID` chuẩn RFC 4122) sẽ từ chối chuỗi này vì trường version và variant đều là `0000` (không phải version 1-5 hợp lệ).
+* Hậu quả: Khi xem chi tiết bất kỳ cầu thủ Premier League nào, Frontend gửi request `GET /api/players/:id/match-statistics?seasonId=39202400-0000-0000-0000-000000002024`, Backend trả về mã lỗi `HTTP 400 Bad Request` kèm thông báo `seasonId must be a UUID`, khiến bảng thống kê trận đấu (`PlayerMatchLogSection`) bị lỗi và không tải được.
+
+### 7.2. Các bước xử lý triệt để
+1. **Migration chuẩn hóa UUID trên cả Local PostgreSQL & Supabase Cloud**:
+   - Thay thế ID `39202400-0000-0000-0000-000000002024` thành UUID v4 chuẩn RFC 4122: `39202400-0000-4000-8000-000000002024`.
+   - Cập nhật toàn bộ 390 bản ghi khóa ngoại trong `player_season_statistics` và 20 bản ghi trong `season_teams`.
+   - Bổ sung `season_code = '2024-2025'` cho toàn bộ các giải đấu còn thiếu để dropdown mùa giải hiển thị chuẩn xác `Season 2024-2025 (Current)`.
+2. **Defensive Coding tại Backend DTO**:
+   - Bổ sung `@Transform` cho `seasonId`, `competitionId`, `teamId` trong `FindPlayerMatchStatisticsQueryDto` để tự động chuyển chuỗi rỗng `""`, `"undefined"`, `"null"` thành `undefined` trước khi `@IsUUID()` kiểm tra.
+3. **Defensive Coding tại Frontend Service**:
+   - Trong `frontend/src/services/player.service.ts` (`getPlayerMatchStatisticsApi`), kiểm tra chuỗi hợp lệ trước khi `queryParams.append('seasonId', ...)`.

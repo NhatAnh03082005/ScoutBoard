@@ -19,6 +19,7 @@ import type {
   SeasonItem,
   MatchItem,
 } from '../types/data-sync.types';
+import { Notification } from '../components/common/Notification';
 
 interface AdminDataSyncPageProps {
   accessToken: string;
@@ -341,14 +342,10 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
 
       {/* Global Alerts */}
       {feedbackError && (
-        <div className="alert-banner alert-error" style={{ marginBottom: '16px' }}>
-          ⚠️ {feedbackError}
-        </div>
+        <Notification variant="error" message={feedbackError} />
       )}
       {feedbackSuccess && (
-        <div className="alert-banner alert-success" style={{ marginBottom: '16px' }}>
-          ✅ {feedbackSuccess}
-        </div>
+        <Notification variant="success" message={feedbackSuccess} />
       )}
 
       {/* SECTION 1: SYNC CONTROL PANEL */}
@@ -373,9 +370,7 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
         </div>
 
         {formError && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#fca5a5', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-            ⚠️ {formError}
-          </div>
+          <Notification variant="error" message={formError} compact />
         )}
 
         <form onSubmit={handleTriggerClick}>
@@ -866,9 +861,12 @@ export function AdminDataSyncPage({ accessToken }: AdminDataSyncPageProps) {
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
               {/* Error Banner if Present */}
               {selectedJob.errorMessage && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', padding: '14px', borderRadius: '10px', fontSize: '13px', marginBottom: '20px' }}>
-                  <strong>Execution Error:</strong> {selectedJob.errorMessage}
-                </div>
+                <Notification
+                  variant="error"
+                  message={selectedJob.errorMessage}
+                  compact
+                  style={{ marginBottom: '20px' }}
+                />
               )}
 
               {/* Metadata Grid */}

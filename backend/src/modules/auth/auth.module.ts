@@ -18,6 +18,9 @@ import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { AuthController } from './presentation/http/controllers/auth.controller';
 import { JwtStrategy } from './presentation/http/strategies/jwt.strategy';
 import { RolesGuard } from './presentation/http/guards/roles.guard';
+import { ProfileController } from '../users/presentation/http/controllers/profile.controller';
+import { MyProfileService } from '../users/application/services/my-profile.service';
+import { AvatarStorageService } from '../users/infrastructure/storage/avatar-storage.service';
 
 @Module({
   imports: [
@@ -27,7 +30,7 @@ import { RolesGuard } from './presentation/http/guards/roles.guard';
     JwtModule.register({}),
     TypeOrmModule.forFeature([RefreshTokenOrmEntity]),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, ProfileController],
   providers: [
     {
       provide: REFRESH_TOKEN_REPOSITORY,
@@ -47,6 +50,8 @@ import { RolesGuard } from './presentation/http/guards/roles.guard';
     LogoutUseCase,
     JwtStrategy,
     RolesGuard,
+    MyProfileService,
+    AvatarStorageService,
   ],
   exports: [
     REFRESH_TOKEN_REPOSITORY,

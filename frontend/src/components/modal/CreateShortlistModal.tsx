@@ -3,7 +3,7 @@ import type { ShortlistVisibility } from '../../types/shortlist.types';
 import { ModalHeader } from './ModalHeader';
 import { VisibilitySelector } from './VisibilitySelector';
 import { ModalFooter } from './ModalFooter';
-import { AlertCircleIcon } from './ModalIcons';
+import { Notification } from '../common/Notification';
 
 export interface CreateShortlistModalProps {
   isOpen: boolean;
@@ -65,12 +65,7 @@ export const CreateShortlistModal: React.FC<CreateShortlistModalProps> = ({
           onClose={onClose}
         />
 
-        {error && (
-          <div className="scout-modal-alert-error" role="alert">
-            <AlertCircleIcon size={16} />
-            <span>{error}</span>
-          </div>
-        )}
+        {error && <Notification variant="error" message={error} compact />}
 
         <form onSubmit={onSubmit} className="scout-modal-clean-form">
           <div className="scout-field-group">

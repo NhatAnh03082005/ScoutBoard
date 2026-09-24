@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { loginApi, registerApi } from '../services/api';
 import type { UserProfile } from '../services/api';
+import { Notification } from '../components/common/Notification';
 
 type AuthSubMode = 'login' | 'register';
 
@@ -191,16 +192,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
             {/* Error & Success Feedback Alerts */}
             {error && (
-              <div className="scout-auth-alert-error">
-                <span>⚠️</span>
-                <span>{error}</span>
-              </div>
+              <Notification variant="error" message={error} compact />
             )}
             {success && (
-              <div className="scout-auth-alert-success">
-                <span>✅</span>
-                <span>{success}</span>
-              </div>
+              <Notification variant="success" message={success} compact />
             )}
 
             {/* =================================================================
@@ -273,14 +268,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
                 {/* Lockout Warning Banners */}
                 {retryAfterSeconds > 0 && (
-                  <div className="scout-auth-alert-error" style={{ justifyContent: 'center', fontWeight: 'bold' }}>
-                    ⏳ Account temporarily locked. Try again in: {formatSeconds(retryAfterSeconds)}
-                  </div>
+                  <Notification
+                    variant="warning"
+                    compact
+                    message={<>Account temporarily locked. Try again in: <strong>{formatSeconds(retryAfterSeconds)}</strong></>}
+                  />
                 )}
                 {remainingAttempts !== null && retryAfterSeconds === 0 && (
-                  <div className="scout-auth-alert-error" style={{ justifyContent: 'center' }}>
-                    ⚠️ You have <strong>{remainingAttempts}</strong> attempt(s) remaining before lockout!
-                  </div>
+                  <Notification
+                    variant="warning"
+                    compact
+                    message={<>You have <strong>{remainingAttempts}</strong> attempt(s) remaining before lockout.</>}
+                  />
                 )}
 
                 {/* Primary Submit Button */}

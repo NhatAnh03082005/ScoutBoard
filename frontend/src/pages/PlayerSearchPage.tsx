@@ -32,6 +32,7 @@ import { PlayerComparisonSetupPage } from "./PlayerComparisonSetupPage";
 import { PlayerComparisonPage } from "./PlayerComparisonPage";
 import { defaultGroupNode } from "../components/player/PlayerAdvancedQueryBuilder";
 import { PlayerAdvancedSearchContext } from "../components/player/PlayerAdvancedSearchContext";
+import { Notification } from "../components/common/Notification";
 
 type ViewMode = "SEARCH" | "DETAIL" | "COMPARISON_SETUP" | "COMPARISON_VIEW";
 
@@ -55,7 +56,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
   initialPlayerId,
   onClearInitialPlayerId,
   isAuthenticated = false,
-  onNavigateToLogin: _onNavigateToLogin,
+  onNavigateToLogin,
 }) => {
   // Navigation View Mode State
   const [viewMode, setViewMode] = useState<ViewMode>(
@@ -134,7 +135,6 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // Controlled input value for typing search keyword
@@ -502,7 +502,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
 
   // 4. Render B2B SaaS Master Search View
   return (
-    <div className="scout-b2b-page-container">
+    <div className="scout-b2b-page-container scout-player-search-page">
       {/* 1. Clean Page Header with Brand Blue Title */}
       <div className="scout-b2b-header">
         <h1 className="scout-b2b-title">Player Search</h1>
@@ -567,10 +567,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
 
       {/* Error Alert Banner */}
       {searchMode === "BASIC" && error && (
-        <div className="scout-b2b-alert-error">
-          <span>⚠️</span>
-          <span>{error}</span>
-        </div>
+        <Notification variant="error" message={error} />
       )}
 
       {/* ── ADVANCED MODE ───────────────────────────────────────────────── */}
@@ -619,6 +616,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
                   setAdvancedPlayers([]);
                   setAdvancedPagination(null);
                 }}
+                onNavigateToLogin={onNavigateToLogin}
               />
 
               {/* Advanced pagination */}
@@ -726,10 +724,13 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
 
           {/* Toast Notification */}
           {toastMessage && (
-            <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border border-slate-800 animate-slideUp">
-              <span className="text-emerald-400">✓</span>
-              <span>{toastMessage}</span>
-            </div>
+            <Notification
+              variant="success"
+              mode="toast"
+              message={toastMessage}
+              autoDismissMs={3500}
+              onDismiss={() => setToastMessage(null)}
+            />
           )}
 
           {/* 4. Player Results View (Cards Grid vs High-Density Table) */}
@@ -739,6 +740,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
               loading={loading}
               onPlayerSelect={handlePlayerSelect}
               onResetFilters={handleResetFilters}
+              onNavigateToLogin={onNavigateToLogin}
             />
           ) : (
             <PlayerTable
@@ -755,6 +757,7 @@ export const PlayerSearchPage: React.FC<PlayerSearchPageProps> = ({
             isOpen={!!shortlistTargetPlayer}
             onClose={() => setShortlistTargetPlayer(null)}
             player={shortlistTargetPlayer}
+            onNavigateToLogin={onNavigateToLogin}
             onSuccess={(shortlistName) => {
               showToast(
                 `Added ${shortlistTargetPlayer?.fullName || "player"} to "${shortlistName}"`,

@@ -30,14 +30,18 @@ export const SquadBench: React.FC<SquadBenchProps> = ({
   return (
     <div className={`scout-bench-drawer ${isBenchOpen ? 'is-open' : ''}`}>
       {/* Drawer Top Tab / Header */}
-      <div
+      <button
+        type="button"
         className="scout-bench-drawer-tab"
         onClick={onToggleBenchOpen}
-        title="Nhấp hoặc di chuột để mở/đóng danh sách dự bị"
+        title="Open or close substitutes"
+        aria-expanded={isBenchOpen}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '13px' }}>🛡️</span>
-          <span style={{ fontWeight: 800 }}>DỰ BỊ / SUBSTITUTES</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h10" />
+          </svg>
+          <span style={{ fontWeight: 800 }}>SUBSTITUTES</span>
           <span
             style={{
               background:
@@ -65,7 +69,7 @@ export const SquadBench: React.FC<SquadBenchProps> = ({
             color: '#94a3b8',
           }}
         >
-          <span>{isBenchOpen ? '▼ Thu gọn' : '▲ Di chuột hoặc nhấp để xem'}</span>
+          <span>{isBenchOpen ? '▼ Collapse' : '▲ Open bench'}</span>
           <span
             style={{
               display: 'inline-flex',
@@ -82,7 +86,7 @@ export const SquadBench: React.FC<SquadBenchProps> = ({
             {isBenchOpen ? '✕' : '▲'}
           </span>
         </div>
-      </div>
+      </button>
 
       {/* Drawer Body with 7 Substitutes Cards */}
       <div className="scout-bench-drawer-body">
@@ -168,8 +172,8 @@ export const SquadBench: React.FC<SquadBenchProps> = ({
                           onPromoteBenchPlayerToSlot(sub);
                         }}
                       >
-                        <span>⬆️</span>
-                        <span>Lên đá chính</span>
+                        <span aria-hidden="true">↑</span>
+                        <span>Promote to Starting XI</span>
                       </button>
                       <button
                         type="button"
@@ -179,8 +183,8 @@ export const SquadBench: React.FC<SquadBenchProps> = ({
                           onRemovePlayer(sub.playerId);
                         }}
                       >
-                        <span>🗑️</span>
-                        <span>Bỏ khỏi đội</span>
+                        <span aria-hidden="true">×</span>
+                        <span>Remove from Squad</span>
                       </button>
                     </div>
                   )}
@@ -193,7 +197,7 @@ export const SquadBench: React.FC<SquadBenchProps> = ({
                 key={`empty-sub-${idx}`}
                 className="scout-bench-slot-card empty"
                 onClick={onOpenPickerForBench}
-                title="Thêm cầu thủ dự bị"
+                title="Add substitute"
               >
                 <div className="scout-marker-plus">+</div>
                 <div style={{ fontSize: '10px', fontWeight: 600, color: '#94a3b8' }}>

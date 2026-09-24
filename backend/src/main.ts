@@ -3,10 +3,17 @@ import { ValidationPipe, ForbiddenException } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import * as path from 'node:path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  if (process.env.NODE_ENV !== 'production') {
+    app.useStaticAssets(path.resolve(process.cwd(), 'uploads'), {
+      prefix: '/uploads/',
+    });
+  }
 
   // Trust upstream reverse proxy (Nginx) for accurate client IP tracking in Throttler
   app.set('trust proxy', true);

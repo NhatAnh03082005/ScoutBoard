@@ -85,7 +85,7 @@ export const FormationSelector: React.FC<FormationSelectorProps> = ({
   }, [selectedDef]);
 
   return (
-    <div className="scout-field-group" style={{ marginBottom: '18px' }}>
+    <div className="scout-field-group scout-formation-selector" style={{ marginBottom: '18px' }}>
       {/* Top Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <label className="scout-field-label" style={{ margin: 0 }}>
@@ -99,6 +99,7 @@ export const FormationSelector: React.FC<FormationSelectorProps> = ({
       {/* Selected Formation Highlight Banner */}
       {selectedDef && (
         <div
+          className="scout-formation-selected-banner"
           style={{
             background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
             borderRadius: '12px',
@@ -285,6 +286,7 @@ export const FormationSelector: React.FC<FormationSelectorProps> = ({
           </div>
         ) : (
           <div
+            className="scout-formation-options-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
@@ -299,6 +301,7 @@ export const FormationSelector: React.FC<FormationSelectorProps> = ({
               return (
                 <button
                   key={fmt.id}
+                  className={`scout-formation-option${isSelected ? ' selected' : ''}`}
                   type="button"
                   disabled={disabled}
                   onClick={() => onChange(fmt.id as FormationCode)}

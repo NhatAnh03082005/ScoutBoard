@@ -92,7 +92,7 @@ export const PlayerAssignmentModal: React.FC<PlayerAssignmentModalProps> = ({
       role="presentation"
     >
       <div
-        className="scout-modal-clean-dialog squad-dialog"
+        className="scout-modal-clean-dialog squad-dialog scout-player-assignment-dialog"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -154,7 +154,7 @@ export const PlayerAssignmentModal: React.FC<PlayerAssignmentModalProps> = ({
               color: '#60a5fa',
             }}
           >
-            <span style={{ fontWeight: 800 }}>Vị trí yêu cầu:</span>
+            <span style={{ fontWeight: 800 }}>Required position:</span>
             <span
               style={{
                 fontWeight: 900,
@@ -189,6 +189,7 @@ export const PlayerAssignmentModal: React.FC<PlayerAssignmentModalProps> = ({
 
         {/* Candidate List */}
         <div
+          className="scout-player-assignment-list"
           style={{
             maxHeight: '340px',
             overflowY: 'auto',
@@ -249,6 +250,7 @@ export const PlayerAssignmentModal: React.FC<PlayerAssignmentModalProps> = ({
               return (
                 <div
                   key={player.id}
+                  className={`scout-player-assignment-row${isCurrentTargetOccupant ? ' current' : ''}`}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -374,6 +376,7 @@ export const PlayerAssignmentModal: React.FC<PlayerAssignmentModalProps> = ({
 
         {/* Modal Footer */}
         <div
+          className="scout-player-assignment-footer"
           style={{
             display: 'flex',
             justifyContent: 'flex-end',

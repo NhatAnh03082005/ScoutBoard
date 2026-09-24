@@ -4,7 +4,7 @@ import { ModalHeader } from './ModalHeader';
 import { FormationSelector } from './FormationSelector';
 import { VisibilitySelector } from './VisibilitySelector';
 import { ModalFooter } from './ModalFooter';
-import { AlertCircleIcon } from './ModalIcons';
+import { Notification } from '../common/Notification';
 
 export interface CreateSquadModalProps {
   isOpen: boolean;
@@ -72,12 +72,7 @@ export const CreateSquadModal: React.FC<CreateSquadModalProps> = ({
           onClose={onClose}
         />
 
-        {error && (
-          <div className="scout-modal-alert-error" role="alert">
-            <AlertCircleIcon size={16} />
-            <span>{error}</span>
-          </div>
-        )}
+        {error && <Notification variant="error" message={error} compact />}
 
         <form onSubmit={onSubmit} className="scout-modal-clean-form">
           <div className="scout-field-group">

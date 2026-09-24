@@ -1,15 +1,17 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsUUID, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class FindPlayerMatchStatisticsQueryDto {
   @ApiPropertyOptional({ description: 'Lọc theo ID mùa giải' })
   @IsOptional()
+  @Transform(({ value }) => (!value || value === 'undefined' || value === 'null' ? undefined : value))
   @IsUUID()
   seasonId?: string;
 
   @ApiPropertyOptional({ description: 'Lọc theo ID giải đấu' })
   @IsOptional()
+  @Transform(({ value }) => (!value || value === 'undefined' || value === 'null' ? undefined : value))
   @IsUUID()
   competitionId?: string;
 
@@ -17,6 +19,7 @@ export class FindPlayerMatchStatisticsQueryDto {
     description: 'Lọc theo ID đội bóng cầu thủ đại diện trong trận',
   })
   @IsOptional()
+  @Transform(({ value }) => (!value || value === 'undefined' || value === 'null' ? undefined : value))
   @IsUUID()
   teamId?: string;
 

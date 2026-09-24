@@ -13,6 +13,7 @@ import {
   PlayerPerformanceSection,
   PlayerMatchLogSection,
 } from "../components/player/detail";
+import { Notification } from "../components/common/Notification";
 
 interface PlayerDetailPageProps {
   playerId: string;
@@ -176,10 +177,13 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
 
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border border-slate-800 animate-slideUp">
-          <span className="text-emerald-400">✓</span>
-          <span>{toastMessage}</span>
-        </div>
+        <Notification
+          variant="success"
+          mode="toast"
+          message={toastMessage}
+          autoDismissMs={3500}
+          onDismiss={() => setToastMessage(null)}
+        />
       )}
 
       {player && (
@@ -189,25 +193,26 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({
           player={player}
           onSuccess={(shortlistName) => {
             setToastMessage(`Added ${player.fullName || player.name} to "${shortlistName}"`);
-            setTimeout(() => setToastMessage(null), 3500);
           }}
         />
       )}
 
       {/* Error Alert */}
       {error && (
-        <div className="scout-b2b-alert-error" style={{ marginBottom: "20px" }}>
-          <span>❌</span>
-          <span>{error}</span>
-          <button
-            type="button"
-            className="scout-btn scout-btn-sm scout-btn-secondary"
-            style={{ marginLeft: "auto" }}
-            onClick={onBack}
-          >
-            Return to Search
-          </button>
-        </div>
+        <Notification
+          variant="error"
+          message={error}
+          actions={(
+            <button
+              type="button"
+              className="scout-btn scout-btn-sm scout-btn-secondary"
+              onClick={onBack}
+            >
+              Return to Search
+            </button>
+          )}
+          style={{ marginBottom: "20px" }}
+        />
       )}
 
       {/* Loading State */}

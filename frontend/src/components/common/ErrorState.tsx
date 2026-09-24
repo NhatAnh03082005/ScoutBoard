@@ -1,4 +1,5 @@
 import React from 'react';
+import { Notification } from './Notification';
 
 export interface ErrorStateProps {
   title?: string;
@@ -15,15 +16,12 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   retryText = 'Try Again',
   className = '',
 }) => {
-  return (
-    <div className={`scout-error-banner ${className}`.trim()} role="alert">
-      <span className="scout-error-banner-icon">⚠️</span>
-      <div className="scout-error-banner-body">
-        {title && <div className="scout-error-banner-title">{title}</div>}
-        <div>{message}</div>
-      </div>
-      {onRetry && (
-        <div className="scout-error-banner-actions">
+  const notification = (
+    <Notification
+      variant="error"
+      message={title ? `${title}: ${message}` : message}
+      actions={
+        onRetry ? (
           <button
             type="button"
             onClick={onRetry}
@@ -31,8 +29,10 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           >
             {retryText}
           </button>
-        </div>
-      )}
-    </div>
+        ) : undefined
+      }
+    />
   );
+
+  return className ? <div className={className}>{notification}</div> : notification;
 };

@@ -1,4 +1,5 @@
 import React, { Component, type ReactNode } from 'react';
+import { Notification } from './Notification';
 
 export interface ErrorBoundaryProps {
   children: ReactNode;
@@ -26,38 +27,23 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       return (
-        <div
-          className="alert-banner alert-error"
+        <Notification
+          variant="error"
+          message="Unable to load view. There was a problem loading this page module. Please check your network connection and reload."
+          actions={(
+            <button
+              type="button"
+              className="scout-btn scout-btn-primary"
+              onClick={() => window.location.reload()}
+            >
+              Reload Application
+            </button>
+          )}
           style={{
             maxWidth: '640px',
             margin: '48px auto',
-            textAlign: 'center',
-            padding: '32px 24px',
-            borderRadius: '16px',
           }}
-        >
-          <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700 }}>
-            Unable to load view
-          </h3>
-          <p
-            style={{
-              margin: '0 0 20px 0',
-              color: 'var(--scout-text-secondary)',
-              fontSize: '14px',
-              lineHeight: 1.5,
-            }}
-          >
-            There was a problem loading this page module. Please check your network connection and reload.
-          </p>
-          <button
-            type="button"
-            className="scout-btn scout-btn-primary"
-            onClick={() => window.location.reload()}
-          >
-            Reload Application
-          </button>
-        </div>
+        />
       );
     }
 

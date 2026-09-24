@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import type { PlayerItem } from '../../types/player.types';
 import { PlayerCard } from './PlayerCard';
 import { AddToShortlistModal } from '../shortlist/AddToShortlistModal';
+import { Notification } from '../common/Notification';
 
 interface PlayerCardGridProps {
   players: PlayerItem[];
   loading: boolean;
   onPlayerSelect: (playerId: string) => void;
   onResetFilters?: () => void;
+  onNavigateToLogin?: () => void;
 }
 
 export const PlayerCardGrid: React.FC<PlayerCardGridProps> = ({
@@ -15,13 +17,13 @@ export const PlayerCardGrid: React.FC<PlayerCardGridProps> = ({
   loading,
   onPlayerSelect,
   onResetFilters,
+  onNavigateToLogin,
 }) => {
   const [shortlistTargetPlayer, setShortlistTargetPlayer] = useState<PlayerItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // 1. Loading Skeleton Grid (8 Skeleton Cards)
@@ -78,10 +80,13 @@ export const PlayerCardGrid: React.FC<PlayerCardGridProps> = ({
   return (
     <>
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border border-slate-800 animate-slideUp">
-          <span className="text-emerald-400">✓</span>
-          <span>{toastMessage}</span>
-        </div>
+        <Notification
+          variant="success"
+          mode="toast"
+          message={toastMessage}
+          autoDismissMs={3500}
+          onDismiss={() => setToastMessage(null)}
+        />
       )}
 
       <div className="scout-fc-card-grid">
@@ -99,6 +104,7 @@ export const PlayerCardGrid: React.FC<PlayerCardGridProps> = ({
         isOpen={!!shortlistTargetPlayer}
         onClose={() => setShortlistTargetPlayer(null)}
         player={shortlistTargetPlayer}
+        onNavigateToLogin={onNavigateToLogin}
         onSuccess={(shortlistName) => {
           showToast(`Added ${shortlistTargetPlayer?.fullName || 'player'} to "${shortlistName}"`);
         }}

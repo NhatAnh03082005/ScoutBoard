@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { SquadPlayerItem } from '../types/squad.types';
 import type { PlayerItem } from '../types/player.types';
 import type { FormationSlot } from '../utils/squad-placement.utils';
+import { Notification } from '../components/common';
 import { FormationSelector } from '../components/modal/FormationSelector';
 import {
   useSquadDetail,
@@ -22,6 +23,8 @@ export interface SquadDetailPageProps {
 export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
   squadId,
   onBack,
+  onNavigateToLogin,
+  isAuthenticated,
 }) => {
   const {
     squad,
@@ -31,6 +34,7 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
     isSaving,
     toastMessage,
     toastType,
+    dismissToast,
     fetchSquadData,
     isEditingName,
     setIsEditingName,
@@ -121,49 +125,19 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
     }
   };
 
+  const isUnauthorized = error === 'UNAUTHORIZED' || isAuthenticated === false;
+
   return (
     <div className="scout-tactical-stage scout-squad-builder-stage">
       {/* TOAST NOTIFICATION */}
       {toastMessage && (
-        <div
-          className={`scout-toast ${
-            toastType === 'error' ? 'scout-toast-error' : 'scout-toast-success'
-          }`}
-        >
-          {toastType === 'error' ? (
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ef4444"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ flexShrink: 0 }}
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          ) : (
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#10b981"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ flexShrink: 0 }}
-            >
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-          )}
-          <span>{toastMessage}</span>
-        </div>
+        <Notification
+          variant={toastType}
+          mode="toast"
+          message={toastMessage}
+          onDismiss={dismissToast}
+          autoDismissMs={3500}
+        />
       )}
 
       {/* VIEWPORT 1: COMPLETE STARTING XI TACTICAL SCENE */}
@@ -186,34 +160,29 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
         />
 
         {/* ERROR / LOADING FEEDBACK */}
-        {error && (
-          <div
-            style={{
-              background: 'rgba(239, 68, 68, 0.2)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              borderRadius: '12px',
-              padding: '12px 20px',
-              textAlign: 'center',
-              margin: '8px auto',
-              maxWidth: '440px',
-              color: '#fca5a5',
-            }}
-          >
-            <h4 style={{ margin: '0 0 4px', color: '#f87171', fontSize: '13px' }}>
-              {error}
-            </h4>
-            <button
-              type="button"
-              className="scout-btn scout-btn-secondary"
-              style={{ padding: '3px 12px', fontSize: '11px' }}
-              onClick={fetchSquadData}
-            >
-              ↻ Thử lại
-            </button>
-          </div>
+        {(error || isUnauthorized) && (
+          <Notification
+            variant="error"
+            message={
+              isUnauthorized
+                ? 'Your session has expired. Please sign in again.'
+                : error
+            }
+            compact
+            style={{ margin: '8px auto', maxWidth: '440px' }}
+            actions={isUnauthorized && !onNavigateToLogin ? undefined : (
+              <button
+                type="button"
+                className="scout-btn scout-btn-secondary"
+                onClick={isUnauthorized ? onNavigateToLogin : fetchSquadData}
+              >
+                {isUnauthorized ? 'Sign In' : 'Try Again'}
+              </button>
+            )}
+          />
         )}
 
-        {loading && !error && (
+        {loading && !error && !isUnauthorized && (
           <div
             style={{
               flex: 1,
@@ -225,12 +194,12 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
               fontWeight: 700,
             }}
           >
-            Đang tải dữ liệu chiến thuật...
+            Loading tactical squad...
           </div>
         )}
 
         {/* CENTERED TACTICAL PITCH WITH ILLUMINATED TURF */}
-        {!loading && !error && squad && (
+        {!loading && !error && !isUnauthorized && squad && (
           <SquadPitch
             tacticalSlots={tacticalSlots}
             players={players}
@@ -245,16 +214,18 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
         )}
 
         {/* MATCHDAY SUBSTITUTES DOCK */}
-        <SquadBench
-          substitutes={substitutes}
-          isBenchOpen={isBenchOpen}
-          onToggleBenchOpen={() => setIsBenchOpen((prev) => !prev)}
-          activeBenchMenuId={activeBenchMenuId}
-          onToggleBenchMenu={(id) => setActiveBenchMenuId(id)}
-          onOpenPickerForBench={handleOpenPickerForBench}
-          onPromoteBenchPlayerToSlot={handlePromoteBenchPlayerToSlot}
-          onRemovePlayer={(id) => void handleRemovePlayer(id)}
-        />
+        {!loading && !error && !isUnauthorized && squad && (
+          <SquadBench
+            substitutes={substitutes}
+            isBenchOpen={isBenchOpen}
+            onToggleBenchOpen={() => setIsBenchOpen((prev) => !prev)}
+            activeBenchMenuId={activeBenchMenuId}
+            onToggleBenchMenu={(id) => setActiveBenchMenuId(id)}
+            onOpenPickerForBench={handleOpenPickerForBench}
+            onPromoteBenchPlayerToSlot={handlePromoteBenchPlayerToSlot}
+            onRemovePlayer={(id) => void handleRemovePlayer(id)}
+          />
+        )}
       </div>
 
       {/* MODAL 1: TACTICAL PLAYER SELECTION */}
@@ -276,7 +247,7 @@ export const SquadDetailPage: React.FC<SquadDetailPageProps> = ({
           role="presentation"
         >
           <div
-            className="scout-modal-clean-dialog squad-dialog"
+            className="scout-modal-clean-dialog squad-dialog scout-squad-formation-dialog"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"

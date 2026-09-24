@@ -24,6 +24,9 @@ export class UserOrmEntity {
   @Column({ name: 'full_name', type: 'varchar', length: 150 })
   fullName: string;
 
+  @Column({ name: 'avatar_url', type: 'varchar', length: 1000, nullable: true })
+  avatarUrl: string | null;
+
   @Column({ type: 'varchar', length: 30, default: 'ACTIVE' })
   status: string;
 
