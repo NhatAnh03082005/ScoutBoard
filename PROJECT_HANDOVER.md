@@ -77,14 +77,14 @@ graph LR
 | `POSTGRES_PORT` | `5432` | Cổng Session Pooler (hoặc `6543` Transaction) |
 | `POSTGRES_DB` | `postgres` | Tên cơ sở dữ liệu Supabase |
 | `POSTGRES_USER` | `postgres.utpuxqpokpqnxpqqiens` | Username dạng `<user>.<project-ref>` |
-| `POSTGRES_PASSWORD` | `03082005Anhle@@` | Mật khẩu database Supabase |
+| `POSTGRES_PASSWORD` | `<set-in-vercel>` | Mật khẩu database Supabase |
 | `POSTGRES_SSL` | `true` | Bắt buộc bật SSL |
-| `JWT_SECRET` | `scoutboard_jwt_access_secret_production_2026_super_key` | Secret key ký Access Token (≥ 32 ký tự) |
-| `JWT_REFRESH_SECRET` | `scoutboard_jwt_refresh_secret_production_2026_super_key` | Secret key ký Refresh Token (≥ 32 ký tự) |
+| `JWT_SECRET` | `<set-in-vercel>` | Secret key ký Access Token (≥ 32 ký tự) |
+| `JWT_REFRESH_SECRET` | `<set-in-vercel>` | Secret key ký Refresh Token (≥ 32 ký tự) |
 | `JWT_EXPIRES_IN` | `15m` | Thời hạn sống của Access Token |
 | `JWT_REFRESH_EXPIRES_IN` | `7d` | Thời hạn sống của Refresh Token |
 | `FRONTEND_ORIGIN` | `https://scout-board-three.vercel.app` | Domain Frontend được phép gọi API (CORS) |
-| `API_FOOTBALL_KEY` | `09b395257421d95a43fa4fd945df43b7` | API key lấy dữ liệu cầu thủ từ api-sports.io |
+| `API_FOOTBALL_KEY` | `<set-in-vercel>` | API key lấy dữ liệu cầu thủ từ api-sports.io |
 | `API_FOOTBALL_BASE_URL`| `https://v3.football.api-sports.io` | URL gốc của API Football |
 | `THROTTLE_GLOBAL_TTL_MS`| `60000` | Cửa sổ giới hạn tốc độ (1 phút) |
 | `THROTTLE_GLOBAL_LIMIT` | `100` | Giới hạn 100 requests / phút / IP |
