@@ -72,7 +72,7 @@ jobs:
         working-directory: backend
 
       - name: Run backend unit and integration test suite
-        run: npm test
+        run: npm test -- --runInBand
         working-directory: backend
 
       - name: Build backend application
