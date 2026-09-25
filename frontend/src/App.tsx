@@ -497,7 +497,7 @@ export default function App() {
                     setSuccess(null);
                   }}
                 >
-                  Log in
+                  Login
                 </button>
                 <button
                   type="button"
@@ -508,7 +508,7 @@ export default function App() {
                     setSuccess(null);
                   }}
                 >
-                  Get started
+                  Sign up
                 </button>
               </div>
             )}
