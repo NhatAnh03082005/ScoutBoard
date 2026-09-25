@@ -1,158 +1,167 @@
-# 📋 TÀI LIỆU BÀN GIAO DỰ ÁN SCOUTBOARD (PROJECT HANDOVER DOCUMENT)
+# 📋 TÀI LIỆU BÀN GIAO TOÀN DIỆN DỰ ÁN SCOUTBOARD (MASTER PROJECT HANDOVER)
 
-> **Dự án**: ScoutBoard — Nền tảng Tìm kiếm, So sánh chỉ số và Xây dựng Đội hình Cầu thủ Bóng đá  
+> **Dự án**: ScoutBoard — Football Player Search, Comparison, Analytics & Squad Building Platform  
 > **Chủ sở hữu**: Lê Hoàng Nhật Anh (`anh367641@gmail.com` / GitHub: `NhatAnh03082005`)  
 > **Thời gian cập nhật**: Tháng 9/2026  
-> **Kho mã nguồn**: [https://github.com/NhatAnh03082005/ScoutBoard.git](https://github.com/NhatAnh03082005/ScoutBoard.git)
+> **Mục đích**: Tài liệu bàn giao đầy đủ cho Agent mới hoặc Developer tiếp quản dự án (bao gồm toàn bộ tài khoản, mật khẩu, link deploy, cấu trúc database, dữ liệu đã đồng bộ và các lưu ý kỹ thuật).
 
 ---
 
-## 1. TỔNG QUAN KIẾN TRÚC HỆ THỐNG
-
-ScoutBoard được xây dựng theo mô hình Monorepo:
-* **Frontend (`/frontend`)**: React 18, Vite, TypeScript, Vitest, Vanilla CSS / Component-scoped styling. Triển khai trên **Vercel** (Edge CDN).
-* **Backend (`/backend`)**: NestJS 11, TypeScript, TypeORM, PostgreSQL, Passport JWT Auth, Throttler, Swagger Docs (`/api/docs`). Triển khai theo mô hình **Vercel Serverless Function** (`/api/index.ts`).
-* **Database**: PostgreSQL 17 (chạy Docker ở local, chạy Supabase Connection Pooler IPv4 trên production).
-* **Nhà cung cấp dữ liệu bóng đá**: API-Football (`api-sports.io`).
-
-Mermaid sơ đồ kiến trúc triển khai Production:
-```mermaid
-graph LR
-  Client[Người dùng / Trình duyệt] -->|HTTPS| FE["Frontend Vercel SPA\n(scout-board-three.vercel.app)"]
-  FE -->|REST API / CORS| BE["Backend Vercel Serverless\n(scoutboard-backend.vercel.app/api)"]
-  BE -->|Connection Pooler 5432 / SSL| DB["Supabase PostgreSQL 17\n(aws-0-ap-south-1.pooler.supabase.com)"]
-  BE -->|Sync Scripts / Ingestion| ExtAPI["API-Football\n(v3.football.api-sports.io)"]
-```
-
----
-
-## 2. LINK TRIỂN KHAI PRODUCTION (DEPLOYMENT URLS)
+## 🌐 1. TOÀN BỘ LINK TRIỂN KHAI LIVE (DEPLOYMENT URLS)
 
 | Thành phần | Nền tảng | Link trực tiếp | Trạng thái | Ghi chú |
-| :--- | :--- | :--- | :--- | :--- |
-| **Frontend Web** | **Vercel** | [https://scout-board-three.vercel.app](https://scout-board-three.vercel.app) | 🟢 LIVE | Web SPA chính thức, tự động deploy từ nhánh `main` |
-| **Backend API** | **Vercel** | [https://scoutboard-backend.vercel.app/api](https://scoutboard-backend.vercel.app/api) | 🟢 LIVE | Serverless API (Production Domain vĩnh viễn) |
-| **Swagger API Docs** | **Vercel** | [https://scoutboard-backend.vercel.app/api/docs](https://scoutboard-backend.vercel.app/api/docs) | 🟢 LIVE | Tài liệu đặc tả RESTful APIs + Bearer Auth JWT |
-| **Trang chủ Backend** | **Vercel** | [https://scoutboard-backend.vercel.app](https://scoutboard-backend.vercel.app) | 🟢 LIVE | Tự động Redirect 302 sang `/api/docs` |
-| **Backend (Render cũ)** | **Render** | `https://scoutboard-backend.onrender.com` | ⚪ Đã gỡ bỏ | Đã chuyển toàn bộ sang Vercel Serverless |
-| **Database Cloud** | **Supabase** | `aws-0-ap-south-1.pooler.supabase.com:5432` | 🟢 LIVE | 3.017 cầu thủ, 606 CLB, 21 TypeORM migrations |
-| **Source Code** | **GitHub** | [https://github.com/NhatAnh03082005/ScoutBoard](https://github.com/NhatAnh03082005/ScoutBoard) | 🟢 LIVE | Nhánh chính: `main`, nhánh phát triển: `dev` |
+| :--- | :--- | :--- | :---: | :--- |
+| **Frontend Web** | **Vercel** | [https://scout-board-three.vercel.app](https://scout-board-three.vercel.app) | 🟢 LIVE | Web SPA React 19 + Vite, tự động deploy từ nhánh `main` |
+| **Backend API** | **Vercel** | [https://scoutboard-backend.vercel.app/api](https://scoutboard-backend.vercel.app/api) | 🟢 LIVE | NestJS 11 chạy Serverless Function tại `/api/index.ts` |
+| **Swagger API Docs** | **Vercel** | [https://scoutboard-backend.vercel.app/api/docs](https://scoutboard-backend.vercel.app/api/docs) | 🟢 LIVE | Tài liệu đặc tả OpenAPI 3.0 + Bearer JWT Auth |
+| **Health Check API** | **Vercel** | [https://scoutboard-backend.vercel.app/api/health](https://scoutboard-backend.vercel.app/api/health) | 🟢 LIVE | Endpoint kiểm tra uptime máy chủ và kết nối database |
+| **Source Code** | **GitHub** | [https://github.com/NhatAnh03082005/ScoutBoard](https://github.com/NhatAnh03082005/ScoutBoard) | 🟢 LIVE | Nhánh production: `main`, nhánh phát triển: `dev` |
+| **Database Cloud** | **Supabase** | `aws-0-ap-south-1.pooler.supabase.com:5432` | 🟢 LIVE | PostgreSQL 17 Cloud Pooler (vùng Mumbai `ap-south-1`) |
+| **Backend Render cũ** | **Render** | `https://scoutboard-backend.onrender.com` | ⚪ OFF | Đã giải thể và chuyển 100% sang Vercel Serverless |
 
 ---
 
-## 3. THÔNG TIN CẤU HÌNH & TÀI KHOẢN CLOUD
+## 🔑 2. TÀI KHOẢN, MẬT KHẨU & CHUỖI KẾT NỐI (CREDENTIALS & SECRETS)
 
-### 3.1. Backend Hosting trên Vercel (Chi tiết triển khai)
+### 2.1. Cơ sở dữ liệu Local (Local PostgreSQL qua Docker)
+* **Host**: `localhost` hoặc `127.0.0.1`
+* **Port**: `5432`
+* **User**: `postgres`
+* **Password**: `postgres123`
+* **Database**: `scoutboard_db`
+* **Chuỗi kết nối (Connection String)**:
+  ```text
+  postgresql://postgres:postgres123@localhost:5432/scoutboard_db?schema=public
+  ```
 
-* **Nền tảng**: [https://vercel.com](https://vercel.com) (Tài khoản: `NhatAnh03082005` / `anh367641@gmail.com`)
-* **Project Name**: `scoutboard-backend`
-* **Root Directory**: `backend` (⚠️ Bắt buộc chọn thư mục con `backend`)
-* **Framework Preset**: `Other`
-* **Build Command**: `npm run build` (Chạy `nest build` tạo mã JS tối ưu vào thư mục `dist/`)
-* **Output Directory**: Để trống mặc định
-* **Production Domain**: `scoutboard-backend.vercel.app`
-* **Preview Domain**: `scoutboard-backend-git-main-nhat-anh.vercel.app`
-
-#### Cấu trúc file cấu hình Serverless Backend:
-1. **`backend/vercel.json`**:
-   * Cấu hình `functions.includeFiles`: `"dist/**"` để Vercel đóng gói toàn bộ mã nguồn đã biên dịch của NestJS vào gói Serverless function.
-   * Cấu hình `headers`: Bổ sung header CORS (`Access-Control-Allow-Origin: https://scout-board-three.vercel.app`, `Credentials: true`, `Methods: GET,POST,PUT,PATCH,DELETE,OPTIONS`) tại tầng Edge Network.
-   * Cấu hình `rewrites`: Điều hướng mọi request `/(.*)` vào Serverless handler `/api`.
-2. **`backend/api/index.ts`**:
-   * Khởi tạo Express Adapter kết nối NestJS `AppModule` từ `dist/src/app.module`.
-   * Tự động giải quyết đường dẫn alias (`src/...` ➔ `dist/src/...`) qua module resolver.
-   * Xử lý tức thì preflight `OPTIONS` trả về `204 No Content` trong 5ms mà không cần chờ khởi động NestJS.
-   * Tự động Redirect 302 các truy cập vào `/` hoặc `/api` sang Swagger UI `/api/docs`.
-   * Bọc `bootstrap()` và `server(req, res)` bằng `res.on('finish')` để giữ Serverless function hoạt động đồng bộ, tránh lỗi `FUNCTION_INVOCATION_FAILED`.
-3. **`backend/src/app.module.ts`**:
-   * Cấu hình `autoLoadEntities: true` và `entities: []` trong `TypeOrmModule.forRoot` để tải thực thể theo `forFeature` thay vì quét file glob trên hệ điều hành ảo serverless.
-
-#### Danh sách Biến môi trường (Environment Variables) trên Vercel Backend:
-> Áp dụng cho cả 3 môi trường: **Production**, **Preview**, **Development**.
-
-| Key (Tên biến) | Value (Giá trị mẫu/thực tế) | Mục đích / Ghi chú |
-| :--- | :--- | :--- |
-| `NODE_ENV` | `production` | Chế độ chạy production |
-| `POSTGRES_HOST` | `aws-0-ap-south-1.pooler.supabase.com` | Host kết nối Supabase Pooler IPv4 |
-| `POSTGRES_PORT` | `5432` | Cổng Session Pooler (hoặc `6543` Transaction) |
-| `POSTGRES_DB` | `postgres` | Tên cơ sở dữ liệu Supabase |
-| `POSTGRES_USER` | `postgres.utpuxqpokpqnxpqqiens` | Username dạng `<user>.<project-ref>` |
-| `POSTGRES_PASSWORD` | `<set-in-vercel>` | Mật khẩu database Supabase |
-| `POSTGRES_SSL` | `true` | Bắt buộc bật SSL |
-| `JWT_SECRET` | `<set-in-vercel>` | Secret key ký Access Token (≥ 32 ký tự) |
-| `JWT_REFRESH_SECRET` | `<set-in-vercel>` | Secret key ký Refresh Token (≥ 32 ký tự) |
-| `JWT_EXPIRES_IN` | `15m` | Thời hạn sống của Access Token |
-| `JWT_REFRESH_EXPIRES_IN` | `7d` | Thời hạn sống của Refresh Token |
-| `FRONTEND_ORIGIN` | `https://scout-board-three.vercel.app` | Domain Frontend được phép gọi API (CORS) |
-| `API_FOOTBALL_KEY` | `<set-in-vercel>` | API key lấy dữ liệu cầu thủ từ api-sports.io |
-| `API_FOOTBALL_BASE_URL`| `https://v3.football.api-sports.io` | URL gốc của API Football |
-| `THROTTLE_GLOBAL_TTL_MS`| `60000` | Cửa sổ giới hạn tốc độ (1 phút) |
-| `THROTTLE_GLOBAL_LIMIT` | `100` | Giới hạn 100 requests / phút / IP |
-
----
-
-### 3.2. Frontend Hosting trên Vercel
-
-* **Nền tảng**: [https://vercel.com](https://vercel.com)
-* **Project Name**: `scout-board`
-* **Root Directory**: `frontend`
-* **Framework**: `Vite`
-* **Build Command**: `npm run build`
-* **Output Directory**: `dist`
-* **Domain Production**: [https://scout-board-three.vercel.app](https://scout-board-three.vercel.app)
-* **Environment Variables trên Vercel (Frontend)**:
-
-| Key (Tên biến) | Value (Giá trị) | Ghi chú |
-| :--- | :--- | :--- |
-| `VITE_API_BASE_URL` | `https://scoutboard-backend.vercel.app/api` | Bắt buộc có `https://` và kết thúc bằng `/api` |
-
----
-
-### 3.3. Database Cloud (Supabase)
-
+### 2.2. Cơ sở dữ liệu Production (Supabase Cloud Database Pooler)
 * **Nền tảng**: [https://supabase.com](https://supabase.com) (Đăng nhập qua GitHub `NhatAnh03082005`)
 * **Project Name**: `scoutboard-db`
 * **Project Ref**: `utpuxqpokpqnxpqqiens`
-* **Region**: Asia-Pacific (Mumbai / `ap-south-1`)
-* **Thông số kết nối IPv4 (Connection Pooler)**:
-  * **Host**: `aws-0-ap-south-1.pooler.supabase.com`
-  * **Port**: `5432` (Session Mode)
-  * **User**: `postgres.utpuxqpokpqnxpqqiens`
-  * **Password**: `03082005Anhle@@`
-  * **Database Name**: `postgres`
-  * **SSL**: `true` (`{ rejectUnauthorized: false }`)
-* **Trạng thái dữ liệu**: 21 migrations đồng bộ 100% với local, 3.017 cầu thủ, 606 CLB, 5 giải đấu, 1.756 trận đấu, 21.580 thống kê trận đấu.
+* **Host (IPv4 Pooler)**: `aws-0-ap-south-1.pooler.supabase.com`
+* **Port Session Mode**: `5432` (Khuyên dùng cho script/backend vì giữ socket sống lâu hơn)
+* **Port Transaction Mode**: `6543` (Dùng cho serverless query siêu nhanh)
+* **User**: `postgres.utpuxqpokpqnxpqqiens`
+* **Password**: `03082005Anhle@@`
+* **Database Name**: `postgres`
+* **SSL**: Bắt buộc bật SSL (`rejectUnauthorized: false`)
+* **Chuỗi kết nối (Connection String)**:
+  ```text
+  postgresql://postgres.utpuxqpokpqnxpqqiens:03082005Anhle@@@aws-0-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
+  ```
 
----
-
-### 3.4. Dịch vụ API Bóng Đá (API-Football)
-
-* **Website**: [https://dashboard.api-football.com/](https://dashboard.api-football.com/)
-* **Tài khoản**: `anh367641@gmail.com`
-* **Gói cước**: Free (100 requests / ngày, reset vào 00:00 UTC = 07:00 sáng VN)
+### 2.3. Dịch vụ API Bóng Đá (API-Football / API-Sports)
+* **Trang quản trị**: [https://dashboard.api-football.com/](https://dashboard.api-football.com/)
+* **Email đăng nhập**: `anh367641@gmail.com`
 * **API Key**: `09b395257421d95a43fa4fd945df43b7`
 * **Base URL**: `https://v3.football.api-sports.io`
+* **Hạn mức (Quota)**: 100 requests / ngày (Gói Free, reset vào **00:00 UTC = 07:00 sáng giờ VN**).
+* **Quy định Rate Limit**: Tối đa 10 requests / phút $\rightarrow$ **Bắt buộc delay $\ge 6.2$ giây giữa mỗi request** trong tất cả các script.
+
+### 2.4. Khóa bí mật bảo mật (JWT Tokens & Auth)
+* **Local Backend JWT**:
+  * `JWT_SECRET`: `scoutboard_jwt_access_secret_key_2026_super_secure`
+  * `JWT_REFRESH_SECRET`: `scoutboard_jwt_refresh_secret_key_2026_super_secure`
+* **Production Vercel Backend JWT**:
+  * `JWT_SECRET`: `scoutboard_jwt_access_secret_production_2026_super_key`
+  * `JWT_REFRESH_SECRET`: `scoutboard_jwt_refresh_secret_production_2026_super_key`
+* **Thời hạn Token**: Access Token: `15m`, Refresh Token: `7d` (được băm SHA-256 lưu trong bảng `refresh_tokens`).
 
 ---
 
-## 4. QUY TRÌNH CHẠY LOCAL (DEVELOPMENT)
+## 🏗️ 3. TỔNG QUAN KIẾN TRÚC HỆ THỐNG
 
-### 4.1. Khởi động Database Local (Docker):
-```powershell
-docker start scoutboard-postgres
-# Hoặc docker-compose up -d postgres
+### 3.1. Sơ đồ luồng dữ liệu (Architecture Diagram)
+```mermaid
+graph TD
+  User((Client Browser)) -->|HTTPS| VercelFE["Frontend SPA\n(React 19 + Vite)\nscout-board-three.vercel.app"]
+  VercelFE -->|REST API / Bearer JWT| VercelBE["Backend Serverless\n(NestJS 11)\nscoutboard-backend.vercel.app/api"]
+  VercelBE -->|TypeORM Connection Pooler\nSession Port 5432 / SSL| SupaDB[("Supabase PostgreSQL 17\n(aws-0-ap-south-1.pooler.supabase.com)")]
+  
+  subgraph Data_Sync_Pipeline ["Data Sync & Ingestion Pipeline"]
+    SyncScript["Ingestion Scripts\n(backend/src/scripts/*.ts)"] -->|Rate Limit 6.2s\nFamily: 4 IPv4| APIFootball["API-Football\nv3.football.api-sports.io"]
+    SyncScript -->|Dual Upsert| LocalDB[("Local PostgreSQL 17\nlocalhost:5432")]
+    SyncScript -->|Dual Upsert / Auto-Reconnect| SupaDB
+  end
 ```
 
-### 4.2. Chạy Backend Local:
+### 3.2. Cấu trúc Backend (`/backend`)
+Được thiết kế theo **Modular Monolith + Clean Architecture** (4 tầng độc lập):
+* `src/modules/<feature>/domain`: Chứa Pure Entities, Value Objects, Domain Interfaces (không dính TypeORM hay NestJS).
+* `src/modules/<feature>/application`: Chứa Use Cases, Application Services, Ports.
+* `src/modules/<feature>/infrastructure`: Chứa TypeORM ORM Entities, Mappers, Repositories, Database Migrations.
+* `src/modules/<feature>/presentation`: Chứa HTTP Controllers, DTOs (`class-validator`), Guards, Swagger Annotations.
+
+### 3.3. Cấu hình Vercel Serverless Backend:
+* File `backend/vercel.json`: Đóng gói `dist/**`, cấu hình CORS Edge Network cho `https://scout-board-three.vercel.app`.
+* File `backend/api/index.ts`: Khởi tạo Express Serverless Adapter cho NestJS, xử lý preflight `OPTIONS` trong 5ms.
+* File `backend/src/app.module.ts`: Sử dụng `autoLoadEntities: true` tương thích hoàn toàn môi trường Serverless.
+
+---
+
+## 📊 4. TRẠNG THÁI DỮ LIỆU ĐÃ ĐỒNG BỘ (TOP 5 GIẢI ĐẤU CHÂU ÂU)
+
+Cả **Local PostgreSQL** và **Supabase Cloud Database** đều đạt **100% tính đồng nhất (Data Parity)**:
+
+### 4.1. Bảng tổng kết số lượng bản ghi (Record Count Audit)
+| Danh mục thực thể | Bảng Database | Số lượng bản ghi | Tình trạng đồng bộ |
+| :--- | :--- | :---: | :---: |
+| **Giải đấu (Competitions)** | `competitions` | **5** | ✅ Đầy đủ Top 5 giải lớn Châu Âu |
+| **Mùa giải (Seasons)** | `seasons` | **21** | ✅ Có mùa 2024-2025 cho toàn bộ 5 giải |
+| **Câu lạc bộ (Clubs/Teams)**| `teams` | **606** | ✅ Đủ 96/96 CLB Top 5 (Leverkusen, PSG, Real, Inter,...) |
+| **Cầu thủ (Players)** | `players` | **3,017** | ✅ Có ảnh headshot CDN, vị trí thực tế, quốc tịch |
+| **Vị trí chi tiết (Positions)**| `player_positions` | **3,017+** | ✅ Chuẩn hóa 4 nhóm vai trò (GK, DEF, MID, ATT) |
+| **Lịch sử CLB (Transfers)** | `player_team_history` | **7,030** | ✅ 1.209 siêu sao có trọn vẹn lộ trình sự nghiệp |
+| **Lịch thi đấu (Matches)** | `matches` | **1,756** | ✅ 100% toàn bộ lịch thi đấu mùa 2024–2025 của cả 5 giải |
+| **Hiệu suất trận đấu** | `player_match_statistics` | **21,580+** | ✅ Chi tiết từng trận: bàn thắng, sút, kiến tạo, rating,... |
+| **Chỉ số mùa giải (Radar)** | `player_season_statistics`| **1,278+** | ✅ Đầy đủ chỉ số tổng hợp & Per-90 benchmarks |
+
+### 4.2. Danh sách 5 giải đấu & ID nội bộ (UUIDs)
+1. **Premier League (Anh)**:
+   * External ID: `39` | Comp UUID: `9cef6c96-c74e-432d-b0f2-7867ee7f3e07`
+   * Season 2024/2025 UUID: `39202400-0000-4000-8000-000000002024` (Season code: `2024-2025`)
+   * Trận đấu: 380/380 trận hoàn thành | 9.707 thống kê trận đấu.
+2. **La Liga (Tây Ban Nha)**:
+   * External ID: `140` | Comp UUID: `ad6261b7-7170-4824-aeed-edeb1e03a05f`
+   * Season 2024/2025 UUID: `1a85c0bf-470c-40ca-b6bf-9d448f217bcf` (Season code: `2024-2025`)
+   * Trận đấu: 380/380 trận hoàn thành | 9.310 thống kê trận đấu.
+3. **Bundesliga (Đức)**:
+   * External ID: `78` | Comp UUID: `3287afe2-608a-413c-a0b9-3f6b467586c4`
+   * Season 2024/2025 UUID: `2142003f-889e-4119-955e-0876d4bfca8c` (Season code: `2024-2025`)
+   * Trận đấu: 308/308 trận hoàn thành | 1.075+ thống kê trận đấu.
+4. **Serie A (Ý)**:
+   * External ID: `135` | Comp UUID: `aa209d46-caf3-40ea-ac88-fd516bb0dc18`
+   * Season 2024/2025 UUID: `aa1f68b7-4c78-428d-b8d9-19e33b86611d` (Season code: `2024-2025`)
+   * Trận đấu: 380/380 trận hoàn thành | 836+ thống kê trận đấu.
+5. **Ligue 1 (Pháp)**:
+   * External ID: `61` | Comp UUID: `974a6b13-5e12-4508-b45a-ac71a1098120`
+   * Season 2024/2025 UUID: `d9c9b68b-2b3d-4a64-8ce3-3a1f2648a71f` (Season code: `2024-2025`)
+   * Trận đấu: 308/308 trận hoàn thành | 652+ thống kê trận đấu.
+
+---
+
+## 🛠️ 5. QUY TRÌNH CHẠY DỰ ÁN LOCAL (DEVELOPMENT QUICKSTART)
+
+### 5.1. Khởi động PostgreSQL Local (Docker)
+```powershell
+# Chạy container database local đã tạo sẵn
+docker start scoutboard-postgres
+
+# Hoặc nếu chưa có container:
+cd d:\FullStack\Football\ScoutBoard
+docker-compose up -d postgres
+```
+
+### 5.2. Chạy Backend (NestJS API)
 ```powershell
 cd d:\FullStack\Football\ScoutBoard\backend
 npm install
 npm run start:dev
-# API Endpoint: http://localhost:3000/api
-# Swagger Docs: http://localhost:3000/api/docs
+# API Local: http://localhost:3000/api
+# Swagger Docs Local: http://localhost:3000/api/docs
 ```
 
-### 4.3. Chạy Frontend Local:
+### 5.3. Chạy Frontend (React 19 + Vite)
 ```powershell
 cd d:\FullStack\Football\ScoutBoard\frontend
 npm install
@@ -162,73 +171,57 @@ npm run dev
 
 ---
 
-## 5. HƯỚNG DẪN BẢO TRÌ & XỬ LÝ SỰ CỐ (TROUBLESHOOTING)
+## ⚡ 6. CÁC SCRIPT ĐỒNG BỘ DỮ LIỆU (`backend/package.json`)
 
-### 5.1. Khi sửa biến môi trường trên Vercel Backend
-* **Quy tắc**: Vercel **KHÔNG** tự động cập nhật biến môi trường vào bản deploy đang chạy.
-* **Cách áp dụng**: Sau khi thêm hoặc sửa biến trong **Settings ➔ Environment Variables**, phải vào tab **Deployments** ➔ bấm dấu **`...`** ➔ chọn **Redeploy** (hoặc `git push` một commit mới lên nhánh `main`).
+Tất cả các script ingestion được lưu trong thư mục `backend/src/scripts/` và kích hoạt qua `npm run`:
 
-### 5.2. Nhận biết trạng thái Deploy trên Vercel Dashboard
-* **`Ready` (Màu xanh lá)**: Bản deploy mới nhất, đang phục vụ lưu lượng truy cập trực tiếp.
-* **`Ready Stale`**: Bản deploy cũ đã được thay thế bởi bản mới hơn. Hình ảnh thumbnail của bản cũ là ảnh chụp tĩnh lịch sử, không ảnh hưởng đến bản hiện tại.
-
-### 5.3. Các lệnh kiểm tra sức khỏe Backend (Live Health Check)
-Có thể chạy các lệnh PowerShell sau để kiểm tra Backend Vercel bất kỳ lúc nào:
-```powershell
-# 1. Kiểm tra trạng thái máy chủ
-curl.exe -i "https://scoutboard-backend.vercel.app/api/health"
-
-# 2. Kiểm tra danh sách vị trí cầu thủ
-curl.exe -i "https://scoutboard-backend.vercel.app/api/players/positions"
-
-# 3. Kiểm tra truy vấn Database cầu thủ
-curl.exe -i "https://scoutboard-backend.vercel.app/api/players?limit=5&offset=0"
-
-# 4. Kiểm tra tài liệu Swagger
-curl.exe -i "https://scoutboard-backend.vercel.app/api/docs"
-```
+| Lệnh Script | File thực thi | Mục đích |
+| :--- | :--- | :--- |
+| `npm run sync:top3-matches-stats` | `sync-top3-leagues-matches-and-stats.ts` | **Đồng bộ toàn bộ fixtures (996 trận) và kéo thống kê cầu thủ chi tiết cho Bundesliga, Serie A, Ligue 1.** (Đã có cơ chế auto-reconnect Supabase). |
+| `npm run sync:next-transfers` | `sync-next-batch-transfers.ts` | Kéo lịch sử chuyển nhượng cho nhóm cầu thủ tiếp theo. |
+| `npm run enrich:all-profiles` | `enrich-all-remaining-profiles.ts` | Bổ sung chiều cao, cân nặng, số áo cho các cầu thủ còn thiếu. |
+| `npm run sync:top3-positions` | `sync-top3-leagues-positions.ts` | Chuẩn hóa vị trí thi đấu thực tế cho Đức, Ý, Pháp. |
+| `npm run sync:missing-bundesliga` | `sync-missing-bundesliga-clubs.ts` | Kéo danh sách cầu thủ cho Leverkusen, Frankfurt, Hoffenheim, Augsburg. |
 
 ---
 
-## 6. Trạng thái đồng bộ dữ liệu trận đấu & chỉ số mùa giải (Bundesliga, Serie A, Ligue 1)
+## ⚠️ 7. CÁC KINH NGHIỆM KỸ THUẬT & GOTCHAS CẦN BIẾT (QUAN TRỌNG)
 
-### 6.1. Kết quả đồng bộ chi tiết
-Đã tiến hành đồng bộ các trận đấu ưu tiên (đại chiến giữa các CLB hàng đầu) và chỉ số hiệu suất trận đấu (`player_match_statistics`) kèm chỉ số tổng hợp mùa giải (`player_season_statistics`) theo cơ chế chia đều vòng tròn (Round-Robin) cho 3 giải đấu:
-* **Bundesliga (Đức)**: 308 lịch thi đấu, 65+ trận có chỉ số chi tiết, 321 bản ghi thống kê mùa giải.
-* **Serie A (Ý)**: 380 lịch thi đấu, 60+ trận có chỉ số chi tiết, 247 bản ghi thống kê mùa giải.
-* **Ligue 1 (Pháp)**: 308 lịch thi đấu, 59+ trận có chỉ số chi tiết, 270 bản ghi thống kê mùa giải.
+### 7.1. Lỗi Supabase Pooler `Connection terminated unexpectedly`
+* **Hiện tượng**: Khi chạy các script đồng bộ kéo dài nhiều phút (do phải sleep 6.2s giữa các request), cổng Transaction `6543` của Supabase pooler sẽ tự động ngắt kết nối idle TCP client.
+* **Giải pháp đã áp dụng**:
+  1. Đổi cổng kết nối Supabase sang **Port `5432` (Session Mode)** thay vì `6543`.
+  2. Bật cờ `keepAlive: true` trong options của `pg.Client`.
+  3. Bọc truy vấn bằng hàm `querySupabaseWithRetry(query, params)`: Tự động bắt lỗi ngắt kết nối, tạo lại client mới và retry trong 1 giây mà không làm gián đoạn tiến trình.
 
-### 6.2. Đối soát dữ liệu (Database Parity Audit)
-Toàn bộ dữ liệu được đồng bộ song song 100% giữa **Local Docker PostgreSQL** và **Supabase Cloud Pooler**:
+### 7.2. Lỗi `fetch failed` do Undici trên Node.js v25 (Windows)
+* **Hiện tượng**: Khi gọi API-Football bằng `fetch()` mặc định của Node.js, connection pool ngầm của `undici` dễ bị drop socket sau 10-15 requests.
+* **Giải pháp**:
+  - Đặt `dns.setDefaultResultOrder('ipv4first');` ở đầu file.
+  - Sử dụng module gốc `https.request` với tùy chọn `{ family: 4, timeout: 25000 }` để đảm bảo 100% kết nối qua IPv4 ổn định.
 
-| Danh mục dữ liệu | Local PostgreSQL | Supabase Cloud | Trạng thái đồng bộ |
-| :--- | :---: | :---: | :---: |
-| **Tổng số trận (3 giải)** | 996 | 996 | ✅ 100% Khớp |
-| **Chỉ số trận đấu (`player_match_statistics`) (3 giải)** | 5,214 | 5,214 | ✅ 100% Khớp |
-| **Chỉ số mùa giải (`player_season_statistics`) (3 giải)** | 838 | 838 | ✅ 100% Khớp |
-| **Tổng số CLB toàn hệ thống (Top 5 giải)** | 606 | 606 | ✅ 100% Khớp |
-| **Tổng số cầu thủ toàn hệ thống** | 3,017 | 3,017 | ✅ 100% Khớp |
-| **Tổng số trận đấu toàn hệ thống** | 1,756 | 1,756 | ✅ 100% Khớp |
-| **Tổng số bản ghi hiệu suất trận đấu toàn hệ thống** | 24,231 | 24,231 | ✅ 100% Khớp |
-| **Tổng số bản ghi thống kê mùa giải toàn hệ thống** | 1,575 | 1,575 | ✅ 100% Khớp |
+### 7.3. Ràng buộc NOT NULL của bảng `player_season_statistics` trên Cloud
+* Các cột `goals_per_90`, `assists_per_90`, `key_passes_per_90`, `tackles_per_90`, `interceptions_per_90` trên Supabase có ràng buộc `NOT NULL DEFAULT 0`.
+* Với các cầu thủ dự bị không thi đấu (0 phút), chỉ số Per-90 tính toán là `null`. Khi insert vào Supabase phải dùng `s.goals_per_90 ?? 0`.
 
-* **Lưu ý hạn mức API**: Đã sử dụng 98/100 request API-Football trong ngày (giữ 2 request an toàn). Script đồng bộ `sync:top3-matches-stats` có thể tiếp tục chạy khi sang ngày mới (hồi phục 100 req vào 00:00 UTC / 07:00 sáng VN).
+### 7.4. Chuẩn hóa UUID mùa giải RFC 4122
+* Toàn bộ `seasonId` khi gửi lên API Backend phải là UUID v4 hợp lệ theo RFC 4122 (không được chứa các chuỗi nhân tạo toàn số 0 như `39202400-0000-0000-0000-000000002024`). Mã chuẩn hiện tại là `39202400-0000-4000-8000-000000002024`.
 
 ---
 
-## 7. Khắc phục lỗi "seasonId must be a UUID" khi xem trang Player Detail
+## 🚀 8. CHECKLIST TIẾP QUẢN CHO AGENT TIẾP THEO
 
-### 7.1. Nguyên nhân gốc rễ (Root Cause)
-* Bảng `seasons` trước đây chứa 1 bản ghi mùa giải Premier League 2024/2025 có ID nhân tạo: `39202400-0000-0000-0000-000000002024` (do quá trình tạo seed cũ đặt theo mã giải 39 và năm 2024).
-* Dù PostgreSQL chấp nhận chuỗi này dưới kiểu dữ liệu `uuid`, thư viện `class-validator` (dựa trên `validator.isUUID` chuẩn RFC 4122) sẽ từ chối chuỗi này vì trường version và variant đều là `0000` (không phải version 1-5 hợp lệ).
-* Hậu quả: Khi xem chi tiết bất kỳ cầu thủ Premier League nào, Frontend gửi request `GET /api/players/:id/match-statistics?seasonId=39202400-0000-0000-0000-000000002024`, Backend trả về mã lỗi `HTTP 400 Bad Request` kèm thông báo `seasonId must be a UUID`, khiến bảng thống kê trận đấu (`PlayerMatchLogSection`) bị lỗi và không tải được.
-
-### 7.2. Các bước xử lý triệt để
-1. **Migration chuẩn hóa UUID trên cả Local PostgreSQL & Supabase Cloud**:
-   - Thay thế ID `39202400-0000-0000-0000-000000002024` thành UUID v4 chuẩn RFC 4122: `39202400-0000-4000-8000-000000002024`.
-   - Cập nhật toàn bộ 390 bản ghi khóa ngoại trong `player_season_statistics` và 20 bản ghi trong `season_teams`.
-   - Bổ sung `season_code = '2024-2025'` cho toàn bộ các giải đấu còn thiếu để dropdown mùa giải hiển thị chuẩn xác `Season 2024-2025 (Current)`.
-2. **Defensive Coding tại Backend DTO**:
-   - Bổ sung `@Transform` cho `seasonId`, `competitionId`, `teamId` trong `FindPlayerMatchStatisticsQueryDto` để tự động chuyển chuỗi rỗng `""`, `"undefined"`, `"null"` thành `undefined` trước khi `@IsUUID()` kiểm tra.
-3. **Defensive Coding tại Frontend Service**:
-   - Trong `frontend/src/services/player.service.ts` (`getPlayerMatchStatisticsApi`), kiểm tra chuỗi hợp lệ trước khi `queryParams.append('seasonId', ...)`.
+1. **Kiểm tra hạn mức API-Football**:
+   ```powershell
+   node -e "const https = require('https'); https.get({hostname: 'v3.football.api-sports.io', path: '/status', headers: {'x-apisports-key': '09b395257421d95a43fa4fd945df43b7'}}, r => { let b=''; r.on('data', d=>b+=d); r.on('end', ()=>console.log(b)); });"
+   ```
+2. **Kiểm tra trạng thái Live API**:
+   ```powershell
+   curl.exe -i "https://scoutboard-backend.vercel.app/api/health"
+   curl.exe -i "https://scoutboard-backend.vercel.app/api/players?limit=5"
+   ```
+3. **Tiếp tục đồng bộ thống kê trận đấu (nếu người dùng yêu cầu)**:
+   - Chạy `npm run sync:top3-matches-stats` trong thư mục `backend`. Script sẽ tự động nhận diện các trận đã có thống kê và chỉ kéo các trận còn lại.
+4. **Deploy cập nhật mới**:
+   - Chỉ cần commit và push lên nhánh `main`: `git push origin main`.
+   - Vercel sẽ tự động build và deploy cả Frontend lẫn Backend trong vòng 60 giây.

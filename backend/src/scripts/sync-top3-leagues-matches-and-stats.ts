@@ -153,15 +153,54 @@ async function main() {
     database: process.env.POSTGRES_DB || 'scoutboard_db',
   });
 
-  const supabaseClient = new Client({
+  let supabaseClient = new Client({
     host: process.env.SUPABASE_HOST || 'aws-0-ap-south-1.pooler.supabase.com',
-    port: parseInt(process.env.SUPABASE_PORT || '6543', 10),
+    port: parseInt(process.env.SUPABASE_PORT || '5432', 10),
     user: process.env.SUPABASE_USER || 'postgres.utpuxqpokpqnxpqqiens',
     password: process.env.SUPABASE_PASSWORD || '03082005Anhle@@',
     database: process.env.SUPABASE_DB || 'postgres',
     ssl: { rejectUnauthorized: false },
     statement_timeout: 60000,
+    keepAlive: true,
   });
+
+  async function querySupabaseWithRetry(query: string, params?: any[]): Promise<any> {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        return await supabaseClient.query(query, params);
+      } catch (err: any) {
+        if (
+          err.message &&
+          (err.message.includes('terminated') ||
+            err.message.includes('closed') ||
+            err.message.includes('Socket') ||
+            err.message.includes('ECONNRESET'))
+        ) {
+          console.warn(
+            `\n⚠️ [Supabase Pooler Reconnect] Connection dropped on attempt ${attempt}. Reconnecting to Supabase...`,
+          );
+          try {
+            await supabaseClient.end();
+          } catch {}
+          supabaseClient = new Client({
+            host: process.env.SUPABASE_HOST || 'aws-0-ap-south-1.pooler.supabase.com',
+            port: parseInt(process.env.SUPABASE_PORT || '5432', 10),
+            user: process.env.SUPABASE_USER || 'postgres.utpuxqpokpqnxpqqiens',
+            password: process.env.SUPABASE_PASSWORD || '03082005Anhle@@',
+            database: process.env.SUPABASE_DB || 'postgres',
+            ssl: { rejectUnauthorized: false },
+            statement_timeout: 60000,
+            keepAlive: true,
+          });
+          await supabaseClient.connect();
+          if (attempt === 3) throw err;
+          await sleep(1000);
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
 
   await localClient.connect();
   await supabaseClient.connect();
@@ -255,7 +294,7 @@ async function main() {
              ON CONFLICT (external_provider, external_id) DO UPDATE SET updated_at = NOW()`,
             [newTeamId, homeExtId, teamName, cName],
           );
-          await supabaseClient.query(
+          await querySupabaseWithRetry(
             `INSERT INTO teams (id, external_provider, external_id, name, country, created_at, updated_at)
              VALUES ($1, 'API_FOOTBALL', $2, $3, $4, NOW(), NOW())
              ON CONFLICT (external_provider, external_id) DO UPDATE SET updated_at = NOW()`,
@@ -275,7 +314,7 @@ async function main() {
              ON CONFLICT (external_provider, external_id) DO UPDATE SET updated_at = NOW()`,
             [newTeamId, awayExtId, teamName, cName],
           );
-          await supabaseClient.query(
+          await querySupabaseWithRetry(
             `INSERT INTO teams (id, external_provider, external_id, name, country, created_at, updated_at)
              VALUES ($1, 'API_FOOTBALL', $2, $3, $4, NOW(), NOW())
              ON CONFLICT (external_provider, external_id) DO UPDATE SET updated_at = NOW()`,
@@ -316,7 +355,7 @@ async function main() {
           [matchId, league.competitionId, league.seasonId, homeTeamId, awayTeamId, fixtureExtId, matchDate, status, homeScore, awayScore],
         );
 
-        await supabaseClient.query(
+        await querySupabaseWithRetry(
           `INSERT INTO matches (
             id, competition_id, season_id, home_team_id, away_team_id,
             external_provider, external_id, match_date, status, home_score,
@@ -545,7 +584,7 @@ async function main() {
           `;
 
           await localClient.query(query, params);
-          await supabaseClient.query(query, params);
+          await querySupabaseWithRetry(query, params);
 
           matchPlayersPersisted++;
         }
@@ -614,7 +653,7 @@ async function main() {
 
   let pushedSeasonStats = 0;
   for (const s of localSeasonStats.rows) {
-    await supabaseClient.query(
+    await querySupabaseWithRetry(
       `
       INSERT INTO player_season_statistics (
         id, player_id, season_id, competition_id, team_id,
@@ -722,7 +761,7 @@ async function main() {
       (SELECT count(*) FROM player_season_statistics WHERE competition_id = ANY($1::uuid[])) as season_stats_top3
   `, [compIds]);
 
-  const supaCounts = await supabaseClient.query(`
+  const supaCounts = await querySupabaseWithRetry(`
     SELECT
       (SELECT count(*) FROM matches WHERE competition_id = ANY($1::uuid[])) as matches_top3,
       (SELECT count(*) FROM player_match_statistics pms JOIN matches m ON pms.match_id = m.id WHERE m.competition_id = ANY($1::uuid[])) as match_stats_top3,
