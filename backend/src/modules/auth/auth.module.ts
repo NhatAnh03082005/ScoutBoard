@@ -21,6 +21,7 @@ import { RolesGuard } from './presentation/http/guards/roles.guard';
 import { ProfileController } from '../users/presentation/http/controllers/profile.controller';
 import { MyProfileService } from '../users/application/services/my-profile.service';
 import { AvatarStorageService } from '../users/infrastructure/storage/avatar-storage.service';
+import { PublicAvatarController } from '../users/presentation/http/controllers/public-avatar.controller';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { AvatarStorageService } from '../users/infrastructure/storage/avatar-sto
     JwtModule.register({}),
     TypeOrmModule.forFeature([RefreshTokenOrmEntity]),
   ],
-  controllers: [AuthController, ProfileController],
+  controllers: [AuthController, ProfileController, PublicAvatarController],
   providers: [
     {
       provide: REFRESH_TOKEN_REPOSITORY,

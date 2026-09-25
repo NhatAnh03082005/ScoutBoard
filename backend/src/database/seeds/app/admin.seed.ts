@@ -23,7 +23,7 @@ export async function seedAdminUser(
       status: 'ACTIVE',
     });
     await userRepo.save(adminUser);
-    console.log(`✅ Seeded User: ${adminEmail} (Password: Admin@123456)`);
+    console.log(`✅ Seeded User: ${adminEmail}`);
   }
 
   const existingUserRole = await userRoleRepo.findOne({

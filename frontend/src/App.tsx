@@ -360,12 +360,7 @@ export default function App() {
             tabIndex={0}
           >
             <div className="scout-navbar-logo-icon">
-              <svg viewBox="0 0 44 48" fill="none" aria-hidden="true">
-                <path d="M22 2.5 39 8v13.2c0 11.1-6.5 19.3-17 24.3C11.5 40.5 5 32.3 5 21.2V8L22 2.5Z" fill="#09213b" stroke="#f4b740" strokeWidth="2.5" />
-                <circle cx="22" cy="23" r="10.5" fill="#f8fafc" />
-                <path d="m22 15 4.2 3-1.6 4.9h-5.2L17.8 18 22 15Z" fill="#0a1d34" />
-                <path d="m17.8 18-4.2 1.2-1.2 4.7 3.3 3.2 3.7-4.2M26.2 18l4.2 1.2 1.2 4.7-3.3 3.2-3.7-4.2M15.7 27.1l.9 4.4 4.1 2 1.3-4.7M28.3 27.1l-.9 4.4-4.1 2-1.3-4.7" stroke="#0a1d34" strokeWidth="1.5" strokeLinejoin="round" />
-              </svg>
+              <img src="/images/scoutboard-logo.png" alt="" aria-hidden="true" />
             </div>
             <span className="scout-navbar-brand-name">ScoutBoard</span>
           </div>

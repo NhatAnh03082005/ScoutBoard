@@ -163,19 +163,22 @@ body {
 
 .scout-navbar-logo-icon {
   width: 44px;
-  height: 48px;
-  border-radius: 0;
+  height: 44px;
+  border-radius: 50%;
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: none;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.32);
 }
 
-.scout-navbar-logo-icon svg {
+.scout-navbar-logo-icon img {
   width: 44px;
-  height: 48px;
-  filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.35));
+  height: 44px;
+  display: block;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .scout-navbar-brand-name {
@@ -346,9 +349,9 @@ body {
   }
 
   .scout-navbar-logo-icon,
-  .scout-navbar-logo-icon svg {
+  .scout-navbar-logo-icon img {
     width: 36px;
-    height: 40px;
+    height: 36px;
   }
 
   .scout-navbar-nav {
@@ -405,9 +408,9 @@ body {
   }
 
   .scout-navbar-logo-icon,
-  .scout-navbar-logo-icon svg {
+  .scout-navbar-logo-icon img {
     width: 31px;
-    height: 35px;
+    height: 31px;
   }
 
   .scout-navbar-user-email {
@@ -5626,13 +5629,8 @@ body {
 }
 
 .scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-logo-icon {
-  background: linear-gradient(135deg, rgba(223, 186, 115, 0.25) 0%, rgba(184, 134, 54, 0.45) 100%) !important;
   border: 1px solid rgba(223, 186, 115, 0.6) !important;
   box-shadow: 0 0 14px rgba(223, 186, 115, 0.3) !important;
-}
-
-.scout-app-shell:has(.scout-squad-builder-stage) .scout-navbar-logo-icon svg {
-  stroke: #fce5b5 !important;
 }
 
 

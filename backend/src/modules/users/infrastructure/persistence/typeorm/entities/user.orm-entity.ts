@@ -27,6 +27,18 @@ export class UserOrmEntity {
   @Column({ name: 'avatar_url', type: 'varchar', length: 1000, nullable: true })
   avatarUrl: string | null;
 
+  @Column({ name: 'avatar_data', type: 'bytea', nullable: true, select: false })
+  avatarData?: Buffer | null;
+
+  @Column({
+    name: 'avatar_content_type',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+    select: false,
+  })
+  avatarContentType?: string | null;
+
   @Column({ type: 'varchar', length: 30, default: 'ACTIVE' })
   status: string;
 

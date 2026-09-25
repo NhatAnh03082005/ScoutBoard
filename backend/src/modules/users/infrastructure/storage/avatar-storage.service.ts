@@ -6,6 +6,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { mkdir, unlink, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
+import { DataSource } from 'typeorm';
+import { UserOrmEntity } from '../persistence/typeorm/entities/user.orm-entity';
 
 export interface UploadedAvatarFile {
   buffer: Buffer;
@@ -18,7 +20,10 @@ export interface UploadedAvatarFile {
 export class AvatarStorageService {
   private readonly maxFileSize = 2 * 1024 * 1024;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly dataSource: DataSource,
+  ) {}
 
   async upload(userId: string, file: UploadedAvatarFile): Promise<string> {
     const contentType = this.detectImageType(file.buffer);
@@ -35,6 +40,9 @@ export class AvatarStorageService {
 
     const storageConfig = this.getStorageConfig();
     if (!storageConfig) {
+      if (this.isProduction()) {
+        return this.uploadToDatabase(userId, file.buffer, contentType);
+      }
       return this.uploadLocally(userId, file.buffer, contentType);
     }
     const { baseUrl, serviceKey, bucket } = storageConfig;
@@ -71,6 +79,10 @@ export class AvatarStorageService {
   async remove(userId: string): Promise<void> {
     const storageConfig = this.getStorageConfig();
     if (!storageConfig) {
+      if (this.isProduction()) {
+        await this.removeFromDatabase(userId);
+        return;
+      }
       await this.removeLocalAvatar(userId);
       return;
     }
@@ -113,19 +125,68 @@ export class AvatarStorageService {
     const bucket =
       this.configService.get<string>('SUPABASE_AVATAR_BUCKET') || 'avatars';
 
-    if (!baseUrl || !serviceKey) {
-      if (
-        (this.configService.get<string>('NODE_ENV') || 'development') !==
-        'production'
-      ) {
-        return null;
-      }
-      throw new ServiceUnavailableException(
-        'Avatar storage has not been configured.',
-      );
-    }
+    if (!baseUrl || !serviceKey) return null;
 
     return { baseUrl, serviceKey, bucket };
+  }
+
+  async getDatabaseAvatar(
+    userId: string,
+  ): Promise<{ buffer: Buffer; contentType: string } | null> {
+    const user = await this.dataSource
+      .getRepository(UserOrmEntity)
+      .createQueryBuilder('user')
+      .addSelect(['user.avatarData', 'user.avatarContentType'])
+      .where('user.id = :userId', { userId })
+      .getOne();
+
+    if (!user?.avatarData || !user.avatarContentType) return null;
+    return { buffer: user.avatarData, contentType: user.avatarContentType };
+  }
+
+  private async uploadToDatabase(
+    userId: string,
+    buffer: Buffer,
+    contentType: string,
+  ): Promise<string> {
+    await this.dataSource.getRepository(UserOrmEntity).update(userId, {
+      avatarData: buffer,
+      avatarContentType: contentType,
+    });
+
+    return `${this.getPublicBaseUrl()}/api/users/${encodeURIComponent(userId)}/avatar?v=${Date.now()}`;
+  }
+
+  private async removeFromDatabase(userId: string): Promise<void> {
+    await this.dataSource.getRepository(UserOrmEntity).update(userId, {
+      avatarData: null,
+      avatarContentType: null,
+    });
+  }
+
+  private getPublicBaseUrl(): string {
+    const configured = this.configService.get<string>('BACKEND_PUBLIC_URL');
+    const vercelProduction = this.configService.get<string>(
+      'VERCEL_PROJECT_PRODUCTION_URL',
+    );
+    const vercelDeployment = this.configService.get<string>('VERCEL_URL');
+    const candidate = configured || vercelProduction || vercelDeployment;
+
+    if (!candidate) {
+      return `http://localhost:${this.configService.get<string>('PORT') || '3000'}`;
+    }
+
+    const withProtocol = /^https?:\/\//i.test(candidate)
+      ? candidate
+      : `https://${candidate}`;
+    return withProtocol.replace(/\/$/, '');
+  }
+
+  private isProduction(): boolean {
+    return (
+      (this.configService.get<string>('NODE_ENV') || 'development') ===
+      'production'
+    );
   }
 
   private async uploadLocally(
