@@ -203,7 +203,33 @@ async function main() {
   }
 
   await localClient.connect();
-  await supabaseClient.connect();
+
+  // Connect to Supabase Cloud with retry to handle transient DNS or socket errors
+  let connected = false;
+  for (let cAttempt = 1; cAttempt <= 5; cAttempt++) {
+    try {
+      await supabaseClient.connect();
+      connected = true;
+      break;
+    } catch (cErr: any) {
+      console.warn(`⚠️ [Supabase Connect] Attempt ${cAttempt}/5 failed (${cErr.code || cErr.message}). Retrying in 2s...`);
+      if (cAttempt === 5) throw cErr;
+      await sleep(2000);
+      try {
+        await supabaseClient.end();
+      } catch {}
+      supabaseClient = new Client({
+        host: process.env.SUPABASE_HOST || 'aws-0-ap-south-1.pooler.supabase.com',
+        port: parseInt(process.env.SUPABASE_PORT || '5432', 10),
+        user: process.env.SUPABASE_USER || 'postgres.utpuxqpokpqnxpqqiens',
+        password: process.env.SUPABASE_PASSWORD || '03082005Anhle@@',
+        database: process.env.SUPABASE_DB || 'postgres',
+        ssl: { rejectUnauthorized: false },
+        statement_timeout: 60000,
+        keepAlive: true,
+      });
+    }
+  }
   console.log('✓ Connected to Local PostgreSQL and Supabase Cloud.');
 
   // 3. Check Initial Quota
